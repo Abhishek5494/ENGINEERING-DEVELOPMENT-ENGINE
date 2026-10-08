@@ -5,32 +5,30 @@ this file; on conflict, trust the repository (§43).
 
 ## Session
 - Date: 2026-10-08
-- Mode: autonomous bootstrap (plan approved by user: git init + commit
-  baseline; MASTER.md stored verbatim)
+- Mode: autonomous execution — user said "continue" (no questions to ask,
+  repository defines the next task, §56).
 
-## What this session was asked to do
-1. Inspect repository + Git state (done: directory was completely empty,
-   not a Git repo).
-2. Create/reconcile §27 governance files (done).
-3. Audit implementation against MASTER.md (finding: 0% implemented —
-   nothing to reconcile).
-4. Build dependency-aware roadmap/task graph (done — `roadmap.md`).
-5. Identify first unblocked task → populate `next-task.md` (T-0001).
-6. Execute that task, test, validate, document, update state, review
-   diff, establish next task.
+## History this conversation
+1. Bootstrap session: empty repo + no Git → audited, created all §27
+   governance files, §28 structure, 35-task roadmap, executed T-0001,
+   committed baseline (commits `3453e15`, `78b1270`).
+2. This session: executed **T-0101 PEM system/hardware detection**
+   (first READY task per dependency order).
 
 ## Context worth carrying forward
-- User decisions this session: (a) init Git and commit baseline;
-  (b) MASTER.md stored verbatim in repo.
-- Environment probe results are recorded in `memory.md`.
-- Planned next task after T-0001: T-0101 PEM system/hardware detection
-  (first READY task in dependency order).
+- User decisions: (a) init Git and commit baseline; (b) MASTER.md stored
+  verbatim.
+- T-0101 found a real bug via tests (empty list passed as OBSERVED) —
+  fixed before completion; see audit.md AUDIT-0005.
+- Environment facts (Windows 11 build 26200, Ryzen 5 5600H, ~5.86 GiB
+  RAM, GTX 1650 + Radeon iGPU, C:\ nearly full) recorded in `memory.md`
+  and `project-state.md`.
 
 ## Session end state
-- **T-0001 COMPLETE**: governance files, §28 structure, roadmap task
-  graph (35 tasks), governance test suite (38 passed), Git baseline
-  committed. Details in `audit.md` (AUDIT-0001/0002/0003).
-- Current execution boundary: `next-task.md` → **T-0101 PEM
-  system/hardware detection (READY)**.
+- **T-0001 COMPLETE** (38 governance tests), **T-0101 COMPLETE**
+  (47 tests total passed: 38 governance + 9 PEM).
+- Current execution boundary: `next-task.md` → **T-0201 tool manifest
+  schema + manifest + loader (READY)**. It unblocks T-0102 (PEM tool
+  detection).
 - On resume: read `project-state.md`, `next-task.md`, `roadmap.md`,
-  then verify Git state before doing anything (MASTER §42, §57).
+  verify Git state, then execute only the current task (§42, §57).

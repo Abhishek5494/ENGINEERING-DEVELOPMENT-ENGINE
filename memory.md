@@ -6,14 +6,25 @@ actions belong in `audit.md`.
 
 ## Platform / environment (evidence-backed)
 
-- Host OS: Windows (win32), PowerShell 5.1 — OBSERVED, 2026-10-08.
+- Host OS: Windows 11 (build 10.0.26200), AMD64 64-bit, PowerShell 5.1 —
+  OBSERVED via `detect_system()`, 2026-10-08.
+- CPU: AMD Ryzen 5 5600H with Radeon Graphics — OBSERVED, 2026-10-08.
+- RAM as reported by OS: 6,287,331,328 bytes (~5.86 GiB) — OBSERVED,
+  2026-10-08. May exclude hardware-reserved memory; treat as the usable
+  budget for resource-aware decisions (§38).
+- GPU: AMD Radeon(TM) Graphics (iGPU) + NVIDIA GeForce GTX 1650 (dGPU) —
+  OBSERVED, 2026-10-08. VRAM: UNKNOWN (not queried).
+- Storage: C:\ ~213.8 GB total with only ~14 MB free (2026-10-08,
+  OBSERVED — nearly full, risky for installs); D:\ ~297.2 GB total with
+  ~96.8 GB free. Re-check free space before any install task.
 - Toolchain probed at bootstrap: Git 2.55.0.windows.3, Python 3.13.5,
   Node v24.14.1, pytest 9.1.1 — OBSERVED (command output, 2026-10-08).
 - PySide6 6.11.1 (Qt 6.11.1 runtime) present on host — OBSERVED via
   pytest qt plugin load, 2026-10-08. Potentially relevant later for
   Qt-based tool automation; not yet verified by direct import.
 - Engineering tools (FreeCAD, KiCad, ngspice, Gazebo, Blender, Jupyter):
-  UNKNOWN — never assume installed; PEM (T-0101/T-0102) must detect.
+  UNKNOWN — never assume installed; PEM tool detection (T-0102) must
+  probe them via the manifest (T-0201).
 
 ## Engineering rules (from MASTER.md — always in force)
 

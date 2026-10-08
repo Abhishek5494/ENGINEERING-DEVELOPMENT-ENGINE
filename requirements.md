@@ -29,7 +29,7 @@ Last verified against repository: TASK-0001 bootstrap.
 
 | ID | Requirement | Status |
 |---|---|---|
-| R3.1 | Detect OS, OS version, CPU, architecture, RAM, GPU, VRAM, storage | SPECIFIED |
+| R3.1 | Detect OS, OS version, CPU, architecture, RAM, GPU/VRAM, storage | PARTIAL (T-0101: OS/version/CPU/arch/RAM/GPU names/storage OBSERVED on Windows host; VRAM not yet detected; Linux/macOS paths written but unexecuted) |
 | R3.2 | Detect Python, Git, engineering tools, versions, executable paths | SPECIFIED |
 | R3.3 | Detect package managers, relevant environment variables | SPECIFIED |
 | R3.4 | Report capabilities with states READY/LIMITED/UNAVAILABLE/UNKNOWN | SPECIFIED |

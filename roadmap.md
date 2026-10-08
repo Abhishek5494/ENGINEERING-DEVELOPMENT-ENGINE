@@ -14,7 +14,7 @@ Last updated: TASK-0001 (bootstrap).
 |---|---|---|---|---|
 | T-0001 | Repository governance bootstrap | 0 | — | COMPLETE |
 | T-0002 | License decision | 0 | T-0001 | BLOCKED (needs human approval, MASTER §35) |
-| T-0101 | PEM system/hardware detection | 1 | T-0001 | READY |
+| T-0101 | PEM system/hardware detection | 1 | T-0001 | COMPLETE |
 | T-0102 | PEM tool detection + capability states | 1 | T-0101, T-0201 | PLANNED |
 | T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | PLANNED |
 | T-0104 | Windows scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
@@ -183,3 +183,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 
 - 2026-10-08: initial task graph created at repository bootstrap (T-0001), derived from MASTER §31/§48 against an empty repository. No prior state to reconcile.
 - 2026-10-08: T-0001 marked COMPLETE — governance files + structure + governance test suite (38 passed) + Git baseline. Next task: T-0101.
+- 2026-10-08: T-0101 marked COMPLETE — `src/pem/detect.py` system detection (47 tests passed: 38 governance + 9 PEM). Next READY task: T-0201 (tool manifest; unblocks T-0102).
