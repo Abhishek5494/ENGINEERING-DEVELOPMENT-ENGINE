@@ -95,7 +95,10 @@ Last verified against repository: TASK-0001 bootstrap.
 | R9.1 | FreeCAD=mechanical, KiCad=PCB, ngspice=circuits, Python/Jupyter=math, Gazebo=robotics, Blender=visualization, Git=history, measurement=physical truth | SPECIFIED |
 | R9.2 | No subsystem performs another's specialized function | SPECIFIED |
 | R9.3 | Simulation is evidence, not physical proof; assumptions documented | PARTIAL (T-0801: executable notebooks are recorded as SIMULATED evidence via `notebook_evidence`; structural validation is OBSERVED) |
-| R9.4 | Tool integrations detect the tool via PEM, drive it, and report `UNAVAILABLE` (with skipped tests) when absent — never a fake success | IMPLEMENTED (T-0801: `src/integrations/jupyter.py` gates execution on `jupyter_available`; live test skips when Jupyter absent) |
+| R9.4 | Tool integrations detect the tool via PEM, drive it, and report `UNAVAILABLE` (with skipped tests) when absent — never a fake success | IMPLEMENTED (T-0801 Jupyter, T-0901 FreeCAD: execution gated on availability; live tests skip when absent) |
+| R9.5 | FreeCAD is the mechanical CAD authority; models are produced/verified by FreeCAD, not hand-written | IMPLEMENTED (T-0901: `build_box_macro` generates a FreeCAD macro; `verify_outputs` requires the FreeCAD-produced `.FCStd`; live run gated/UNAVAILABLE when absent) |
+| R9.6 | KiCad is the PCB authority; boards are checked/fabricated by KiCad, not fabricated by us | IMPLEMENTED (T-1001: `run_drc`/`run_erc`/`export_gerbers` drive `kicad-cli`; `verify_artifacts` requires KiCad-produced outputs; live commands gated/UNAVAILABLE when absent) |
+| R9.7 | ngspice is the circuit-simulation authority; results come from ngspice, not fabricated | IMPLEMENTED (T-1002: `run_simulation` drives `ngspice -b -o`; `parse_op_point` parses real output; `verify_outputs` requires ngspice-produced files; live run gated/UNAVAILABLE when absent) |
 
 ## R10 — Security (MASTER §14, §52)
 

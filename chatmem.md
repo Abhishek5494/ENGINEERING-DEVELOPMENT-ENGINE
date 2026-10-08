@@ -42,6 +42,17 @@ this file; on conflict, trust the repository (§43).
     stdlib nbformat build/validate, `simulations/`-confined write, gated
     `nbconvert` execution, labelled evidence); Jupyter NOT installed →
     live execution UNAVAILABLE (honest skip).
+19. T-0901 FreeCAD integration (`src/integrations/freecad.py`:
+    parametric macro generation + `cad/`-confined write, gated
+    `freecadcmd` run, `verify_outputs`, labelled evidence); FreeCAD NOT
+    installed → live CAD UNAVAILABLE.
+20. T-1001 KiCad integration (`src/integrations/kicad.py`: `kicad-cli`
+    DRC/ERC/Gerber export gated on presence, `verify_artifacts`, labelled
+    evidence); KiCad NOT installed → live PCB UNAVAILABLE.
+21. T-1002 ngspice integration (`src/integrations/ngspice.py`: batch
+    `ngspice -b -o` gated on presence, `write_netlist`, `parse_op_point`,
+    `verify_outputs`, labelled evidence); ngspice NOT installed → live
+    simulation UNAVAILABLE.
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
@@ -50,8 +61,9 @@ this file; on conflict, trust the repository (§43).
   `a90df34` — T-0105.
 - `646f529` — T-0106 + directive audit; `0e26ce2` — T-0202;
   `9257ddd` — T-0302; `fde672d` — T-0301; `a755b53` — T-0401.
-- `a473222` — T-0402 + T-0403 + T-0701; `4395012` — T-0702.
-- (pending) — T-0801.
+- `a473222` — T-0402 + T-0403 + T-0701; `4395012` — T-0702;
+  `ef9e727` — T-0801.
+- (pending) — T-0901, T-1001, T-1002.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -72,11 +84,12 @@ this file; on conflict, trust the repository (§43).
   commit, pick next READY task by §48 phase order, continue (§56).
 
 ## Next task
-- `next-task.md` → **T-0901 FreeCAD integration** (Phase 9; mechanical
-  authority). FreeCAD is NOT installed on this host, so it will ship as a
-  gated integration with skip-when-absent tests (like T-0801). Phase-5
-  Scrapling (T-0501/T-0502) and Phase-6 Taiga (T-0601/T-0602) stay BLOCKED
-  (install gate / repo not supplied); T-0404 waits on T-0502.
+- `next-task.md` → **T-1101 Gazebo integration** (Phase 11;
+  robotics/physics authority). Gazebo is NOT installed on this host, so it
+  will ship as a gated integration with skip-when-absent tests (like
+  T-0801/T-0901/T-1001/T-1002). Phase-5 Scrapling (T-0501/T-0502) and
+  Phase-6 Taiga (T-0601/T-0602) stay BLOCKED (install gate / repo not
+  supplied); T-0404 waits on T-0502.
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never

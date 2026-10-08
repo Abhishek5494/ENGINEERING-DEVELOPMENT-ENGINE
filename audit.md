@@ -1087,3 +1087,129 @@ Append-only record of significant actions, findings and discrepancies
 - **Files:** src/integrations/__init__.py, src/integrations/jupyter.py,
   tests/test_integrations_jupyter.py, requirements.md (R9.3/R9.4),
   roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0023 - T-0901 FreeCAD integration (2026-10-08)
+
+- **Task:** T-0901 FreeCAD integration — mechanical CAD authority;
+  generate/verify models via FreeCAD, gated on tool presence.
+- **Deliverables:** `src/integrations/freecad.py` — `FREECAD_TOOLS`,
+  `freecad_available` (candidate console names via injectable `which`),
+  `FreeCadError`, `FreeCADUnavailable`, `FreeCADRun`, `build_box_macro`
+  (deterministic FreeCAD macro text), `write_script` (confined to `cad/`,
+  no overwrite by default, path-escape refusal), `run_macro`
+  (`freecadcmd <script>` only when available), `verify_outputs` (requires
+  the FreeCAD-produced artifact), `cad_evidence` (OBSERVED/SIMULATED);
+  `src/integrations/__init__.py` re-exports; `tests/test_integrations_freecad.py`.
+- **Acceptance criteria:** AC1 `freecad_available` injectable — MET.
+  AC2 macro text contains FreeCAD API calls — MET. AC3 `write_script`
+  round-trip/no-overwrite/escape-rejection — MET. AC4 missing tool →
+  `FreeCADUnavailable`, real run covered by skip-if-absent test — MET.
+  AC5 `cad_evidence` labelled entries — MET. AC6 public re-exports +
+  full suite — MET. AC7 docs/state + AUDIT-0023 — MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **340 passed, 4 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  333 + **7 T-0901 tests**; the 4th skip is the live-FreeCAD test
+  (FreeCAD not installed). The two pre-existing skips remain the
+  per-platform `sh -n` checks; the third is the live-Jupyter test.
+- **Live evidence (OBSERVED):** generated the macro for
+  `t0901_demo` (20×10×5) and wrote it to `cad/t0901_demo.py` (381 bytes);
+  `freecad_available()` returned `None`; `run_macro` raised
+  `FreeCADUnavailable: FreeCAD is not installed; CAD execution is
+  UNAVAILABLE`; `cad_evidence` emitted a SIMULATED entry. The demo macro
+  was deleted after observation (not committed).
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for macro
+  generation/write/verification logic; the CAD execution path is
+  IMPLEMENTED but **UNAVAILABLE** on this host (no FreeCAD) — never
+  claimed as run.
+- **Limitations:** no geometry beyond a parametric box; no FEM/assembly;
+  artifact validity is asserted by presence + size (a real FreeCAD
+  recompute check requires FreeCAD and is covered by the skipped live
+  test). All live CAD is unverified until FreeCAD is installed (blocked
+  by B-2).
+- **Files:** src/integrations/freecad.py, src/integrations/__init__.py,
+  tests/test_integrations_freecad.py, requirements.md (R9.4/R9.5),
+  roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0024 - T-1001 KiCad integration (2026-10-08)
+
+- **Task:** T-1001 KiCad integration — PCB authority; run DRC/ERC and
+  export Gerbers via `kicad-cli`, gated on tool presence.
+- **Deliverables:** `src/integrations/kicad.py` — `KICAD_TOOLS`,
+  `kicad_cli` (injectable `which`), `KiCadError`, `KiCadUnavailable`,
+  `KiCadRun`, `run_drc`, `run_erc`, `export_gerbers` (each gated and
+  building the expected `kicad-cli` argv), `verify_artifacts`,
+  `kicad_evidence` (OBSERVED); `src/integrations/__init__.py` re-exports;
+  `tests/test_integrations_kicad.py`.
+- **Acceptance criteria:** AC1 `kicad_cli` injectable — MET. AC2 commands
+  raise `KiCadUnavailable` when absent — MET. AC3 injected run captures
+  the exact argv and returns `KiCadRun` — MET. AC4 `verify_artifacts`
+  returns sizes / raises `KiCadError` — MET. AC5 `kicad_evidence`
+  labelled entries — MET. AC6 public re-exports + full suite — MET.
+  AC7 live test skips when absent — MET. AC8 docs/state + AUDIT-0024 —
+  MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **347 passed, 5 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  340 + **7 T-1001 tests**; the 5th skip is the live-KiCad test (KiCad
+  not installed). The others: two `sh -n` checks, live-Jupyter and
+  live-FreeCAD.
+- **Live evidence (OBSERVED):** `kicad_cli()` returned `None` (KiCad NOT
+  installed); `run_drc` on a temp board raised `KiCadUnavailable: KiCad
+  is not installed; PCB execution is UNAVAILABLE`; `verify_artifacts` on a
+  50-byte fixture returned `{...: 50}`. No KiCad artifact was produced or
+  claimed.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for command
+  construction/gating/verification; the PCB execution path is
+  IMPLEMENTED but **UNAVAILABLE** on this host (no KiCad) — never claimed
+  as run.
+- **Limitations:** no PCB/schematic is synthesised (inputs are caller-
+  supplied; KiCad performs all checks/exports); DRC/ERC report contents
+  are not parsed; artifact validity is presence + size. Live PCB
+  execution is unverified until KiCad is installed (blocked by B-2).
+- **Files:** src/integrations/kicad.py, src/integrations/__init__.py,
+  tests/test_integrations_kicad.py, requirements.md (R9.4/R9.6),
+  roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0025 - T-1002 ngspice integration (2026-10-08)
+
+- **Task:** T-1002 ngspice integration — circuit authority; batch
+  simulation + operating-point parsing, gated on tool presence.
+- **Deliverables:** `src/integrations/ngspice.py` — `NGSPICE_TOOLS`,
+  `ngspice_cli` (injectable), `NgspiceError`, `NgspiceUnavailable`,
+  `NgspiceRun`, `write_netlist` (confined to `simulations/`, no
+  overwrite/escape), `run_simulation` (`ngspice -b -o` gated),
+  `parse_op_point` (real output parser), `verify_outputs`,
+  `ngspice_evidence` (SIMULATED results / OBSERVED status+files);
+  `src/integrations/__init__.py` re-exports; `tests/test_integrations_ngspice.py`.
+- **Acceptance criteria:** AC1 `ngspice_cli` injectable — MET. AC2
+  `write_netlist` round-trip/no-overwrite/escape — MET. AC3
+  `run_simulation` gates + builds argv + returns `NgspiceRun` — MET. AC4
+  `parse_op_point` extracts node values / raises on no block — MET. AC5
+  `verify_outputs` — MET. AC6 evidence labels — MET. AC7 re-exports +
+  full suite — MET. AC8 live test skips when absent — MET. AC9
+  docs/state + AUDIT-0025 — MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **352 passed, 6 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  347 + **7 T-1002 tests**; the 6th skip is the live-ngspice test
+  (ngspice not installed). The two pre-existing skips remain the
+  per-platform `sh -n` checks; the others are live Jupyter/FreeCAD/KiCad.
+- **Live evidence (OBSERVED):** `ngspice_cli()` returned `None`;
+  `parse_op_point` extracted `{'in': 5.0, 'out': 3.3}` from a captured
+  operating-point block; `ngspice_evidence` emitted SIMULATED node
+  entries; `run_simulation` raised `NgspiceUnavailable: ngspice is not
+  installed; circuit simulation is UNAVAILABLE`.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for netlist
+  write/parse/evidence; the simulation path is IMPLEMENTED but
+  **UNAVAILABLE** on this host (no ngspice) — never claimed as run.
+- **Limitations:** no schematic capture or circuit synthesis; parser
+  handles a simple `node value` operating-point listing (not AC/transient
+  vectors); live simulation unverified until ngspice is installed
+  (blocked by B-2).
+- **Files:** src/integrations/ngspice.py, src/integrations/__init__.py,
+  tests/test_integrations_ngspice.py, requirements.md (R9.7),
+  roadmap/project-state/next-task/chatmem/memory.

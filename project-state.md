@@ -13,6 +13,10 @@ PHASE 7 — REA (COMPLETE for framework + offline inspection:
 T-0701/T-0702; Phase 5 T-0501 is BLOCKED on the install gate).
 PHASE 8 — Python/Jupyter integration (COMPLETE for offline build/validate;
 live execution UNAVAILABLE — Jupyter not installed).
+PHASE 9 — FreeCAD integration (COMPLETE for macro generation/write;
+live CAD execution UNAVAILABLE — FreeCAD not installed).
+PHASE 10 — KiCad + ngspice integrations (COMPLETE for offline command/
+parse logic; live PCB/circuit execution UNAVAILABLE — tools not installed).
 
 ## Overall status
 Governance complete; Phases 1–3 complete (PEM; `src/core/config.py`,
@@ -38,6 +42,10 @@ autonomous build mode (checkpoint commits per task).
 - PHASE 7 — REA (T-0701/T-0702 COMPLETE; framework + offline inspection)
 - PHASE 8 — Python/Jupyter integration (T-0801 COMPLETE; execution gated
   on Jupyter presence)
+- PHASE 9 — FreeCAD integration (T-0901 COMPLETE; execution gated on
+  FreeCAD presence)
+- PHASE 10 — KiCad + ngspice integrations (T-1001/T-1002 COMPLETE;
+  execution gated on tool presence)
 
 ## Completed tasks (last completed task listed last)
 - T-0001 — Repository governance bootstrap (2026-10-08) — 38 tests.
@@ -63,21 +71,23 @@ autonomous build mode (checkpoint commits per task).
 - T-0702 — REA offline inspection + evidence collection (2026-10-08) —
   AUDIT-0021.
 - T-0801 — Python/Jupyter integration (2026-10-08) — AUDIT-0022.
+- T-0901 — FreeCAD integration (2026-10-08) — AUDIT-0023.
+- T-1001 — KiCad integration (2026-10-08) — AUDIT-0024.
+- T-1002 — ngspice integration (2026-10-08) — AUDIT-0025.
 
 ## Last completed task
-- T-0801 — Python/Jupyter integration (2026-10-08) — 333 passed, 3
-  skipped; `src/integrations/jupyter.py` (nbformat v4 build/validate,
-  `simulations/`-confined write, `jupyter nbconvert` execution gated on
-  presence, evidence labels). Live execution UNAVAILABLE (Jupyter not
-  installed) — recorded honestly, not faked.
+- T-1002 — ngspice integration (2026-10-08) — 352 passed, 6 skipped;
+  `src/integrations/ngspice.py` (batch simulation gated on presence,
+  operating-point parser, output verification, evidence labels). Live
+  simulation UNAVAILABLE (ngspice not installed) — recorded honestly.
 
 ## Current task
-- ID: T-0901
-- Title: FreeCAD integration
+- ID: T-1101
+- Title: Gazebo integration
 - State: READY (defined in roadmap; next-task.md to be set)
 - (Note: Phase-5 T-0501 is BLOCKED on the install gate; T-0601/T-0602
-  BLOCKED — Taiga-S1 repo not supplied. FreeCAD is NOT installed, so
-  live CAD execution will be UNAVAILABLE unless installed. See Blockers.)
+  BLOCKED — Taiga-S1 repo not supplied. Gazebo is NOT installed, so live
+  robotics simulation will be UNAVAILABLE unless installed. See Blockers.)
 
 ## Active subsystem
 - PEM: `src/pem/detect.py` (system), `src/pem/tools.py` (tool probes,
@@ -110,6 +120,16 @@ autonomous build mode (checkpoint commits per task).
   build/validate, `simulations/`-confined notebook write,
   `jupyter nbconvert` execution gated on `jupyter_available`,
   `notebook_evidence`), `src/integrations/__init__.py` re-exports.
+- Integrations (CAD): `src/integrations/freecad.py` (FreeCAD mechanical
+  authority: parametric macro generation, `cad/`-confined macro write,
+  headless `freecadcmd` run gated on `freecad_available`,
+  `verify_outputs`, `cad_evidence`).
+- Integrations (PCB): `src/integrations/kicad.py` (KiCad PCB authority:
+  `kicad-cli` DRC/ERC/Gerber export gated on `kicad_cli`,
+  `verify_artifacts`, `kicad_evidence`).
+- Integrations (circuits): `src/integrations/ngspice.py` (ngspice circuit
+  authority: batch `ngspice -b -o` gated on `ngspice_cli`, `write_netlist`,
+  `parse_op_point`, `verify_outputs`).
 
 ## Blockers
 - T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
@@ -169,17 +189,17 @@ autonomous build mode (checkpoint commits per task).
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **333 passed, 3 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **352 passed, 6 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
   config + 29 core evidence + 20 core state + 14 CIE model/schema +
   7 CIE store + 5 CIE target + 14 CIE identify + 9 CIE provenance +
   13 CIE conflict + 8 REA pipeline + 8 REA records + 7 REA storage +
-  8 REA inspection + 8 Jupyter integration tests.
-  Skipped (3): the two per-platform `sh -n` syntax checks (no POSIX
-  shell on host) and the live-notebook execution test (Jupyter not
-  installed).
+  8 REA inspection + 8 Jupyter + 7 FreeCAD + 7 KiCad + 7 ngspice tests.
+  Skipped (6): the two per-platform `sh -n` syntax checks (no POSIX
+  shell on host), and the live-Jupyter, live-FreeCAD, live-KiCad and
+  live-ngspice tests (those tools are not installed).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -217,22 +237,35 @@ autonomous build mode (checkpoint commits per task).
   `inspect_target` produced OBSERVED evidence (0→7 entries). Integrations
   (T-0801): unit-tested; live build→validate→write of a notebook to
   `simulations/` observed (527 bytes), `jupyter_available()` returned
-  `None` (Jupyter NOT installed), and `execute_notebook` raised
-  `JupyterUnavailable` — execution is **UNAVAILABLE** on this host, never
-  claimed as run. No engineering validation applicable yet.
+  `None`, and `execute_notebook` raised `JupyterUnavailable` — notebook
+  execution is **UNAVAILABLE** on this host, never claimed as run. FreeCAD
+  (T-0901): unit-tested; live generation of a
+  parametric macro written to `cad/` observed (381 bytes),
+  `freecad_available()` returned `None` (FreeCAD NOT installed), and
+  `run_macro` raised `FreeCADUnavailable` — CAD execution is
+  **UNAVAILABLE** on this host. KiCad (T-1001): unit-tested; live
+  `kicad_cli()` returned `None` (KiCad NOT installed), `verify_artifacts`
+  reported a fixture's size, and `run_drc` raised `KiCadUnavailable` —
+  PCB execution is **UNAVAILABLE** on this host. ngspice (T-1002):
+  unit-tested; live `ngspice_cli()` returned `None` (ngspice NOT
+  installed), `parse_op_point` extracted `{'in': 5.0, 'out': 3.3}` from a
+  captured block, and `run_simulation` raised `NgspiceUnavailable` —
+  circuit simulation is **UNAVAILABLE** on this host. No engineering
+  validation applicable yet.
 
 ## Next action
-Start T-0901 (FreeCAD integration; Phase 9, READY via T-0103):
-drive FreeCAD via CLI/API to produce CAD under `cad/` and verify with a
-FreeCAD recompute. FreeCAD is NOT installed, so this ships as a gated
-integration with skip-when-absent tests (like T-0801); live CAD execution
-is UNAVAILABLE unless installed. Then T-1001/T-1002/T-1101/T-1201, and
-T-0502/T-0404 once Scrapling is installable; T-0601/T-0602 remain
-BLOCKED.
+Start T-1101 (Gazebo integration; Phase 11, READY via T-0801): drive
+Gazebo headless to load a caller-supplied world/model and capture the run
+as labelled evidence. Gazebo is NOT installed, so this ships as a gated
+integration with skip-when-absent tests (like T-0801/T-0901/T-1001/
+T-1002); live robotics simulation is UNAVAILABLE unless installed. Then
+T-1201 (Blender), and T-0502/T-0404 once Scrapling is installable;
+T-0601/T-0602 remain BLOCKED (T-1301 orchestration depends on these and
+will be PARTIAL/BLOCKED until then).
 
 ## Last update
-2026-10-08 — T-0801 closed (333 passed, 3 skipped); Python/Jupyter
-  integration (stdlib nbformat build/validate + gated `nbconvert`
-  execution + labelled evidence) is in place. Jupyter is NOT installed, so
-  live execution is UNAVAILABLE (honest skip). T-0501 remains BLOCKED
-  under the install gate. Next: T-0901 (FreeCAD integration).
+2026-10-08 — T-1002 closed (352 passed, 6 skipped); ngspice integration
+  (batch simulation gated on presence + operating-point parser + output
+  verification + labelled evidence) is in place. ngspice is NOT installed,
+  so live simulation is UNAVAILABLE (honest skip). T-0501 remains BLOCKED
+  under the install gate. Next: T-1101 (Gazebo integration).
