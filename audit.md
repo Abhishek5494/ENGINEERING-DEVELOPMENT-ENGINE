@@ -229,3 +229,59 @@ Append-only record of significant actions, findings and discrepancies
   (R3.2/R3.4), roadmap/project-state/next-task/memory/audit/chatmem
   closure updates.
 
+
+---
+
+## AUDIT-0008 — T-0103 environment report generation (2026-10-08)
+
+- **Scope:** `src/pem/report.py` (`build_environment()`,
+  `render_markdown()`, `write_reports()`),
+  `config/environment-report.schema.json`, `tests/test_pem_report.py`,
+  `.gitignore` extended with `environment-report.md`; probe records in
+  `src/pem/tools.py` now carry the manifest `required` flag (one-line
+  addition; needed for REQUIRED_TOOL_NOT_DETECTED warnings).
+- **Tests:** `python -m pytest tests/ -q` → **110 passed, 0 failed**
+  (2026-10-08): 38 governance + 9 PEM detection + 21 manifest + 22 PEM
+  tools + 20 PEM report. Failures caught and fixed before commit: the
+  word "installed" appeared in a recommendation sentence (reworded to
+  "no automatic installation is performed"); UNAVAILABLE capabilities
+  were not listed as limitations (now included).
+- **Live run (OBSERVED, 2026-10-08T13:15:06+00:00):** generated both
+  reports at repo root. warnings: `LOW_DISK_SPACE — volume C:\ has only
+  6135808 bytes free (threshold 1073741824 bytes)`. missing_tools:
+  jupyter, freecad, kicad, ngspice, gazebo, blender, scrapling.
+  unknown_tools: taiga-s1, rea. limitations: LLM inference (UNKNOWN) +
+  six UNAVAILABLE capabilities. recommendations: 8 (one per missing
+  tool + low-disk advice). `git check-ignore` confirms BOTH report files
+  are gitignored; they do not appear in `git status`.
+- **Schema (roadmap AC "JSON schema-validated"):**
+  `config/environment-report.schema.json` (draft-07) validated by a
+  stdlib checker in tests (no third-party deps): required keys, tool
+  state enum DETECTED/NOT_FOUND/UNKNOWN, exact §6 evidence labels, exact
+  §22 capability vocabulary, additionalProperties=false. A fabricated
+  `state: "INSTALLED"` is rejected by the schema test.
+- **Acceptance criteria (T-0103):**
+  1. build_environment() returns the nine §25 keys, JSON-serializable — MET.
+  2. write_reports() writes both files (UTF-8, pretty JSON) and returns
+     paths; markdown has all eight required sections — MET (round-trip test).
+  3. Honesty rules: NOT_FOUND only in missing_tools, UNKNOWN only in
+     unknown_tools, DETECTED shows real version, dedicated
+     never-described-as-installed test — MET.
+  4. Warnings data-driven: low-disk below 1 GiB constant names the
+     volume (C:\ fired live, OBSERVED); UNKNOWN capabilities produce
+     limitation entries — MET.
+  5. .gitignore contains both filenames, test-asserted — MET.
+  6. Round-trip json.dumps/loads equality; default target is repo root — MET.
+  7. Full suite passes — MET (110).
+  8. Importable as specified — MET.
+- **Limitations:** `generated_at` is the only non-deterministic field
+  (documented); platform section records system detector output as-is
+  (VRAM remains UNKNOWN); reports are machine-specific snapshots —
+  regenerate after environment changes; Linux/macOS paths unexecuted.
+- **Security:** no network, no elevation, no installation; generation
+  reads detector output only; both outputs gitignored so machine facts
+  are not committed.
+- **Files:** src/pem/report.py, config/environment-report.schema.json,
+  tests/test_pem_report.py, src/pem/tools.py (required flag), .gitignore,
+  requirements.md (R3.5), roadmap/project-state/next-task/chatmem/memory
+  closure updates.

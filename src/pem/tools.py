@@ -103,6 +103,7 @@ def _record(
         "health_ok": health_ok,
         "capability": list(entry.get("capability", [])),
         "min_version": entry.get("min_version"),
+        "required": entry.get("required", "optional"),
     }
 
 

@@ -14,9 +14,11 @@ actions belong in `audit.md`.
   budget for resource-aware decisions (§38).
 - GPU: AMD Radeon(TM) Graphics (iGPU) + NVIDIA GeForce GTX 1650 (dGPU) —
   OBSERVED, 2026-10-08. VRAM: UNKNOWN (not queried).
-- Storage: C:\ ~213.8 GB total with only ~14 MB free (2026-10-08,
-  OBSERVED — nearly full, risky for installs); D:\ ~297.2 GB total with
-  ~96.8 GB free. Re-check free space before any install task.
+- Storage: C:\ ~213.8 GB total with only 6,135,808 bytes free
+  (2026-10-08T13:15Z, OBSERVED — was ~14 MB earlier the same day and is
+  shrinking; triggers the LOW_DISK_SPACE report warning, threshold 1 GiB);
+  D:\ ~297.2 GB total with ~96.8 GB free. Re-check free space before any
+  install task — C:\ may already block installs.
 - Toolchain probed at bootstrap: Git 2.55.0.windows.3, Python 3.13.5,
   Node v24.14.1, pytest 9.1.1 — OBSERVED (command output, 2026-10-08).
 - PySide6 6.11.1 (Qt 6.11.1 runtime) present on host — OBSERVED via
@@ -63,8 +65,13 @@ actions belong in `audit.md`.
 
 ## Discovered implementation facts
 
-(none yet — subsystems not implemented)
+- Environment reports (`environment.json`, `environment-report.md`) are
+  produced by `src/pem/report.py` from detector outputs only; regenerate
+  with `python -m src.pem.report` after environment changes.
 
 ## Hard-won lessons
 
-(none yet)
+- Honesty wording is literal: tests assert a NOT_FOUND tool is never
+  described as "installed" anywhere in output — even negations ("nothing
+  is installed") fail the check; phrase suggestions as "no automatic
+  installation is performed" instead (caught in T-0103).

@@ -16,8 +16,8 @@ Last updated: TASK-0001 (bootstrap).
 | T-0002 | License decision | 0 | T-0001 | BLOCKED (needs human approval, MASTER §35) |
 | T-0101 | PEM system/hardware detection | 1 | T-0001 | COMPLETE |
 | T-0102 | PEM tool detection + capability states | 1 | T-0101, T-0201 | COMPLETE |
-| T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | READY |
-| T-0104 | Windows scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
+| T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | COMPLETE |
+| T-0104 | Windows scripts (install/update/healthcheck) | 1 | T-0103 | READY |
 | T-0105 | Linux scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
 | T-0106 | macOS scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
 | T-0107 | Idempotent install logic + tests | 1 | T-0103 | PLANNED |
@@ -86,14 +86,14 @@ Last updated: TASK-0001 (bootstrap).
 - Acceptance criteria: detects Git + Python on this machine with correct versions; unknown tools reported UNAVAILABLE/UNKNOWN.
 - Validation: unit tests; integration test against real machine for Git/Python.
 
-**T-0103 — Environment report generation** — `PLANNED`
+**T-0103 — Environment report generation** — `COMPLETE`
 - Objective: emit `environment.json` (gitignored) and `environment-report.md` per §25 including warnings/limitations/recommendations.
 - Dependencies: T-0102. Affected: `src/pem/`, `.gitignore`.
 - Constraints: never fabricate tool status; report must be regenerable (idempotent).
 - Acceptance criteria: both outputs generated; JSON schema-validated; report lists missing dependencies honestly.
 - Validation: tests assert schema, honesty rules (tool present iff detection says so).
 
-**T-0104/0105/0106 — Platform scripts (Windows/Linux/macOS)** — `PLANNED`
+**T-0104/0105/0106 — Platform scripts (Windows/Linux/macOS)** — `T-0104 READY; T-0105/T-0106 PLANNED`
 - Objective: `scripts/<platform>/{install,update,healthcheck}` thin wrappers over shared Python (§23).
 - Dependencies: T-0103. Constraints: platform auto-detection; no duplicated business logic.
 - Acceptance criteria: each script exists, is syntactically valid, calls shared code, exits nonzero on failed health check.
@@ -186,3 +186,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0101 marked COMPLETE — `src/pem/detect.py` system detection (47 tests passed: 38 governance + 9 PEM). Next READY task: T-0201 (tool manifest; unblocks T-0102).
 - 2026-10-08: T-0201 marked COMPLETE — tool manifest + JSON schema + stdlib loader (68 tests passed). T-0102 now unblocked (deps T-0101 + T-0201 both COMPLETE); selected as next task over T-0202 because it is Phase 1 (earlier in §48 order).
 - 2026-10-08: T-0102 marked COMPLETE — manifest-driven tool detection + capability states (90 tests passed). Host evidence: git/python DETECTED; jupyter/freecad/kicad/ngspice/gazebo/blender/scrapling NOT_FOUND; taiga-s1/rea UNKNOWN (not implemented). T-0103 now READY.
+- 2026-10-08: T-0103 marked COMPLETE — `src/pem/report.py` report generation + `config/environment-report.schema.json` (110 tests passed). Both report files generated on this host and confirmed gitignored. T-0104 now READY; selected as next over T-0202 because Phase 1 precedes Phase 2 in §48 order (same rationale as the T-0102 selection), and T-0104's dependency T-0103 just completed.
