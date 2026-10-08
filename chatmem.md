@@ -26,6 +26,8 @@ this file; on conflict, trust the repository (§43).
     evidence-strength order; CIE T-0401 + REA T-0701 unblocked.
 12. T-0301 project-state persistence library (`src/core/state.py`);
     reconciled the T-0601/T-0602 roadmap table-vs-detail state mismatch.
+13. T-0401 CIE component data model + schema + storage (`src/cie/model.py`,
+    `config/component.schema.json`, `src/cie/store.py`); Phase 4 started.
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
@@ -33,8 +35,8 @@ this file; on conflict, trust the repository (§43).
   `52bec6f` — T-0103; `1445c77` — T-0104; `bac844a` — T-0107;
   `a90df34` — T-0105.
 - `646f529` — T-0106 + directive audit; `0e26ce2` — T-0202;
-  `9257ddd` — T-0302.
-- (pending) — T-0301 project-state library.
+  `9257ddd` — T-0302; `fde672d` — T-0301.
+- (pending) — T-0401 CIE component data model + schema + storage.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -55,11 +57,11 @@ this file; on conflict, trust the repository (§43).
   commit, pick next READY task by §48 phase order, continue (§56).
 
 ## Next task
-- `next-task.md` → **T-0401 CIE component data model + schema + storage**
-  (Phase 4; earliest READY subsystem after Phases 1–3). Then CIE
-  ingestion/source tasks (T-0402/T-0403), Scrapling (T-0501+), REA
-  (T-0701+), engineering integrations (T-0801+). Taiga (T-0601/T-0602)
-  stays BLOCKED until the repo is supplied.
+- `next-task.md` → **T-0402 CIE URL ingestion + exact identification**
+  (Phase 4; T-0403 also READY, but T-0402 is the pipeline entry point per
+  §9 IDENTIFY-first). Then T-0403 provenance/priority/conflicts, Scrapling
+  (T-0501+), REA (T-0701+), engineering integrations (T-0801+). Taiga
+  (T-0601/T-0602) stays BLOCKED until the repo is supplied.
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never

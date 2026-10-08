@@ -1,0 +1,51 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Component record",
+  "description": "MASTER section 12 component record with optional section 13 motor extension. Every field except id is optional; an unknown field is omitted (not padded).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "category": {"type": "string"},
+    "name": {"type": "string"},
+    "manufacturer": {"type": "string"},
+    "model": {"type": "string"},
+    "part_number": {"type": "string"},
+    "sku": {"type": "string"},
+    "source_urls": {"type": "array", "items": {"type": "string"}},
+    "retrieval_date": {"type": "string"},
+    "specifications": {"type": "object"},
+    "dimensions": {"type": "object"},
+    "materials": {"type": "object"},
+    "interfaces": {"type": "object"},
+    "electrical": {"type": "object"},
+    "mechanical": {"type": "object"},
+    "thermal": {"type": "object"},
+    "environmental": {"type": "object"},
+    "datasheets": {"type": "array", "items": {"type": "string"}},
+    "motor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rated_voltage": {"type": ["number", "string", "object", "array"]},
+        "rated_current": {"type": ["number", "string", "object", "array"]},
+        "rated_speed_rpm": {"type": ["number", "string", "object", "array"]},
+        "rated_torque": {"type": ["number", "string", "object", "array"]},
+        "stall_torque": {"type": ["number", "string", "object", "array"]},
+        "stall_current": {"type": ["number", "string", "object", "array"]},
+        "winding_resistance": {"type": ["number", "string", "object", "array"]},
+        "kv": {"type": ["number", "string", "object", "array"]},
+        "torque_constant": {"type": ["number", "string", "object", "array"]},
+        "rotor_inertia": {"type": ["number", "string", "object", "array"]},
+        "efficiency": {"type": ["number", "string", "object", "array"]},
+        "thermal_limits": {"type": ["number", "string", "object", "array"]},
+        "dimensions": {"type": ["number", "string", "object", "array"]},
+        "gearbox": {"type": ["number", "string", "object", "array"]},
+        "gear_ratio": {"type": ["number", "string", "object", "array"]},
+        "shaft": {"type": ["number", "string", "object", "array"]},
+        "mounting_pattern": {"type": ["number", "string", "object", "array"]}
+      }
+    }
+  }
+}

@@ -7,12 +7,13 @@ a task is completed, blocked, or state changes.
 PHASE 1 — Project Environment Manager (COMPLETE for code; installs gated).
 PHASE 2 — Configuration + tool registry (COMPLETE).
 PHASE 3 — Core primitives: config, state, evidence (COMPLETE).
-PHASE 4 — Component Intelligence Engine (next: T-0401 READY).
+PHASE 4 — Component Intelligence Engine (in progress: T-0401 done).
 
 ## Overall status
-Governance complete; Phases 1–3 complete (PEM; shared `src/core/config.py`;
-`src/core/state.py` project-state library; `src/core/evidence.py` +
-ADR-0002). Not yet implemented: CIE, Scrapling, REA, Taiga-S1,
+Governance complete; Phases 1–3 complete (PEM; `src/core/config.py`,
+`state.py`, `evidence.py`). Phase 4 CIE started: component data model +
+schema + SQLite/JSON store (T-0401) done. Not yet implemented: CIE
+ingestion/provenance (T-0402/T-0403), Scrapling, REA, Taiga-S1,
 engineering-tool integrations, orchestration, release audit. Taiga-S1 is
 externally BLOCKED (repo not supplied); live tool installation is gated
 on user approval + disk + network. Operating in autonomous build mode
@@ -38,16 +39,18 @@ on user approval + disk + network. Operating in autonomous build mode
 - T-0202 — Shared configuration module (2026-10-08) — AUDIT-0014.
 - T-0302 — Evidence/claim classification primitives (2026-10-08) — AUDIT-0015.
 - T-0301 — Project-state persistence library (2026-10-08) — AUDIT-0016.
+- T-0401 — CIE component data model + schema + storage (2026-10-08) —
+  AUDIT-0017.
 
 ## Last completed task
-- T-0301 — project-state persistence library (2026-10-08) — 232 passed,
-  2 skipped; `src/core/state.py` parses/validates/updates roadmap,
-  next-task and project-state with byte-identical no-op round-trips.
-  Surfaced and fixed the T-0601/T-0602 table-vs-detail state mismatch.
+- T-0401 — CIE component data model + schema + storage (2026-10-08) —
+  253 passed, 2 skipped; `src/cie/model.py` (§12/§13, UNKNOWN sentinel,
+  no padding), `config/component.schema.json`, `src/cie/store.py`
+  (SQLite + JSON). CIE foundation in place.
 
 ## Current task
-- ID: T-0401
-- Title: Component data model + schema + storage (CIE)
+- ID: T-0402
+- Title: CIE URL ingestion + exact-identification flow
 - State: READY (defined in next-task.md; not yet started)
 - (Note: T-0601/T-0602 BLOCKED — Taiga-S1 repo not supplied. See Blockers.)
 
@@ -63,6 +66,11 @@ on user approval + disk + network. Operating in autonomous build mode
   `scripts/linux/{install,update,healthcheck}.sh` and
   `scripts/macos/{install,update,healthcheck}.sh` (thin POSIX wrappers,
   static-verified only).
+
+- CIE: `src/cie/model.py` (§12 `Component` + `UNKNOWN` sentinel +
+  `MotorSpec` §13 + `DerivedValue`), `config/component.schema.json`
+  (draft-07), `src/cie/store.py` (`ComponentStore` SQLite + JSON I/O);
+  `src/cie/__init__.py` re-exports.
 
 ## Blockers
 - T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
@@ -120,12 +128,13 @@ on user approval + disk + network. Operating in autonomous build mode
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **232 passed, 2 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **253 passed, 2 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
-  config + 29 core evidence + 20 core state tests. Skipped: the two
-  per-platform `sh -n` syntax checks (no POSIX shell on host).
+  config + 29 core evidence + 20 core state + 14 CIE model/schema +
+  7 CIE store tests. Skipped: the two per-platform `sh -n` syntax
+  checks (no POSIX shell on host).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -137,7 +146,7 @@ on user approval + disk + network. Operating in autonomous build mode
 
 ## Validation status
 - Governance validation + live OBSERVED detector/probe/report/script/
-  install-engine runs recorded in audit.md (AUDIT-0005..0016). Windows
+  install-engine runs recorded in audit.md (AUDIT-0005..0017). Windows
   wrappers executed on host: healthcheck exit 1 (C:\ below threshold),
   install/update exit 0 plan-only, 53-file snapshot proves zero
   mutation. Install engine: live plan exit 0; `--execute` refused
@@ -148,15 +157,19 @@ on user approval + disk + network. Operating in autonomous build mode
   present). Core evidence (T-0302): unit-tested; live ranking/strongest
   observed. Core state (T-0301): unit-tested; live parse of the real
   roadmap/next-task/project-state observed; byte-identical no-op
-  round-trips proven. No engineering validation applicable yet.
+  round-trips proven. CIE (T-0401): unit-tested; live build→SQLite
+  save→fetch round-trip observed and schema acceptance/rejection
+  verified against a fabricated record. No engineering validation
+  applicable yet.
 
 ## Next action
-Start T-0401 (see next-task.md): CIE component data model + JSON schema +
-storage (SQLite/JSON), UNKNOWN for missing fields (§12/§13). Then CIE
-ingestion/source-conflict tasks, Scrapling and REA per §48 order;
-T-0601/T-0602 remain BLOCKED pending the Taiga-S1 repo.
+Start T-0402 (see next-task.md): CIE URL ingestion + exact-identification
+flow — turn a supplied product/manufacturer URL into a candidate
+component id/attributes, refusing to act on ambiguous identity (§9).
+Then T-0403 (provenance + source priority + conflicts), Scrapling and REA
+per §48 order; T-0601/T-0602 remain BLOCKED pending the Taiga-S1 repo.
 
 ## Last update
-2026-10-08 — T-0301 closed (232 passed, 2 skipped); Phase 3 complete;
-project-state library added and the roadmap T-0601/T-0602 table-vs-detail
-mismatch reconciled. Next: T-0401 (CIE).
+2026-10-08 — T-0401 closed (253 passed, 2 skipped); CIE foundation
+(model + schema + SQLite/JSON store) added; T-0402/T-0403 now READY.
+Next: T-0402 (CIE URL ingestion + exact identification).

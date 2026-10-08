@@ -55,8 +55,9 @@ Last verified against repository: TASK-0001 bootstrap.
 | R5.3 | Store provenance (source URL, retrieval date) for every extracted fact | SPECIFIED |
 | R5.4 | Apply source priority (manufacturer > distributor > marketplace > community > AI) | SPECIFIED |
 | R5.5 | Detect and store conflicts with STATUS=CONFLICT; never silently overwrite | SPECIFIED |
-| R5.6 | Machine-readable component record with fields of MASTER §12; unknowns stay UNKNOWN; no padding fields | SPECIFIED |
-| R5.7 | Motor data model fields per MASTER §13; derived values identify their calculation | SPECIFIED |
+| R5.6 | Machine-readable component record with fields of MASTER §12; unknowns stay UNKNOWN; no padding fields | IMPLEMENTED (T-0401: `src/cie/model.py` `Component` + `UNKNOWN` sentinel; `to_dict` omits UNKNOWN; `config/component.schema.json` draft-07) |
+| R5.7 | Motor data model fields per MASTER §13; derived values identify their calculation | IMPLEMENTED (T-0401: `MotorSpec` covers the §13 fields; `DerivedValue` requires a non-empty `method` and a §6 evidence label) |
+| R5.8 | Component storage: local SQLite store + JSON import/export with lossless round-trip (T-0401) | IMPLEMENTED (T-0401: `src/cie/store.py` `ComponentStore` upsert/get/all/delete + `export_json`/`import_json`; tested) |
 
 ## R6 — Scrapling integration (MASTER §2.4, §14, §15)
 

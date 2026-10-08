@@ -764,3 +764,58 @@ Append-only record of significant actions, findings and discrepancies
   tests/test_core_state.py (new), requirements.md (R1.3/R1.4/R1.6),
   roadmap.md (T-0301 COMPLETE + T-0601/T-0602 detail reconciliation),
   project-state/next-task/chatmem/memory.
+
+## AUDIT-0017 — T-0401 CIE component data model + schema + storage (2026-10-08)
+
+- **Scope:** the CIE foundation — `src/cie/model.py` (§12 record + §13
+  motor + derived values), `config/component.schema.json`, and
+  `src/cie/store.py` (SQLite + JSON). `src/cie/__init__.py` re-exports.
+  `tests/test_cie_model.py`, `tests/test_cie_store.py` (new). Stdlib only.
+- **Implementation (OBSERVED):**
+  - `UNKNOWN` is a distinct singleton sentinel (not `None`, not the
+    string "UNKNOWN"); `to_dict` OMITS any UNKNOWN field, so a record
+    contains only real facts (no padding, §12).
+  - `Component`: only `id` is required; unset fields default to UNKNOWN.
+    `from_dict` rejects unknown keys and a missing id; round-trips
+    (including `source_urls` order and nested `specifications`) are
+    lossless.
+  - `MotorSpec` covers the §13 fields; derived values use
+    `DerivedValue(value, method, evidence_label)`, which requires a
+    non-empty method and a valid §6 label (default CALCULATED) — so
+    every derived value identifies its calculation (§13).
+  - `config/component.schema.json`: draft-07, `required: ["id"]` only,
+    `additionalProperties: false`, typed fields incl. the motor object.
+  - `ComponentStore`: SQLite upsert by id, `get`/`all`/`delete`,
+    `export_json`/`import_json`; reopening the file preserves records.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **253 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  232 + **21 CIE tests** (14 model/schema + 7 store). The two skips
+  remain the per-platform `sh -n` checks.
+- **Live evidence (OBSERVED):** built a NEMA-17 motor component with
+  known and UNKNOWN fields, saved it to a temp SQLite file, fetched it
+  back — round-trip equal; serialized keys were
+  `category, electrical, id, manufacturer, motor, name, source_urls,
+  specifications`; `sku` (UNKNOWN) was absent. Schema validator accepted
+  the record and rejected a fabricated `status: "INSTALLED"` field.
+- **AC (T-0401):**
+  1. Model API present — MET. 2. §12 fields, UNKNOWN default, no padding,
+  round-trip — MET. 3. `DerivedValue` method + label validation — MET.
+  4. `MotorSpec` §13 fields + UNKNOWN + embedded only when present — MET.
+  5. Schema draft-07, only `id` required, types asserted, extra/fabricated
+  fields rejected — MET. 6. `ComponentStore` CRUD + upsert + JSON I/O —
+  MET. 7. `src.cie` re-exports — MET. 8. Full suite passes — MET
+  (253 + 2 skip). 9. Docs/roadmap/state/audit/memory updated — MET.
+- **Limitations:** `specifications`/`electrical`/etc. are untyped dicts
+  (the schema only asserts they are objects); no provenance, source
+  priority or conflict handling yet (T-0403); no ingestion/network
+  (T-0402); the store holds one JSON blob per row rather than queryable
+  columns — acceptable at this scale, revisitable if querying by field
+  is needed. Evidence labels are recorded but not yet attached to
+  individual facts (T-0403).
+- **Security:** no network; no scraping; SQLite/JSON under a
+  caller-supplied path (default resolved via `src.core.config`); no
+  secrets; text treated as data.
+- **Files:** src/cie/model.py, src/cie/store.py, src/cie/__init__.py,
+  config/component.schema.json, tests/test_cie_model.py,
+  tests/test_cie_store.py, requirements.md (R5.6–R5.8),
+  roadmap/project-state/next-task/chatmem/memory.

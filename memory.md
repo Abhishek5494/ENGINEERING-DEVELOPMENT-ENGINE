@@ -89,6 +89,13 @@ actions belong in `audit.md`.
   governance files: roadmap task states, next-task state, and
   project-state sections. Prefer it over hand-editing state; no-op
   updates are byte-identical, and invalid task states are rejected.
+- `src/cie/model.py` (T-0401) is the component data contract: a §12
+  `Component` plus §13 `MotorSpec`. An unset field is the `UNKNOWN`
+  sentinel and is OMITTED from `to_dict()` (no padding); only `id` is
+  required. Derived values must be `DerivedValue(value, method, ...)`
+  with a real method. `config/component.schema.json` is the draft-07
+  mirror; `src/cie/store.py` (`ComponentStore`) persists to SQLite and
+  imports/exports JSON losslessly. Never invent ratings.
 - Environment reports (`environment.json`, `environment-report.md`) are
   produced by `src/pem/report.py` from detector outputs only; regenerate
   with `python -m src.pem.report` after environment changes.
@@ -101,7 +108,6 @@ actions belong in `audit.md`.
   installation is performed" instead (caught in T-0103).
 - On this host, pytest `tmp_path` lives on C:\; when C:\ is critically
   full, Windows temp cleanup can delete pytest tmp dirs mid-run, which
-  surfaces as an error attributed to whichever test uses `tmp_path`.
   surfaces as an error attributed to whichever test uses `tmp_path`.
   Check C:\ free space before trusting a surprise test failure
   (T-0104 incident, AUDIT-0009).

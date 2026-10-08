@@ -57,7 +57,8 @@ def test_parse_roadmap_tasks_real_file() -> None:
     assert by_id["T-0202"].phase == "2"
     assert by_id["T-0202"].dependencies == ("T-0001",)
     assert by_id["T-0301"].state == "COMPLETE"
-    assert by_id["T-0401"].state == "READY"
+    assert by_id["T-0401"].state == "COMPLETE"
+    assert by_id["T-0402"].state == "READY"
     assert by_id["T-0602"].state == "BLOCKED"
 
 
@@ -112,9 +113,9 @@ def test_set_roadmap_state_rejects_unknown_and_invalid() -> None:
 
 def test_parse_next_task_real_file() -> None:
     task = parse_next_task(read_text(NEXT_TASK))
-    assert task.id == "T-0401"
+    assert task.id == "T-0402"
     assert task.state in TASK_STATES
-    assert "component" in task.title.lower()
+    assert "url" in task.title.lower() or "ingestion" in task.title.lower()
 
 
 def test_set_next_task_state_roundtrip_and_update() -> None:

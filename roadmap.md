@@ -25,9 +25,9 @@ Last updated: TASK-0001 (bootstrap).
 | T-0202 | Shared configuration module | 2 | T-0001 | COMPLETE |
 | T-0301 | Project state persistence library | 3 | T-0001, T-0202 | COMPLETE |
 | T-0302 | Evidence/claim classification primitives | 3 | T-0001, T-0202 | COMPLETE |
-| T-0401 | Component data model + schema + storage | 4 | T-0302 | READY |
-| T-0402 | CIE URL ingestion + exact-identification flow | 4 | T-0401 | PLANNED |
-| T-0403 | Provenance + source priority + conflict detection | 4 | T-0401 | PLANNED |
+| T-0401 | Component data model + schema + storage | 4 | T-0302 | COMPLETE |
+| T-0402 | CIE URL ingestion + exact-identification flow | 4 | T-0401 | READY |
+| T-0403 | Provenance + source priority + conflict detection | 4 | T-0401 | READY |
 | T-0404 | Authoritative source search + cross-source compare | 4 | T-0402, T-0502 | PLANNED |
 | T-0501 | Inspect installed Scrapling + pin dependency | 5 | T-0001 | PLANNED |
 | T-0502 | Scrapling acquisition→sanitization→extraction under CIE | 5 | T-0501, T-0401 | PLANNED |
@@ -131,9 +131,9 @@ Last updated: TASK-0001 (bootstrap).
 
 ### PHASE 4 — Component Intelligence Engine
 
-**T-0401 — Component data model + schema + storage** — `READY`: JSON schema of §12/§13 fields; SQLite/JSON store; UNKNOWN for missing; no padding fields. Validation: schema tests + store round-trip.
-**T-0402 — URL ingestion + exact identification** — `PLANNED`: accepts exact product URL; identifies title/manufacturer/model/SKU/MPN/seller/specs before any generic search (§8). Validation: fixture-based tests with recorded public pages (no live network in tests).
-**T-0403 — Provenance + source priority + conflicts** — `PLANNED`: every fact carries source + retrieval date; source ranking per §10; conflicting values stored with STATUS=CONFLICT (§11). Validation: conflict test with marketplace vs manufacturer values.
+**T-0401 — Component data model + schema + storage** — `COMPLETE`: JSON schema of §12/§13 fields; SQLite/JSON store; UNKNOWN for missing; no padding fields. Validation: schema tests + store round-trip (21 new tests; full suite 253 passed, 2 skipped).
+**T-0402 — URL ingestion + exact identification** — `READY`: accepts exact product URL; identifies title/manufacturer/model/SKU/MPN/seller/specs before any generic search (§8). Validation: fixture-based tests with recorded public pages (no live network in tests).
+**T-0403 — Provenance + source priority + conflicts** — `READY`: every fact carries source + retrieval date; source ranking per §10; conflicting values stored with STATUS=CONFLICT (§11). Validation: conflict test with marketplace vs manufacturer values.
 **T-0404 — Authoritative source search + compare** — `PLANNED`: search manufacturer/distributor docs after exact identification; compare and flag conflicts. Deps: T-0402, T-0502.
 
 ### PHASE 5 — Scrapling integration
@@ -195,3 +195,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0202 marked COMPLETE — `src/core/config.py` single source for repo root, canonical directories and config loading (JSON always; YAML when a parser is available, honestly raising otherwise). `src/core/__init__.py` re-exports; `src/pem/report.py` and `src/core/manifest.py` repointed at `config.REPO_ROOT`/`config.MANIFEST_PATH` (duplication removed; all prior tests unchanged). 19 new tests; full suite 183 passed, 2 skipped. YAML branch executed live (PyYAML present). Next task: **T-0302 (evidence/claim classification primitives)**, selected over T-0301 because both are Phase 3 and T-0302 unblocks the critical path to CIE (T-0401) and REA (T-0701).
 - 2026-10-08: T-0302 marked COMPLETE — `src/core/evidence.py`: exactly the eight §6 labels (`EvidenceLabel`), strength ordering per ADR-0002 (MEASURED > OBSERVED > SIMULATED > MANUFACTURER-SPECIFIED > CALCULATED > ASSUMED > INFERRED > UNKNOWN), `parse_label` rejecting anything else, `rank`/`is_stronger`/`compare`/`strongest`, and a validated `Claim` record (UNKNOWN forbids a value; others require one). 29 new tests; full suite 212 passed, 2 skipped. T-0401 and T-0701 now READY. Next task: **T-0301 (project state persistence library)** — Phase 3 precedes Phase 4 in §48 order and T-0301 is READY.
 - 2026-10-08: T-0301 marked COMPLETE — `src/core/state.py`: §32 task-state vocabulary (7 states), roadmap table + detail-block state parse/validate/update, next-task parse/update, project-state §29 section parse/validate/update, byte-identical no-op round-trips, invalid states/ids rejected. 20 new tests; full suite 232 passed, 2 skipped. DISCREPANCY corrected (§47): the T-0601/T-0602 table rows were BLOCKED while their detail blocks still said `PLANNED`; detail blocks reconciled to `BLOCKED` (AUDIT-0016). Next task: **T-0401 (CIE component data model + schema + storage)** — Phase 4; it is READY (dep T-0302 complete) and is the earliest remaining major subsystem in §48 order.
+- 2026-10-08: T-0401 marked COMPLETE — CIE foundation: `src/cie/model.py` (`Component` §12 record with an explicit `UNKNOWN` sentinel, `to_dict` omitting UNKNOWN fields — no padding; `MotorSpec` §13; `DerivedValue` requiring a method + §6 label), `config/component.schema.json` (draft-07, only `id` required, `additionalProperties:false`), `src/cie/store.py` (`ComponentStore` SQLite upsert + JSON import/export). 21 new tests; full suite 253 passed, 2 skipped. T-0402/T-0403 now READY. Next task: **T-0402 (CIE URL ingestion + exact identification)** — Phase 4; it and T-0403 are both READY, T-0402 precedes T-0403 as the pipeline's entry point (§9 IDENTIFY first).
