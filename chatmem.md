@@ -83,7 +83,7 @@ this file; on conflict, trust the repository (§43).
 - `a473222` — T-0402 + T-0403 + T-0701; `4395012` — T-0702;
   `ef9e727` — T-0801.
 - `030e191` — T-0901 + T-1001 + T-1002.
-- (pending) — T-1101, T-1201, T-1502, T-1601.
+- `4444c01` — T-1101 + T-1201 + T-1502 + T-1601.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
