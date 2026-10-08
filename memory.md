@@ -68,6 +68,14 @@ actions belong in `audit.md`.
 
 ## Discovered implementation facts
 
+- `src/core/config.py` (T-0202) is the single source for the repository
+  root (derived from `__file__`, never the CWD), canonical subsystem
+  directories, and config loading. `src/pem/report.py` and
+  `src/core/manifest.py` obtain their paths from it — do not recompute
+  the repo root elsewhere.
+- `config.load_config` supports JSON always and YAML only when PyYAML is
+  importable (it is, on this host); a missing YAML parser raises a clear
+  `ConfigError` rather than returning empty data.
 - Environment reports (`environment.json`, `environment-report.md`) are
   produced by `src/pem/report.py` from detector outputs only; regenerate
   with `python -m src.pem.report` after environment changes.

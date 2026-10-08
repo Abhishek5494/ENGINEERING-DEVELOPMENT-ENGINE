@@ -18,8 +18,10 @@ import re
 from pathlib import Path
 from typing import Any
 
-DEFAULT_MANIFEST_PATH = Path(__file__).resolve().parents[2] / "config" / "tool-manifest.json"
-DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "config" / "tool-manifest.schema.json"
+from src.core.config import MANIFEST_PATH, MANIFEST_SCHEMA_PATH
+
+DEFAULT_MANIFEST_PATH = MANIFEST_PATH
+DEFAULT_SCHEMA_PATH = MANIFEST_SCHEMA_PATH
 
 SUPPORTED_PLATFORMS = frozenset({"windows", "linux", "macos"})
 REQUIRED_VALUES = frozenset({"required", "optional"})

@@ -36,7 +36,7 @@ Last verified against repository: TASK-0001 bootstrap.
 | R3.5 | Generate environment.json and environment-report.md; never claim a tool is installed unless detection confirms it | IMPLEMENTED (T-0103: `build_environment()`/`write_reports()`, schema-validated via `config/environment-report.schema.json`, honesty tests; both files gitignored) |
 | R3.6 | Idempotent installation — repeated setup does not blindly reinstall working components | IMPLEMENTED (T-0107: `src/pem/installer.py` acts only on NOT_FOUND or below-`min_version`; never acts on UNKNOWN; guarded `install --execute` (exit 3 refusal); test-verified second run makes zero changes. Live mutation not exercised on this host — C:\ below threshold) |
 | R3.7 | scripts/{windows,linux,macos}/{install,update,healthcheck} exist and detect platform automatically | IMPLEMENTED (all three wrapper sets exist: T-0104 Windows, T-0105 Linux, T-0106 macOS; platform auto-detected in shared `src/pem/ops.py`, test-verified. Runtime validation: Windows executed on host; Linux/macOS static-validated only — no POSIX shell on this host) |
-| R3.8 | Shared configuration; business logic not duplicated across platform scripts | IMPLEMENTED (T-0104: all logic in `src/pem/ops.py`; wrappers are test-asserted to contain no tool lists/business logic) |
+| R3.8 | Shared configuration; business logic not duplicated across platform scripts | IMPLEMENTED (T-0104: all logic in `src/pem/ops.py`; wrappers are test-asserted to contain no tool lists/business logic. T-0202: `src/core/config.py` is the single source for repo root/canonical paths/config loading; `report.py`+`manifest.py` repointed to it) |
 
 ## R4 — Tool manifest (MASTER §24)
 
@@ -127,4 +127,4 @@ Last verified against repository: TASK-0001 bootstrap.
 | ID | Requirement | Status |
 |---|---|---|
 | R13.1 | Standard formats: JSON/YAML/CSV/SQLite/Markdown/STEP/STL/OBJ/SVG/Gerber/SPICE/Python API/CLI | SPECIFIED |
-| R13.2 | Subsystems replaceable without rewriting the platform | SPECIFIED |
+| R13.2 | Subsystems replaceable without rewriting the platform | PARTIAL (T-0202: shared config/canonical-path layer established; no subsystem adapter rewrites yet) |

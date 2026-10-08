@@ -580,3 +580,63 @@ Append-only record of significant actions, findings and discrepancies
 - **Files:** scripts/macos/*.sh (new), tests/test_scripts_unix.py (new;
   tests/test_scripts_linux.py removed and superseded), requirements.md
   (R3.7), roadmap/project-state/next-task/chatmem.md.
+
+## AUDIT-0014 — T-0202 shared configuration module (2026-10-08)
+
+- **Scope:** `src/core/config.py` (new) — single source for the repo root,
+  canonical subsystem directories, config/schema file locations, and
+  JSON/YAML config loading with defaults (§49). `src/core/__init__.py`
+  now re-exports the public names. `src/pem/report.py` and
+  `src/core/manifest.py` were repointed at the shared root/paths
+  (duplication removed; behaviour unchanged). `tests/test_core_config.py`
+  (new). MASTER §49, §23.
+- **Implementation (OBSERVED):**
+  - `REPO_ROOT = Path(__file__).resolve().parents[2]` — derived from the
+    module file, never the CWD (verified by a `monkeypatch.chdir` test).
+  - Canonical directories exposed via `DIRECTORIES` (config, cad,
+    electronics, simulations, models, data, components, docs, projects,
+    scripts, decisions, tests) each directly under `REPO_ROOT`.
+  - `load_json(path, defaults=None)` — reads a JSON object; deep-merges
+    onto defaults; missing file with no defaults, invalid JSON, or a
+    non-object root raises `ConfigError`; missing file with defaults
+    returns a deep copy (mutation-isolation test).
+  - `load_config(name, defaults=None, directory=CONFIG_DIR)` — resolves a
+    relative name against `config/` by default; routes `.json` to
+    `load_json` and `.yaml`/`.yml` to `load_yaml`; unknown extension
+    raises `ConfigError`.
+  - `load_yaml(...)` uses PyYAML **only if importable**; otherwise raises
+    a clear `ConfigError` naming the missing parser (never silent).
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **183 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  164 + **19 new config tests**. The two skips remain the per-platform
+  `sh -n` checks (no POSIX shell). YAML branch executed live
+  (`yaml_available()` → True on this host; PyYAML present), so that path
+  is tested, not skipped.
+- **Live evidence (OBSERVED):** `config.REPO_ROOT` →
+  `D:\Abhishek\Projects\ENGINEERING DEVELOPMENT ENGINE\project`;
+  `config.yaml_available()` → True;
+  `config.load_config("tool-manifest.json")` → 11 tools.
+- **Repoint safety:** `report.py`/`manifest.py` still expose
+  `REPO_ROOT` / `DEFAULT_MANIFEST_PATH` / `DEFAULT_SCHEMA_PATH` (now set
+  from `config`), so all existing imports/tests are unchanged and green.
+- **AC (T-0202):**
+  1. Module exposes root, dirs, `ConfigError`, `load_json`,
+     `load_config` — MET.
+  2. Repo root equals project root and is CWD-independent — MET.
+  3. Deep-merge, missing-with-defaults copy, invalid/non-object errors —
+     MET.
+  4. YAML honest-when-available — MET (live True branch + explicit
+     `ConfigError` path when absent). 5. Existing modules use the shared
+     root; all prior tests unchanged — MET.
+  6. Full suite passes (183 + 2 skip) — MET. 7. R3.8/R13.2 + roadmap/
+     state/next-task/chatmem/memory updated — MET.
+- **Limitations:** no environment-variable overrides or per-subsystem
+  config files yet (not required by T-0202); `load_json`/`load_yaml`
+  return `dict[str, Any]` (top-level must be a mapping); YAML support
+  depends on PyYAML being present at runtime — JSON is always available.
+- **Security:** no network; no elevation; reads only files under the
+  repo by default; no secrets, no logging of contents.
+- **Files:** src/core/config.py (new), src/core/__init__.py,
+  src/pem/report.py, src/core/manifest.py, tests/test_core_config.py
+  (new), requirements.md (R3.8/R13.2),
+  roadmap/project-state/next-task/chatmem/memory.

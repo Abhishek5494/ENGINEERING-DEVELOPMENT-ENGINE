@@ -21,14 +21,16 @@ this file; on conflict, trust the repository (§43).
 7. T-0107 idempotent, guarded install logic + tests.
 8. T-0105 Linux POSIX wrapper scripts (static-verified).
 9. T-0106 macOS POSIX wrapper scripts (static-verified) — Phase 1
-   platform set complete.
+   platform set complete; autonomous build directive audited.
+10. T-0202 shared configuration module (`src/core/config.py`); PEM
+    report/manifest repointed at it.
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
 - `c639ce8` — T-0101; `73c0005` — T-0201; `ffbdaed` — T-0102;
   `52bec6f` — T-0103; `1445c77` — T-0104; `bac844a` — T-0107;
   `a90df34` — T-0105.
-- (pending) — T-0106 macOS wrappers + directive audit.
+- (pending) — T-0106 macOS wrappers + directive audit; T-0202.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -49,10 +51,11 @@ this file; on conflict, trust the repository (§43).
   commit, pick next READY task by §48 phase order, continue (§56).
 
 ## Next task
-- `next-task.md` → **T-0202 shared configuration module** (Phase 2).
-  Then core primitives (T-0301/T-0302), CIE (T-0401+), Scrapling
-  (T-0501+), REA (T-0701+), engineering integrations (T-0801+). Taiga
-  (T-0601/T-0602) stays BLOCKED until the repo is supplied.
+- `next-task.md` → **T-0302 evidence/claim classification primitives**
+  (Phase 3; selected over T-0301 as it unblocks CIE T-0401 + REA T-0701).
+  Then T-0301 (state persistence), CIE (T-0401+), Scrapling (T-0501+),
+  REA (T-0701+), engineering integrations (T-0801+). Taiga (T-0601/T-0602)
+  stays BLOCKED until the repo is supplied.
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never

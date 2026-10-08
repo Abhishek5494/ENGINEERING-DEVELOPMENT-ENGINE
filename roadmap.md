@@ -22,9 +22,9 @@ Last updated: TASK-0001 (bootstrap).
 | T-0106 | macOS scripts (install/update/healthcheck) | 1 | T-0103 | COMPLETE |
 | T-0107 | Idempotent install logic + tests | 1 | T-0103 | COMPLETE |
 | T-0201 | Tool manifest schema + config/tool-manifest.json + loader | 2 | T-0001 | COMPLETE |
-| T-0202 | Shared configuration module | 2 | T-0001 | READY |
-| T-0301 | Project state persistence library | 3 | T-0001, T-0202 | PLANNED |
-| T-0302 | Evidence/claim classification primitives | 3 | T-0001, T-0202 | PLANNED |
+| T-0202 | Shared configuration module | 2 | T-0001 | COMPLETE |
+| T-0301 | Project state persistence library | 3 | T-0001, T-0202 | READY |
+| T-0302 | Evidence/claim classification primitives | 3 | T-0001, T-0202 | READY |
 | T-0401 | Component data model + schema + storage | 4 | T-0302 | PLANNED |
 | T-0402 | CIE URL ingestion + exact-identification flow | 4 | T-0401 | PLANNED |
 | T-0403 | Provenance + source priority + conflict detection | 4 | T-0401 | PLANNED |
@@ -112,10 +112,10 @@ Last updated: TASK-0001 (bootstrap).
 - Acceptance criteria: manifest validates against schema; loader rejects malformed entries; all 11 tools present.
 - Validation: pytest schema/round-trip tests.
 
-**T-0202 — Shared configuration module** — `READY`
+**T-0202 — Shared configuration module** — `COMPLETE`
 - Objective: `src/core/config.py` — paths, config loading (JSON/YAML-if-available), single source for subsystems (§49).
 - Dependencies: T-0001. Acceptance criteria: resolves repo root deterministically; loads config with defaults.
-- Validation: unit tests.
+- Validation: unit tests (19 new tests pass; full suite 183 passed, 2 skipped).
 
 ### PHASE 3 — Project memory
 
@@ -192,3 +192,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0105 marked COMPLETE — `scripts/linux/{install,update,healthcheck}.sh` POSIX `sh` wrappers over the shared module (157 passed, 1 skipped: the `sh -n` syntax test is skipped because this host has no POSIX shell). Linux scripts NOT executed (no POSIX shell available) — static validation only. Next task: **T-0106 (macOS scripts)**, selected over T-1601/T-0202 per §48 phase order (finish Phase 1 platform wrappers before hardening/Phase 2).
 - 2026-10-08: **Autonomous build directive received** (full-programme directive). Audited repository against it (AUDIT-0012). Repo genuine and clean at `a90df34`; no rewrites needed. **BLOCKERS recorded:** (1) Taiga-S1 upstream repository URL not supplied (directive placeholder) → T-0601/T-0602 BLOCKED; (2) real system-level tool installation (FreeCAD/KiCad/ngspice/Gazebo/Blender/Jupyter/Scrapling) requires a human approval gate for privileged/network installs (MASTER §7/§29) and C:\ is below the disk threshold → install tasks remain gated; integration code proceeds with tests that SKIP when a tool is absent (roadmap rule, no fake execution). Full remaining plan = phases 2–17.
 - 2026-10-08: T-0106 marked COMPLETE — `scripts/macos/{install,update,healthcheck}.sh` POSIX `sh` wrappers; static tests generalised to cover Linux + macOS (`tests/test_scripts_unix.py`, replacing the Linux-only file). Phase 1 platform wrapper set is complete (R3.7). Next task: **T-0202 (shared configuration module)**, selected over T-1601/T-0301 per §48 phase order (Phase 2 before Phase 3/16).
+- 2026-10-08: T-0202 marked COMPLETE — `src/core/config.py` single source for repo root, canonical directories and config loading (JSON always; YAML when a parser is available, honestly raising otherwise). `src/core/__init__.py` re-exports; `src/pem/report.py` and `src/core/manifest.py` repointed at `config.REPO_ROOT`/`config.MANIFEST_PATH` (duplication removed; all prior tests unchanged). 19 new tests; full suite 183 passed, 2 skipped. YAML branch executed live (PyYAML present). Next task: **T-0302 (evidence/claim classification primitives)**, selected over T-0301 because both are Phase 3 and T-0302 unblocks the critical path to CIE (T-0401) and REA (T-0701).

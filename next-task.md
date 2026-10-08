@@ -2,78 +2,90 @@
 
 Current execution boundary (MASTER §30). Work ONLY on this task.
 
-## Task T-0202 — Shared configuration module
+## Task T-0302 — Evidence / claim classification primitives
 - **State:** READY
-- **Phase:** 2 — Configuration + tool registry
+- **Phase:** 3 — Core primitives (project memory)
+- **Selected because:** both T-0301 and T-0302 are Phase 3 with deps met;
+  T-0302 unblocks the critical path to CIE (T-0401) and REA (T-0701).
 
 ### Objective
-Create `src/core/config.py` as the single, deterministic source of
-repository paths and configuration loading for every subsystem
-(MASTER §49, §27): resolve the repository root, expose canonical
-directories (`config/`, `cad/`, `electronics/`, `simulations/`,
-`models/`, `data/`, `components/`, `docs/`, `projects/`), and load
-configuration files (JSON always; YAML when a YAML parser is
-available) with defaults and clear errors. No subsystem may hard-code
-its own repo-root logic after this task.
+Create `src/core/evidence.py`: the single, shared vocabulary for
+engineering evidence used by CIE, REA and Taiga-S1 (MASTER §5, §6).
+It must define exactly the eight §6 labels, a documented strength
+ordering consistent with the §5 truth hierarchy, helpers to compare
+labels, and a validated `Claim` record that attaches a label + source +
+retrieval date to a value. Unknown/invalid labels are rejected — never
+silently defaulted.
 
 ### Dependencies
-- T-0001 (COMPLETE) — repository structure exists.
+- T-0001 (COMPLETE), T-0202 (COMPLETE — shared config/paths).
 
 ### Affected components
-- `src/core/config.py` (new)
-- `src/core/__init__.py` (re-export the public helpers)
-- `tests/test_core_config.py` (new)
-- Optional, only if it removes duplication without behaviour change:
-  point `src/pem/report.py` / `src/core/manifest.py` at
-  `config.REPO_ROOT` instead of their own root computation.
-- `requirements.md` (R13.2 / add a config requirement row if missing);
-  roadmap/audit/state closure updates
+- `src/core/evidence.py` (new)
+- `src/core/__init__.py` (re-export the public names)
+- `tests/test_core_evidence.py` (new)
+- `decisions/ADR-0002-evidence-ordering.md` (new — the §6 label ordering
+  is an architectural decision because §6 lists labels but the §5
+  hierarchy does not name all eight; record the mapping/rationale)
+- `requirements.md` (new evidence requirement row), roadmap/audit/
+  project-state/next-task/chatmem closure updates
+
+### Exact §6 labels (canonical, verbatim)
+`OBSERVED`, `MEASURED`, `MANUFACTURER-SPECIFIED`, `CALCULATED`,
+`SIMULATED`, `INFERRED`, `ASSUMED`, `UNKNOWN`.
+There are exactly eight; no additions, no aliases that change meaning.
 
 ### Constraints
-- Standard library only (no new third-party dependency). YAML support is
-  optional and must degrade honestly: if PyYAML is not importable,
-  loading a `.yaml`/`.yml` file raises a clear `ConfigError` naming the
-  missing parser — never silently returns empty data.
-- Deterministic repo root: derive from `__file__` (do not depend on the
-  current working directory).
-- JSON loading with a defaults mapping: a deep merge where explicit
-  values override defaults and nested dicts merge; unknown top-level keys
-  from defaults are preserved. Missing file + no default → `ConfigError`.
-- No secrets are read or logged. Environment variables may be read for an
-  explicit opt-in override only if implemented; never write secrets.
-- Keep behaviour identical wherever existing code is repointed.
+- Standard library only. Case-insensitive / underscore-vs-hyphen input
+  may be normalised on input, but stored/exposed labels are canonical.
+- The strength ordering must be documented and justified against §5.
+  Proposed (strongest → weakest), to be recorded in ADR-0002:
+  MEASURED > OBSERVED > SIMULATED > MANUFACTURER-SPECIFIED >
+  CALCULATED > ASSUMED > INFERRED > UNKNOWN.
+  (`ASSUMED` above `INFERRED` follows §5: empirical estimates precede AI
+  reasoning; OBSERVED is placed as direct first-hand evidence just below
+  measured physical data.) An invalid label is never given a rank.
+- Honesty: a claim labelled UNKNOWN carries no value claim (value must be
+  `None`); presenting an inference as observation must be impossible
+  through these primitives (the label is explicit and required).
+- No network, no file I/O, no side effects at import.
 
 ### Acceptance criteria
-1. `src/core/config.py` exposes `REPO_ROOT`, the canonical directory
-   constants, `ConfigError`, `load_json`, and `load_config`
-   (with optional defaults + YAML-if-available).
-2. `REPO_ROOT` equals the project root and is independent of CWD (test
-   proves it by loading a file while CWD is elsewhere).
-3. JSON load returns parsed data; `load_config` merges defaults (nested
-   merge verified); missing file with no default raises `ConfigError`.
-4. YAML path: if a YAML parser is available it loads; otherwise a clear
-   `ConfigError` is raised (test branches on availability — honest skip,
-   never a fake pass).
-5. If existing modules are repointed, the entire suite still passes with
-   unchanged outputs (report/manifest tests remain green).
-6. `python -m pytest tests/ -v` passes (existing suites + new config
-   tests).
-7. roadmap (T-0202 COMPLETE, next → T-0302 or T-0301 per §48 order),
-   project-state.md, audit.md (new AUDIT entry), requirements.md,
-   chatmem.md updated.
+1. `src/core/evidence.py` exposes `EVIDENCE_LABELS` (a length-8 tuple of
+   the canonical labels in a stable order), an `EvidenceLabel` type
+   (enum), `EvidenceError`, `parse_label`, `rank`, `is_stronger`,
+   `compare`, `strongest`, and a `Claim` record.
+2. `parse_label` accepts canonical labels (and normalised forms) and
+   rejects anything else with `EvidenceError` (test covers a fabricated
+   label such as `"INSTALLED"` and empty/`None`). Roadmap acceptance
+   criterion: enum of exactly the eight labels.
+3. `rank`/`is_stronger`/`compare` implement the ADR-0002 order with tests
+   for each adjacent pair and a documented total order. Roadmap
+   acceptance criterion: ordering enforced.
+4. `Claim` stores `field`/`value`/`label`/`source`/`retrieved_at`/
+   `note`; constructing with an invalid label raises `EvidenceError`
+   (roadmap criterion: invalid labels rejected); a non-UNKNOWN claim
+   with `value is None` raises (no fabricated data, §7); an UNKNOWN claim
+   carries no value; claims serialize to a plain dict (JSON-ready).
+5. `strongest(claims)` returns the highest-strength claim and is
+   stable/tie-broken by input order; empty input → `None`.
+6. `from src.core.evidence import ...` works; `src/core` re-exports.
+7. Full suite passes (`python -m pytest tests/ -v`).
+8. ADR-0002 + roadmap (T-0302 COMPLETE, next → T-0301 or CIE start per
+   §48 order), requirements, project-state, audit (new AUDIT entry),
+   chatmem, memory updated.
 
 ### Validation requirements
-- Run the full suite; record the real result in audit.md.
-- Record live evidence: print `config.REPO_ROOT` and load
-  `config/tool-manifest.json` through `load_config` (OBSERVED).
-- Review `git status` / `git diff` before commit; commit message states
-  what was tested.
-- After completion: select the next READY task by §48 phase order.
-  Phase 3 tasks T-0301 (state persistence; deps T-0001+T-0202) and T-0302
-  (evidence primitives; deps T-0001+T-0202) both become READY — pick the
-  one that best unblocks the dependency graph and record the reason.
+- Run the full suite and record the real result in audit.md.
+- Live evidence: build/compare a couple of claims in a one-off command
+  and record the observed ordering (OBSERVED, not claimed).
+- Review `git status` / `git diff` before commit.
+- After completion: next READY is T-0301 (state persistence) — then CIE
+  (T-0401) which depends on T-0302. Select by §48 phase order and record
+  the reason.
 
 ### Out of scope (do not pull in)
-- Full YAML config merge semantics beyond the stated behaviour; secrets
-  management; rewriting PEM/other subsystems beyond the optional REPO_ROOT
-  repoint; any network access.
+- Persisting claims/evidence to disk (that is CIE/REA storage,
+  T-0401/T-0701 and REA storage tasks); source-priority ranking (§10)
+  and conflict handling (§11) are CIE tasks (T-0403); no network, no
+  scraping, no state-file parsing.

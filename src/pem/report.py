@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
+from src.core.config import REPO_ROOT
+
 UNKNOWN = "UNKNOWN"
 
 # A volume with less free space than this produces a LOW_DISK_SPACE
@@ -26,7 +28,6 @@ UNKNOWN = "UNKNOWN"
 # headroom needs when bulk-installing toolchains.
 LOW_DISK_THRESHOLD_BYTES = 1 * 1024**3
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
 JSON_FILENAME = "environment.json"
 MARKDOWN_FILENAME = "environment-report.md"
 

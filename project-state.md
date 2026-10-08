@@ -5,16 +5,19 @@ a task is completed, blocked, or state changes.
 
 ## Current phase
 PHASE 1 — Project Environment Manager (COMPLETE for code; installs gated).
-PHASE 2 — Configuration + tool registry (in progress).
+PHASE 2 — Configuration + tool registry (COMPLETE).
+PHASE 3 — Core primitives: state, evidence (in progress).
 
 ## Overall status
 Governance complete; Phase 1 PEM complete (detection, manifest, reports,
-shared ops, idempotent guarded installer, Windows/Linux/macOS wrappers).
-Entering Phase 2 (shared config + tool registry). Not yet implemented:
-CIE, Scrapling, REA, Taiga-S1, engineering-tool integrations,
-orchestration, release audit. Taiga-S1 is externally BLOCKED (repo not
-supplied); live tool installation is gated on user approval + disk +
-network. Operating in autonomous build mode (checkpoint commits per task).
+shared ops, idempotent guarded installer, Windows/Linux/macOS wrappers);
+Phase 2 complete (shared `src/core/config.py` root/paths/loader; PEM
+report + manifest repointed at it). Entering Phase 3 core primitives.
+Not yet implemented: CIE, Scrapling, REA, Taiga-S1, engineering-tool
+integrations, orchestration, release audit. Taiga-S1 is externally
+BLOCKED (repo not supplied); live tool installation is gated on user
+approval + disk + network. Operating in autonomous build mode
+(checkpoint commits per task).
 
 ## Completed phases
 - PHASE 0 — Repository + governance (T-0001 COMPLETE, 2026-10-08)
@@ -75,8 +78,8 @@ network. Operating in autonomous build mode (checkpoint commits per task).
   Still below the 1 GiB threshold, so live `install --execute` refuses
   (exit 3) on this host; re-check before any install execution.
 - Linux/macOS probe/code paths unexecuted (Windows host; no POSIX shell)
-  — T-1601. Linux wrappers now exist but static-verified only (T-0105);
-  macOS wrappers not yet created (T-0106).
+  — T-1601. Linux + macOS wrappers now exist but are static-verified
+  only (T-0105/T-0106).
 - Version extraction is best-effort first dotted-numeric token (e.g.
   "2.55.0.windows.3" reported as "2.55.0").
 - Non-pip tools carry `install_command: null` (package-manager
@@ -110,11 +113,12 @@ network. Operating in autonomous build mode (checkpoint commits per task).
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **164 passed, 2 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **183 passed, 2 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
-  + 14 Unix-script static tests (parametrised Linux + macOS). Skipped:
-  the two per-platform `sh -n` syntax checks (no POSIX shell on host).
+  + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
+  config tests. Skipped: the two per-platform `sh -n` syntax checks (no
+  POSIX shell on host).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -126,22 +130,22 @@ network. Operating in autonomous build mode (checkpoint commits per task).
 
 ## Validation status
 - Governance validation + live OBSERVED detector/probe/report/script/
-  install-engine runs recorded in audit.md (AUDIT-0005..0013). Windows
+  install-engine runs recorded in audit.md (AUDIT-0005..0014). Windows
   wrappers executed on host: healthcheck exit 1 (C:\ below threshold),
   install/update exit 0 plan-only, 53-file snapshot proves zero
   mutation. Install engine: live plan exit 0; `--execute` refused
   exit 3 (disk); no live mutation attempted. Linux + macOS wrappers:
   STATIC validation only (file/shebang/delegation/tool-id checks);
-  never executed (no POSIX shell on this host). No engineering
-  validation applicable yet.
+  never executed (no POSIX shell on this host). Core config: unit-tested;
+  live REPO_ROOT + manifest load verified; YAML branch executed (PyYAML
+  present). No engineering validation applicable yet.
 
 ## Next action
-Start T-0202 (see next-task.md): `src/core/config.py` shared
-configuration module (paths, config loading, single source for
-subsystems). After Phase 2–3 core primitives, proceed per §48 phase
-order; T-0601/T-0602 remain BLOCKED pending the Taiga-S1 repository.
+Start T-0302 (see next-task.md): evidence/claim classification
+primitives in `src/core/evidence.py` (the eight §33 labels, ordering,
+invalid-label rejection). Then T-0301 (state persistence), then CIE per
+§48 phase order; T-0601/T-0602 remain BLOCKED pending the Taiga-S1 repo.
 
 ## Last update
-2026-10-08 — T-0106 closed (164 passed, 2 skipped); Phase 1 platform set
-complete; autonomous build directive audited (AUDIT-0012) with blockers
-recorded. Next: T-0202.
+2026-10-08 — T-0202 closed (183 passed, 2 skipped); Phase 2 complete;
+PEM report/manifest repointed at the shared config module. Next: T-0302.
