@@ -53,6 +53,7 @@ REQUIRED_TOOL_FIELDS = (
     "executable",
     "dependencies",
     "installation_method",
+    "install_command",
     "health_check",
     "capability",
 )
@@ -158,6 +159,7 @@ def _validate_tool(entry: Any, index: int, seen_ids: set[str]) -> None:
 
     _check_str_list(entry["dependencies"], where, "dependencies")
     _check_optional_str(entry["installation_method"], where, "installation_method")
+    _check_optional_str(entry["install_command"], where, "install_command")
     _check_optional_str(entry["health_check"], where, "health_check")
 
     _check_str_list(entry["capability"], where, "capability")

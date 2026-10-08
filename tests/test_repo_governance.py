@@ -101,7 +101,8 @@ def test_roadmap_contains_dependency_aware_task_graph() -> None:
         assert state in text, f"roadmap missing task state: {state}"
     assert re.search(r"\bT-0001\b", text)
     # every task id referenced in a dependency column must itself exist
-    for dep in set(re.findall(r"T-\d{4}", text)):
+    # (\b avoids matching the "T-0010" inside "AUDIT-0010")
+    for dep in set(re.findall(r"\bT-\d{4}\b", text)):
         assert dep in task_ids
 
 

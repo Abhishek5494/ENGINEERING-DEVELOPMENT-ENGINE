@@ -358,3 +358,95 @@ Append-only record of significant actions, findings and discrepancies
 - **Files:** src/pem/ops.py, scripts/windows/*.ps1 (3),
   tests/test_pem_ops.py, requirements.md (R3.7/R3.8),
   roadmap/project-state/next-task/chatmem closure updates.
+
+## AUDIT-0010 — T-0107 idempotent install logic + tests (2026-10-08)
+
+- **Scope:** manifest-driven, idempotent install engine (`src/pem/installer.py`)
+  + `install_command` field (manifest/schema/loader) + guarded
+  `python -m src.pem.ops install --execute` (plan stays default). MASTER
+  §7, §22, §23, §24, §29.
+- **Implementation (OBSERVED):**
+  - `plan_installs(entries, records)` classifies each tool:
+    `skip` / `install` / `upgrade` / `manual` / `investigate`.
+    Absent record or `UNKNOWN` → `investigate` (never acted on);
+    `NOT_FOUND` → `install` (or `manual` when command is null);
+    `DETECTED` below `min_version` → `upgrade`; otherwise `skip`.
+  - `apply_installs(...)` runs only `install`/`upgrade` rows via an
+    injectable runner, re-probes after each command, and reports the
+    fresh probe state — never claims success it did not observe.
+  - `expand_command()` substitutes `{python}` as a single argv token
+    (whitespace split of trusted manifest strings; no shell parsing, so
+    Windows interpreter paths are not mangled).
+  - `install_command` added to all 11 manifest entries: `jupyter` and
+    `scrapling` = `{python} -m pip install <pkg>`; the other 9 = `null`
+    (no safe automated command yet → manual). Loader now requires and
+    validates the field (`_check_optional_str`).
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **150 passed, 0 failed** (2026-10-08, Python 3.13.5, pytest 9.1.1):
+  38 governance + 9 PEM detection + 21 manifest + 22 PEM tools +
+  20 PEM report + 23 PEM ops + **17 installer**. Installer tests use
+  fake runners/probes + injected system data — no network, no mutation.
+- **Key behaviors verified by tests:** healthy tool → zero runner calls;
+  NOT_FOUND → exactly one call with the expanded argv, then reprobe;
+  second run against healthy records → zero calls (idempotent); UNKNOWN
+  and absent-record → runner never called (`investigate`); below-minimum
+  → upgrade call; null command → manual, zero calls; low-disk system →
+  `EXIT_REFUSED` (3), runner never called; command failure or rc0-but-
+  still-missing → `EXIT_FAILURE` (1), never reported installed.
+- **Live execution (OBSERVED, 2026-10-08, this host):**
+  - `python -m src.pem.ops install` → **exit 0**, plan lists 7 tools
+    (jupyter, freecad, kicad, ngspice, gazebo, blender, scrapling);
+    git/python skipped (DETECTED); taiga-s1/rea not listed (UNKNOWN →
+    investigate). Ends "plan complete: 7 tool(s) to install, 0
+    change(s) performed".
+  - `python -m src.pem.ops install --execute` → **exit 3 (REFUSED)**:
+    "free disk space is below the 1073741824-byte threshold — C:\
+    (451,891,200 bytes). No action performed." Runner never invoked.
+  - `python -m src.pem.ops update --execute` → **exit 2** with
+    "--execute is only valid for the 'install' command" (guard on flag
+    misuse).
+  - No live install/update mutation was performed (disk below
+    threshold) — this is the intended AC6/AC7 outcome, not a defect.
+- **AC (T-0107):**
+  1. `src/pem/installer.py` exposes `plan_installs`/`apply_installs`;
+     `from src.pem.ops import main` works — MET.
+  2. `install_command` present on all 11 entries; loader/schema updated;
+     manifest tests pass (21) — MET.
+  3. Harness tests for every state transition — MET (behaviors above).
+  4. Low-disk refusal (exit 3, runner idle, volume named) — MET.
+  5. Failed command not reported installed (fresh-probe honesty) — MET.
+  6. Live plan (exit 0) + `--execute` refusal (exit 3) captured — MET.
+  7. R3.6 → IMPLEMENTED (with "live mutation not exercised" qualifier);
+     roadmap/state/audit/chatmem updated — MET.
+  8. Full suite passes (150) — MET.
+- **DISCREPANCY RECORD — notice/C:\ value drift:** `PLAN_ONLY_NOTICE`
+  previously stated install logic "arrives with task T-0107"; once
+  implemented that text was stale, so it was rewritten to describe the
+  current behavior (`PLAN-ONLY: this invocation performs no changes ...`)
+  while retaining the `PLAN-ONLY` and `T-0107` tokens asserted by tests.
+  C:\ free space was 451,891,200 bytes here vs 459,505,664 at T-0104
+  close — consistent with the recorded volatility, not an inconsistency.
+- **DISCREPANCY RECORD — latent governance-test regex bug exposed:**
+  adding the string "AUDIT-0010" to `roadmap.md` made
+  `test_roadmap_contains_dependency_aware_task_graph` fail with
+  "T-0010" not in the task graph. Root cause: the dependency scan used
+  `re.findall(r"T-\d{4}", text)` without word boundaries, so the
+  substring "T-0010" inside "AUDIT-0010" matched (the same scan two
+  lines above already used `\bT-\d{4}\b`). Fix: added the missing `\b`
+  word boundaries to the dependency scan — a test-correctness fix, not
+  a weakening of any assertion (no roadmap AUDIT references existed
+  before, so the bug was latent).
+- **Limitations:** live install/update never executed on this host
+  (C:\ below threshold + network policy unconfirmed); package-manager
+  detection (R3.3) not implemented → non-pip tools carry `null`
+  commands and route to manual; UNKNOWN tools cannot be progressed
+  until their detectors exist; post-probe re-runs the full detector set
+  per executed command (acceptable for this scale).
+- **Security:** no network; no elevation; the default invocation mutates
+  nothing; `--execute` is refused outright while disk is low; commands
+  come only from the reviewed manifest, not user input.
+- **Files:** src/pem/installer.py (new), src/pem/ops.py,
+  config/tool-manifest.json, config/tool-manifest.schema.json,
+  src/core/manifest.py, tests/test_installer.py (new),
+  scripts/windows/install.ps1 + update.ps1 (comment accuracy),
+  requirements.md (R3.6), roadmap/project-state/next-task/chatmem.md.

@@ -33,8 +33,9 @@
         "detection_method",
         "executable",
         "dependencies",
-        "installation_method",
-        "health_check",
+"installation_method",
+      "install_command",
+      "health_check",
         "capability"
       ],
       "additionalProperties": false,
@@ -82,9 +83,13 @@
             "description": "id of another tool in this manifest."
           }
         },
-        "installation_method": {
+"installation_method": {
           "type": ["string", "null"],
-          "description": "How the tool is (or will be) installed; null when in-house/not applicable. Must not claim automation that does not exist."
+          "description": "Human-readable installation method (MASTER section 24)."
+        },
+        "install_command": {
+          "type": ["string", "null"],
+          "description": "Structured, machine-readable install command for idempotent automation (T-0107). The token {python} expands to the current interpreter at run time. null = no safe automated command identified yet (manual install per installation_method)."
         },
         "health_check": {
           "type": ["string", "null"],

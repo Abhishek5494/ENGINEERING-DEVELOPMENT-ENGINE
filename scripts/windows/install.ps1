@@ -1,7 +1,8 @@
 # install.ps1 — thin wrapper over shared PEM code (MASTER section 23).
 # All business logic lives in src/pem/ops.py; this file only resolves the
 # repository root, invokes the shared module, and propagates its exit code.
-# Plan-only until task T-0107: it performs zero changes.
+# Plan-only by default; --execute (forwarded via @args) runs guarded,
+# idempotent installation (T-0107, src/pem/installer.py).
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $python = Get-Command python -ErrorAction SilentlyContinue
 if (-not $python) {

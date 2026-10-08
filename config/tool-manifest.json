@@ -13,6 +13,7 @@
       "executable": "git",
       "dependencies": [],
       "installation_method": "platform package manager (winget/scoop, apt, brew); automation not yet implemented (T-0104+)",
+      "install_command": null,
       "health_check": "git --version",
       "capability": [],
       "notes": "min/preferred versions UNKNOWN; host OBSERVED git 2.55.0.windows.3 (2026-10-08)."
@@ -29,6 +30,7 @@
       "executable": "python",
       "dependencies": [],
       "installation_method": "platform package manager or python.org installer; automation not yet implemented (T-0104+)",
+      "install_command": null,
       "health_check": "python --version",
       "capability": ["numerical optimization"],
       "notes": "min_version UNKNOWN (only 3.13.5 OBSERVED and exercised on host, 2026-10-08); preferred 3.13 = version actually validated."
@@ -44,7 +46,8 @@
       "detection_method": "python_module",
       "executable": "python",
       "dependencies": ["python"],
-      "installation_method": "pip install jupyter; automation not yet implemented (T-0801)",
+      "installation_method": "pip install jupyter; install_command runnable via install --execute (T-0107); full workflow setup in T-0801",
+      "install_command": "{python} -m pip install jupyter",
       "health_check": "python -m jupyter --version",
       "capability": ["numerical optimization"],
       "notes": "Not probed on host yet (UNKNOWN)."
@@ -61,6 +64,7 @@
       "executable": null,
       "dependencies": ["python"],
       "installation_method": null,
+      "install_command": null,
       "health_check": null,
       "capability": ["LLM inference"],
       "notes": "In-house subsystem, not yet implemented (Phase 6, T-0601); detection/installation pending by design."
@@ -77,6 +81,7 @@
       "executable": "FreeCADCmd",
       "dependencies": [],
       "installation_method": "platform package manager or official installer; automation not yet implemented (T-0901)",
+      "install_command": null,
       "health_check": "FreeCADCmd --version",
       "capability": ["CAD"],
       "notes": "Not probed on host yet (UNKNOWN)."
@@ -93,6 +98,7 @@
       "executable": "kicad-cli",
       "dependencies": [],
       "installation_method": "platform package manager or official installer; automation not yet implemented (T-1001)",
+      "install_command": null,
       "health_check": "kicad-cli version",
       "capability": ["PCB design"],
       "notes": "Not probed on host yet (UNKNOWN)."
@@ -109,6 +115,7 @@
       "executable": "ngspice",
       "dependencies": [],
       "installation_method": "platform package manager or official build; automation not yet implemented (T-1002)",
+      "install_command": null,
       "health_check": "ngspice --version",
       "capability": ["circuit simulation"],
       "notes": "Not probed on host yet (UNKNOWN)."
@@ -125,6 +132,7 @@
       "executable": "gz",
       "dependencies": [],
       "installation_method": "platform package manager or official installer; automation not yet implemented (T-1101)",
+      "install_command": null,
       "health_check": "gz sim --versions",
       "capability": ["robotics simulation"],
       "notes": "Not probed on host yet (UNKNOWN); executable assumes modern Gazebo (gz), classic gazebo not covered."
@@ -141,6 +149,7 @@
       "executable": "blender",
       "dependencies": [],
       "installation_method": "platform package manager or official installer; automation not yet implemented (T-1201)",
+      "install_command": null,
       "health_check": "blender --version",
       "capability": ["3D rendering"],
       "notes": "Not probed on host yet (UNKNOWN)."
@@ -157,6 +166,7 @@
       "executable": null,
       "dependencies": ["python"],
       "installation_method": null,
+      "install_command": null,
       "health_check": null,
       "capability": [],
       "notes": "In-house subsystem, not yet implemented (Phase 7, T-0701); detection/installation pending by design."
@@ -172,7 +182,8 @@
       "detection_method": "python_module",
       "executable": "python",
       "dependencies": ["python"],
-      "installation_method": "pip install (pinned in T-0501 after inspecting the official repository); not yet installed",
+      "installation_method": "pip install (pinned in T-0501 after inspecting the official repository); install_command runnable via install --execute (T-0107)",
+      "install_command": "{python} -m pip install scrapling",
       "health_check": "python -c \"import scrapling; print(scrapling.__version__)\"",
       "capability": ["web acquisition"],
       "notes": "Version UNKNOWN until T-0501 inspects the official repo/docs; must not assume API from memory (Master section 2.4)."

@@ -34,7 +34,7 @@ Last verified against repository: TASK-0001 bootstrap.
 | R3.3 | Detect package managers, relevant environment variables | SPECIFIED |
 | R3.4 | Report capabilities with states READY/LIMITED/UNAVAILABLE/UNKNOWN | IMPLEMENTED (T-0102: `capability_states()`, test-verified vocabulary) |
 | R3.5 | Generate environment.json and environment-report.md; never claim a tool is installed unless detection confirms it | IMPLEMENTED (T-0103: `build_environment()`/`write_reports()`, schema-validated via `config/environment-report.schema.json`, honesty tests; both files gitignored) |
-| R3.6 | Idempotent installation — repeated setup does not blindly reinstall working components | SPECIFIED |
+| R3.6 | Idempotent installation — repeated setup does not blindly reinstall working components | IMPLEMENTED (T-0107: `src/pem/installer.py` acts only on NOT_FOUND or below-`min_version`; never acts on UNKNOWN; guarded `install --execute` (exit 3 refusal); test-verified second run makes zero changes. Live mutation not exercised on this host — C:\ below threshold) |
 | R3.7 | scripts/{windows,linux,macos}/{install,update,healthcheck} exist and detect platform automatically | PARTIAL (T-0104: Windows set exists, executed on this host, platform auto-detected in shared code; Linux/macOS pending T-0105/T-0106) |
 | R3.8 | Shared configuration; business logic not duplicated across platform scripts | IMPLEMENTED (T-0104: all logic in `src/pem/ops.py`; wrappers are test-asserted to contain no tool lists/business logic) |
 

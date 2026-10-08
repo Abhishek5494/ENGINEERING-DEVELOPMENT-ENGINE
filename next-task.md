@@ -2,109 +2,79 @@
 
 Current execution boundary (MASTER §30). Work ONLY on this task.
 
-## Task T-0107 — Idempotent install logic + tests
+## Task T-0105 — Linux scripts (install/update/healthcheck)
 - **State:** READY
 - **Phase:** 1 — Project Environment Manager
 
 ### Objective
-Deliver manifest-driven, idempotent installation logic per MASTER §22:
-act only when a tool is absent (NOT_FOUND) or detected below a known
-minimum version; never act on UNKNOWN; re-run safe — a second run
-performs zero changes when the environment is healthy. Wire it into
-`python -m src.pem.ops install --execute` (plan mode stays the
-default), with guarded execution and honest post-install re-probing
-(MASTER §7, §22, §23, §29).
+Add thin Linux shell wrappers `scripts/linux/{install,update,healthcheck}.sh`
+over the verified shared code in `src/pem/ops.py` (MASTER §23): resolve
+the repository root, invoke the shared module with the current
+interpreter, and propagate its exit code — no business logic, no tool
+lists, no detection/installation logic in the scripts. Platform remains
+auto-detected in shared code (this host will report `linux` only when
+run on Linux).
 
 ### Dependencies
-- T-0103 (COMPLETE) — detectors/report constants exist.
-- T-0104 (COMPLETE) — `src/pem/ops.py` command layer exists.
+- T-0104 (COMPLETE) — shared `src/pem/ops.py` command layer + Windows
+  wrapper precedent.
+- T-0107 (COMPLETE) — install `--execute` semantics are frozen, so the
+  wrappers only forward arguments.
 
 ### Affected components
-- `src/pem/installer.py` (new)
-- `src/pem/ops.py` (add `--execute` flag to install; keep default =
-  plan)
-- `config/tool-manifest.json`, `config/tool-manifest.schema.json`,
-  `src/core/manifest.py` (new per-entry field `install_command`:
-  string or null — structured, machine-readable install command;
-  required on every entry so schema and loader stay in sync)
-- `tests/test_installer.py` (new)
-- `requirements.md` R3.6; roadmap/audit/state closure updates
+- `scripts/linux/install.sh`, `scripts/linux/update.sh`,
+  `scripts/linux/healthcheck.sh` (new)
+- `tests/test_pem_ops.py` (extend wrapper assertions to Linux scripts)
+  or a new `tests/test_scripts_linux.py`
+- `requirements.md` R3.7; roadmap/audit/state closure updates
 
 ### Constraints
-- Manifest-driven only: install commands live in
-  `install_command` entries (template `{python}` expands to the current
-  interpreter at run time); no hard-coded tool list in code. Where no
-  safe command can be justified yet (GUI installers, package-manager
-  tools pending R3.3), the value is `null` and the engine reports
-  "manual install per <installation_method>" without acting.
-- Populated now (justified, not fabricated): pip-installable tools
-  (python_module detection) get `{python} -m pip install <package>`;
-  everything else `null` with an honest note — no package-manager
-  claims until R3.3 exists.
-- Idempotency rules (test-asserted): DETECTED and not below minimum →
-  skip (zero actions); DETECTED below `min_version` → run
-  `install_command` (upgrade case); NOT_FOUND → run
-  `install_command` if present, else manual-notice; **UNKNOWN → never
-  act** (inconclusive probes require investigation first).
-- Guarded execution: `--execute` refuses (distinct documented exit
-  code **3**, nothing performed) when any OBSERVED storage volume is
-  below `LOW_DISK_THRESHOLD_BYTES`; `--execute` never runs without the
-  explicit flag; plan mode remains the default and stays unchanged.
-- Evidence-based verification: after each executed command the engine
-  re-probes the tool and reports the resulting state with its probe
-  evidence; a failed command is reported as failed with the observed
-  exit code — never claimed installed (MASTER §7).
-- Injectability: the command runner and detectors are injectable
-  parameters so tests simulate present/absent/below-minimum states with
-  a fake runner (roadmap validation) — tests never touch the network,
-  never install anything, never modify the environment.
-- Exit codes: 0 = plan/execute completed (or all healthy), 1 = some
-  commands failed (post-probe still unhealthy), 2 = execution error,
-  3 = execute refused (preconditions not met, e.g. low disk).
+- Shell scripts must be POSIX `sh` (not bash-only), start with
+  `#!/usr/bin/env sh`, be executable-intent, and end by exiting with the
+  shared module's exit code. Resolve the repo root relative to the
+  script location (no hard-coded absolute paths).
+- Discover the interpreter honestly: prefer `python3`, fall back to
+  `python`; if neither exists, print an error and exit 2 (execution
+  error), matching the Windows wrapper's behavior.
+- No manifest tool id may appear in the scripts except the interpreter
+  bootstrap token (`python`/`python3`), mirroring the recorded T-0104
+  discrepancy resolution.
+- Do NOT execute the scripts on this Windows host; a POSIX shell is not
+  available here. Validate by static checks only (file exists, shebang,
+  calls the shared module, contains no tool ids/business logic). If a
+  POSIX shell happens to be present, a syntax check (`sh -n`) is
+  acceptable, but NEVER claim execution or correct runtime behavior.
 - No new third-party dependencies.
 
 ### Acceptance criteria
-1. `src/pem/installer.py` exposes `plan_installs(...)` and
-   `apply_installs(...)` importable as specified in the module
-   docstring; `from src.pem.ops import main` still works.
-2. Manifest: all 11 entries carry `install_command` (string or null);
-   schema + loader enforce it (existing schema/loader agreement tests
-   must keep passing with the new field).
-3. Harness tests (fake runner): healthy run → zero runner calls;
-   absent tool with command → exactly one call with the expanded argv;
-   second run after simulated success → zero calls (idempotent);
-   UNKNOWN → never called; below-minimum → called; null command →
-   manual notice, no call.
-4. Guarded execution: injected low-disk system → exit 3, runner never
-   called, message names the volume.
-5. Post-probe honesty: simulated failed command → summary reports the
-   observed nonzero exit and the tool's resulting NOT_FOUND state;
-   nothing claims success.
-6. Live host evidence (OBSERVED, recorded in audit.md): plan mode
-   unchanged (exit 0, lists missing tools); `install --execute` on this
-   host **refuses with exit 3** naming C:\ (below threshold) — proving
-   the guard without touching the network or installing anything.
-7. `requirements.md` R3.6 → IMPLEMENTED (with the honest qualifier
-   that live mutation was not exercised on this host); roadmap,
-   project-state.md, audit.md, chatmem.md updated.
-8. `python -m pytest tests/ -v` passes (governance + PEM detection +
-   manifest + PEM tools + PEM report + PEM ops + new installer tests).
+1. The three `.sh` files exist under `scripts/linux/` with a valid
+   POSIX shebang and call `python -m src.pem.ops <command>`.
+2. Each propagates the shared module's exit code (no swallowing).
+3. No manifest tool id appears except the interpreter token; no tool
+   list or detection/install logic is present.
+4. Static tests assert the above; if `sh` is available, `sh -n` passes
+   on each script.
+5. `requirements.md` R3.7 updated (Linux set now exists; still no
+   execution evidence — honest qualifier), roadmap T-0105 → COMPLETE and
+   T-0106 → READY/next.
+6. `python -m pytest tests/ -v` passes (existing suites + new checks).
+7. project-state.md, audit.md (new AUDIT entry with OBSERVED static
+   evidence and an explicit "not executed on this host" statement),
+   chatmem.md updated.
 
 ### Validation requirements
-- Execute the full suite; record the real result in audit.md.
-- Run plan mode and `--execute` (expect refusal) once on this host;
-  capture exit codes + sanitized output in audit.md as OBSERVED evidence.
+- Run the full suite; record the real result in audit.md.
+- Record static/`sh -n` evidence (or state that no POSIX shell exists and
+  only static checks ran). Do not fabricate runtime output.
 - Review `git status` / `git diff` before commit; commit message states
-  what was tested.
-- After completion: update roadmap (T-0107 → COMPLETE, next task
-  READY), project-state.md, audit.md, requirements.md, and rewrite this
-  file for the next READY task (candidates: T-0105/T-0106 Linux/macOS
-  wrappers — now trivial thin wrappers over verified shared code, or
-  T-0202 shared config — Phase 2; choose by §48 phase order and record
-  the reason).
+  what was tested (and what could not be executed).
+- After completion: update roadmap (T-0105 → COMPLETE, T-0106 → READY),
+  project-state.md, audit.md, requirements.md, and rewrite this file for
+  the next READY task (T-0106 macOS scripts, then T-1601 hardening /
+  Phase 2 T-0202 — choose by §48 phase order and record the reason).
 
 ### Out of scope (do not pull in)
-- Actually installing/updating anything on this host (disk + network
-  policy unconfirmed), package-manager detection (R3.3), uninstall,
-  Linux/macOS wrappers (T-0105/T-0106), GUI installer automation,
-  changes to detectors or report generation.
+- Executing Linux scripts (no POSIX runtime on this host), macOS
+  wrappers (T-0106), cross-platform hardening/CI (T-1601), package
+  manager detection (R3.3), any change to `src/pem/ops.py` behavior,
+  detectors, report generation, or the install engine.

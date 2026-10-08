@@ -13,35 +13,46 @@ this file; on conflict, trust the repository (§43).
    governance files, §28 structure, 35-task roadmap, executed T-0001,
    committed baseline (`3453e15`, `78b1270`).
 2. Executed **T-0101 PEM system/hardware detection** (`c639ce8`).
-3. Executed **T-0201 tool manifest schema + manifest + loader**
-   (`73c0005`).
-4. Executed **T-0102 PEM tool detection + capability states**
-   (`ffbdaed`).
+3. Executed **T-0201 tool manifest + schema + loader** (`73c0005`).
+4. Executed **T-0102 PEM tool detection + capability states** (`ffbdaed`).
 5. Executed **T-0103 environment report generation** (`52bec6f`).
-6. Executed **T-0104 Windows scripts + shared ops module**.
+6. Executed **T-0104 Windows scripts + shared ops module** (`1445c77`).
+7. Executed **T-0107 idempotent install logic + tests** — `src/pem/installer.py`,
+   `install_command` in manifest/schema/loader, guarded `install --execute`;
+   150 tests; live plan exit 0, `--execute` refused exit 3 (low disk).
 
-## Context worth carrying forward
-- User decisions: (a) init Git and commit baseline; (b) MASTER.md stored
-  verbatim.
-- Bugs/incidents caught so far (all resolved before completion):
-  evidence/manifest/wording bugs in T-0101..T-0103; **T-0104 reported
-  test error root-caused to C:\ temp cleanup (Storage Sense) deleting
-  pytest tmp dirs while disk had only ~6 MB free — NOT a code defect;
-  test left unchanged** (AUDIT-0009).
-- Environment facts in `memory.md`; C:\ free space is VOLATILE (6 MB →
-  438 MB same day). healthcheck exits 1 on this host because C:\ is
-  below the 1 GiB threshold.
-- AC5-style discrepancies are recorded in audit.md with resolutions
-  (e.g. `python` id allowed in wrappers only as interpreter bootstrap).
+## History this session (commit map)
+- `3453e15` + `78b1270` — T-0001 governance baseline.
+- `c639ce8` — T-0101 system detection.
+- `73c0005` — T-0201 manifest.
+- `ffbdaed` — T-0102 tool detection.
+- `52bec6f` — T-0103 environment reports.
+- `1445c77` — T-0104 Windows scripts + ops.
+- (pending) — T-0107 idempotent install logic.
 
-## Session end state
-- **COMPLETE:** T-0001, T-0101, T-0201, T-0102, T-0103, T-0104.
-  Test suite: **133 passed** (38 governance + 9 PEM detection +
-  21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops).
-- Current execution boundary: `next-task.md` → **T-0107 idempotent
-  install logic (READY)** — selected over T-0105/T-0106/T-0202 per §48
-  phase order + shared-logic-first (§23); reason in roadmap change log.
-- Windows wrappers executed live: healthcheck exit 1, install/update
-  exit 0 plan-only; `--execute` guarded mode arrives with T-0107.
-- On resume: read `project-state.md`, `next-task.md`, `roadmap.md`,
-  verify Git state, then execute only the current task (§42, §57).
+## Key facts to carry forward
+- Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
+  root `D:\Abhishek\Projects\ENGINEERING DEVELOPMENT ENGINE\project`.
+- C:\ free space is volatile and below the 1 GiB threshold: 6,135,808 B
+  (T-0103) → 459,509,760 B (T-0104) → 451,891,200 B (T-0107). Live
+  `install --execute` therefore refuses with exit 3 on this host.
+- Shared code is the single source of truth (`src/pem/*`, `src/core/*`);
+  platform scripts are thin wrappers only (§23).
+- Installer rules: act only on NOT_FOUND or below-min; never act on
+  UNKNOWN/absent records; null command → manual; skip healthy (idempotent).
+- Exit codes: 0 ok, 1 unhealthy/failed command, 2 execution error,
+  3 refused (execute precondition, e.g. low disk).
+- Bugs caught by tests and fixed before commit: empty-list evidence
+  (T-0101), manifest error-ordering (T-0201), §29 heading dropped in
+  project-state rewrite (T-0102), "installed" wording + missing
+  UNAVAILABLE limitations (T-0103). T-0104 reported test error =
+  environmental C:\ temp cleanup, not a code defect (AUDIT-0009).
+
+## Next task
+- `next-task.md` → **T-0105 Linux scripts** (READY), chosen over T-0106/
+  T-0202 by §48 phase order (Phase 1 before Phase 2). Linux scripts
+  cannot be executed on this host — static/`sh -n` validation only.
+
+## Reminders
+- Never claim untested/unrun work (§46); record discrepancies, never
+  silently overwrite (§47). Report per §55; stop after each task (§56).

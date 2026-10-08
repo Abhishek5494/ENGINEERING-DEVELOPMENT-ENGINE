@@ -20,7 +20,7 @@ Last updated: TASK-0001 (bootstrap).
 | T-0104 | Windows scripts (install/update/healthcheck) | 1 | T-0103 | COMPLETE |
 | T-0105 | Linux scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
 | T-0106 | macOS scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
-| T-0107 | Idempotent install logic + tests | 1 | T-0103 | READY |
+| T-0107 | Idempotent install logic + tests | 1 | T-0103 | COMPLETE |
 | T-0201 | Tool manifest schema + config/tool-manifest.json + loader | 2 | T-0001 | COMPLETE |
 | T-0202 | Shared configuration module | 2 | T-0001 | READY |
 | T-0301 | Project state persistence library | 3 | T-0001, T-0202 | PLANNED |
@@ -99,10 +99,10 @@ Last updated: TASK-0001 (bootstrap).
 - Acceptance criteria: each script exists, is syntactically valid, calls shared code, exits nonzero on failed health check.
 - Validation: Windows scripts executed on this machine; Linux/macOS scripts syntax-checked only (no claim of execution).
 
-**T-0107 — Idempotent install logic + tests** — `READY`
+**T-0107 — Idempotent install logic + tests** — `COMPLETE`
 - Objective: install missing dependencies only when absent or version-below-minimum; re-run safe (§22).
 - Dependencies: T-0103. Acceptance criteria: second run performs zero changes when healthy.
-- Validation: test harness simulating present/absent tool states.
+- Validation: test harness simulating present/absent tool states (17 installer tests); live plan + refusal evidence in AUDIT-0010.
 
 ### PHASE 2 — Configuration + tool registry
 
@@ -188,3 +188,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0102 marked COMPLETE — manifest-driven tool detection + capability states (90 tests passed). Host evidence: git/python DETECTED; jupyter/freecad/kicad/ngspice/gazebo/blender/scrapling NOT_FOUND; taiga-s1/rea UNKNOWN (not implemented). T-0103 now READY.
 - 2026-10-08: T-0103 marked COMPLETE — `src/pem/report.py` report generation + `config/environment-report.schema.json` (110 tests passed). Both report files generated on this host and confirmed gitignored. T-0104 now READY; selected as next over T-0202 because Phase 1 precedes Phase 2 in §48 order (same rationale as the T-0102 selection), and T-0104's dependency T-0103 just completed.
 - 2026-10-08: T-0104 marked COMPLETE — Windows wrappers + `src/pem/ops.py` shared operations (133 tests passed; all three .ps1 files executed on this host). Next task: T-0107 (idempotent install logic), selected over T-0105/T-0106/T-0202: same Phase 1, and shared install logic must exist before platform wrappers can do more than plan (MASTER §23 forbids duplicating business logic per platform). T-0105/T-0106 remain PLANNED and can then be added as thin wrappers; T-0202 is Phase 2 (§48 order).
+- 2026-10-08: T-0107 marked COMPLETE — `src/pem/installer.py` idempotent install engine + `install_command` in manifest/schema + guarded `ops install --execute` (150 tests passed: +17 installer). Live evidence: plan exit 0 (7 tools to install), `--execute` refused exit 3 (C:\ 451,891,200 bytes < 1 GiB). Next task: **T-0105 (Linux scripts)**, selected over T-0106/T-0202 — same Phase 1 as T-0104/T-0107 and earlier in §48 order; shared logic now frozen, so wrappers are trivial thin scripts (§23). T-0106 follows; T-0202 is Phase 2.

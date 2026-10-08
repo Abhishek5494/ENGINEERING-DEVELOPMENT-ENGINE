@@ -5,15 +5,16 @@ logic, no duplicated detection code. The PowerShell scripts under
 ``scripts/windows/`` are wrappers around this module.
 
 Exit codes:
-    0  healthy (healthcheck) or plan computed successfully (install/update)
-    1  unhealthy (healthcheck): a required tool is not confirmed healthy,
-       or an observed volume is below LOW_DISK_THRESHOLD_BYTES
+    0  healthy (healthcheck) or operation completed
+    1  unhealthy (healthcheck) or some install commands failed
     2  execution error (bad arguments, unreadable manifest, import failure)
+    3  install --execute refused (preconditions not met, e.g. low disk)
 
-``install`` and ``update`` are PLAN-ONLY: they perform zero changes and
-say so. Mutation arrives with T-0107 (idempotent install logic). The
-current platform is always detected automatically (MASTER §23); there is
-no platform override flag.
+Plan operations perform zero changes. ``install`` stays plan-only unless
+``--execute`` is passed, which runs guarded, idempotent installation
+logic from ``src.pem.installer`` (T-0107). The current platform is
+always detected automatically (MASTER §23); there is no platform
+override flag.
 """
 
 from __future__ import annotations
@@ -25,6 +26,7 @@ from typing import Any, Optional
 
 from src.core.manifest import ManifestError, load_manifest
 from src.pem.detect import detect_system
+from src.pem.installer import EXIT_REFUSED, apply_installs, plan_installs
 from src.pem.report import LOW_DISK_THRESHOLD_BYTES
 from src.pem.tools import detect_tools
 
@@ -35,8 +37,9 @@ EXIT_ERROR = 2
 PLATFORM_NAMES = {"Windows": "windows", "Linux": "linux", "Darwin": "macos"}
 
 PLAN_ONLY_NOTICE = (
-    "PLAN-ONLY: no changes performed; installation/update logic arrives "
-    "with task T-0107"
+    "PLAN-ONLY: this invocation performs no changes. The install plan is "
+    "read-only unless --execute is passed (guarded, idempotent; T-0107); "
+    "update remains plan-only."
 )
 
 
@@ -135,32 +138,57 @@ def run_install_plan(
     data = manifest if manifest is not None else load_manifest()
     records = tools if tools is not None else detect_tools(data)
     platform_id = platform_name if platform_name is not None else current_platform()
-    by_id = {record["id"]: record for record in records}
 
     lines = [
         f"install plan (platform: {platform_id})",
         PLAN_ONLY_NOTICE,
         "nothing is installed automatically; review the plan below",
+        "pass --execute to perform this plan (guarded; refused if disk is low)",
     ]
-    entries = platform_entries(data, platform_id)
-    ordered = [e for e in entries if e["required"] == "required"] + [
-        e for e in entries if e["required"] != "required"
+    rows = plan_installs(platform_entries(data, platform_id), records)
+    ordered = [r for r in rows if r["required"] == "required"] + [
+        r for r in rows if r["required"] != "required"
     ]
-    missing = 0
-    for entry in ordered:
-        record = by_id.get(entry["id"])
-        if record is None or record["state"] == "NOT_FOUND":
-            missing += 1
-            state = record["state"] if record else "MISSING RECORD"
+    count = 0
+    for row in ordered:
+        if row["action"] in {"install", "upgrade", "manual"}:
+            count += 1
             lines.append(
-                f"- {entry['required'].upper()} {entry['id']} ({state}): "
-                f"{entry['purpose']} — installation method: "
-                f"{entry['installation_method']}"
+                f"- {row['required'].upper()} {row['id']} ({row['state']}): "
+                f"{row['purpose']} — installation method: "
+                f"{row['installation_method']}"
             )
     lines.append(
-        f"plan complete: {missing} tool(s) to install, 0 change(s) performed"
+        f"plan complete: {count} tool(s) to install, 0 change(s) performed"
     )
     return EXIT_OK, lines
+
+
+def run_install_execute(
+    *,
+    manifest: Optional[dict[str, Any]] = None,
+    tools: Optional[list[dict[str, Any]]] = None,
+    platform_name: Optional[str] = None,
+    system: Optional[dict[str, Any]] = None,
+    runner: Any = None,
+    probe: Any = None,
+) -> tuple[int, list[str]]:
+    """Perform the guarded, idempotent install plan (T-0107).
+
+    Refuses without acting (exit 3) when an observed volume is below the
+    documented threshold. Never claims more than a fresh probe shows.
+    """
+    data = manifest if manifest is not None else load_manifest()
+    records = tools if tools is not None else detect_tools(data)
+    platform_id = platform_name if platform_name is not None else current_platform()
+    outcome = apply_installs(
+        platform_entries(data, platform_id),
+        records,
+        runner=runner,
+        system=system,
+        probe=probe,
+    )
+    return outcome.exit_code, [f"platform: {platform_id}"] + outcome.lines
 
 
 def run_update_plan(
@@ -202,9 +230,10 @@ COMMANDS = {
 }
 
 EPILOG = (
-    "exit codes: 0 = healthy or plan computed; 1 = unhealthy (healthcheck "
-    "only); 2 = execution error. install and update are plan-only: they "
-    "perform zero changes until task T-0107."
+    "exit codes: 0 = healthy or operation completed; 1 = unhealthy "
+    "(healthcheck) or failed install command; 2 = execution error; "
+    "3 = install --execute refused (e.g. disk below threshold). "
+    "install is plan-only unless --execute is passed."
 )
 
 
@@ -220,13 +249,28 @@ def main(argv: Optional[list[str]] = None) -> int:
         choices=sorted(COMMANDS),
         help="operation to run",
     )
+    parser.add_argument(
+        "--execute",
+        action="store_true",
+        help="install: perform the plan (guarded, idempotent); "
+        "default is plan-only",
+    )
     try:
         args = parser.parse_args(argv)
     except SystemExit as exc:
         return int(exc.code) if exc.code is not None else EXIT_ERROR
 
     try:
-        code, lines = COMMANDS[args.command]()
+        if args.execute:
+            if args.command != "install":
+                print(
+                    "error: --execute is only valid for the 'install' command",
+                    file=sys.stderr,
+                )
+                return EXIT_ERROR
+            code, lines = run_install_execute()
+        else:
+            code, lines = COMMANDS[args.command]()
     except (ManifestError, OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_ERROR
