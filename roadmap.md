@@ -19,7 +19,7 @@ Last updated: TASK-0001 (bootstrap).
 | T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | COMPLETE |
 | T-0104 | Windows scripts (install/update/healthcheck) | 1 | T-0103 | COMPLETE |
 | T-0105 | Linux scripts (install/update/healthcheck) | 1 | T-0103 | COMPLETE |
-| T-0106 | macOS scripts (install/update/healthcheck) | 1 | T-0103 | READY |
+| T-0106 | macOS scripts (install/update/healthcheck) | 1 | T-0103 | COMPLETE |
 | T-0107 | Idempotent install logic + tests | 1 | T-0103 | COMPLETE |
 | T-0201 | Tool manifest schema + config/tool-manifest.json + loader | 2 | T-0001 | COMPLETE |
 | T-0202 | Shared configuration module | 2 | T-0001 | READY |
@@ -31,8 +31,8 @@ Last updated: TASK-0001 (bootstrap).
 | T-0404 | Authoritative source search + cross-source compare | 4 | T-0402, T-0502 | PLANNED |
 | T-0501 | Inspect installed Scrapling + pin dependency | 5 | T-0001 | PLANNED |
 | T-0502 | Scrapling acquisition→sanitization→extraction under CIE | 5 | T-0501, T-0401 | PLANNED |
-| T-0601 | Taiga-S1 runtime selection + resource awareness | 6 | T-0103, T-0301 | PLANNED |
-| T-0602 | Taiga-S1 orchestration core (task routing) | 6 | T-0601, T-0301, T-0403 | PLANNED |
+| T-0601 | Taiga-S1 runtime selection + resource awareness | 6 | T-0103, T-0301 | BLOCKED (Taiga-S1 upstream repo not supplied) |
+| T-0602 | Taiga-S1 orchestration core (task routing) | 6 | T-0601, T-0301, T-0403 | BLOCKED (depends on T-0601) |
 | T-0701 | REA pipeline + investigation record templates | 7 | T-0302 | PLANNED |
 | T-0702 | REA tooling integration (inspect/trace) | 7 | T-0701 | PLANNED |
 | T-0801 | Python/Jupyter integration | 8 | T-0103 | PLANNED |
@@ -93,11 +93,11 @@ Last updated: TASK-0001 (bootstrap).
 - Acceptance criteria: both outputs generated; JSON schema-validated; report lists missing dependencies honestly.
 - Validation: tests assert schema, honesty rules (tool present iff detection says so).
 
-**T-0104/0105/0106 — Platform scripts (Windows/Linux/macOS)** — `T-0104 COMPLETE; T-0105 COMPLETE; T-0106 READY`
+**T-0104/0105/0106 — Platform scripts (Windows/Linux/macOS)** — `T-0104 COMPLETE; T-0105 COMPLETE; T-0106 COMPLETE`
 - Objective: `scripts/<platform>/{install,update,healthcheck}` thin wrappers over shared Python (§23).
 - Dependencies: T-0103. Constraints: platform auto-detection; no duplicated business logic.
 - Acceptance criteria: each script exists, is syntactically valid, calls shared code, exits nonzero on failed health check.
-- Validation: Windows scripts executed on this machine; Linux scripts static-validated only (no POSIX shell on this host); macOS scripts syntax-checked only (no claim of execution).
+- Validation: Windows scripts executed on this machine; Linux/macOS scripts static-validated only (no POSIX shell on this host) — no claim of execution.
 
 **T-0107 — Idempotent install logic + tests** — `COMPLETE`
 - Objective: install missing dependencies only when absent or version-below-minimum; re-run safe (§22).
@@ -190,3 +190,5 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0104 marked COMPLETE — Windows wrappers + `src/pem/ops.py` shared operations (133 tests passed; all three .ps1 files executed on this host). Next task: T-0107 (idempotent install logic), selected over T-0105/T-0106/T-0202: same Phase 1, and shared install logic must exist before platform wrappers can do more than plan (MASTER §23 forbids duplicating business logic per platform). T-0105/T-0106 remain PLANNED and can then be added as thin wrappers; T-0202 is Phase 2 (§48 order).
 - 2026-10-08: T-0107 marked COMPLETE — `src/pem/installer.py` idempotent install engine + `install_command` in manifest/schema/loader + guarded `ops install --execute` (150 tests passed: +17 installer). Live evidence: plan exit 0 (7 tools to install), `--execute` refused exit 3 (C:\ 451,891,200 bytes < 1 GiB). Next task: **T-0105 (Linux scripts)**, selected over T-0106/T-0202 — same Phase 1 as T-0104/T-0107 and earlier in §48 order; shared logic now frozen, so wrappers are trivial thin scripts (§23). T-0106 follows; T-0202 is Phase 2.
 - 2026-10-08: T-0105 marked COMPLETE — `scripts/linux/{install,update,healthcheck}.sh` POSIX `sh` wrappers over the shared module (157 passed, 1 skipped: the `sh -n` syntax test is skipped because this host has no POSIX shell). Linux scripts NOT executed (no POSIX shell available) — static validation only. Next task: **T-0106 (macOS scripts)**, selected over T-1601/T-0202 per §48 phase order (finish Phase 1 platform wrappers before hardening/Phase 2).
+- 2026-10-08: **Autonomous build directive received** (full-programme directive). Audited repository against it (AUDIT-0012). Repo genuine and clean at `a90df34`; no rewrites needed. **BLOCKERS recorded:** (1) Taiga-S1 upstream repository URL not supplied (directive placeholder) → T-0601/T-0602 BLOCKED; (2) real system-level tool installation (FreeCAD/KiCad/ngspice/Gazebo/Blender/Jupyter/Scrapling) requires a human approval gate for privileged/network installs (MASTER §7/§29) and C:\ is below the disk threshold → install tasks remain gated; integration code proceeds with tests that SKIP when a tool is absent (roadmap rule, no fake execution). Full remaining plan = phases 2–17.
+- 2026-10-08: T-0106 marked COMPLETE — `scripts/macos/{install,update,healthcheck}.sh` POSIX `sh` wrappers; static tests generalised to cover Linux + macOS (`tests/test_scripts_unix.py`, replacing the Linux-only file). Phase 1 platform wrapper set is complete (R3.7). Next task: **T-0202 (shared configuration module)**, selected over T-1601/T-0301 per §48 phase order (Phase 2 before Phase 3/16).

@@ -504,3 +504,79 @@ Append-only record of significant actions, findings and discrepancies
 - **Files:** scripts/linux/install.sh, update.sh, healthcheck.sh (new),
   tests/test_scripts_linux.py (new), requirements.md (R3.7),
   roadmap/project-state/next-task/chatmem.md.
+
+## AUDIT-0012 — 2026-10-08 — Autonomous build directive: repository audit
+
+- **Action:** received a full-programme autonomous build directive;
+  audited the existing repository against it before any change.
+- **Repository state (OBSERVED):** clean working tree at `a90df34`; 9
+  commits; 164 tests. Implemented subsystems: governance (T-0001),
+  PEM detection/manifest/report/ops/installer (T-0101..T-0107, T-0201),
+  Windows + Linux wrappers. Not yet implemented: CIE, Scrapling, REA,
+  Taiga-S1, engineering-tool integrations, core config/state/evidence,
+  orchestration, release audit.
+- **Authority confirmed:** `MASTER.md` (governed spec), `roadmap.md`
+  (35-task dependency graph), `project-state.md` / `next-task.md`
+  (current boundary). Audit followed §2, §42, §43 (repository over
+  conversation).
+- **Directive-vs-repo gaps (recorded honestly):**
+  - Phase 2–17 work remains; roadmap already encodes it. No redesign
+    needed; extension is architecturally consistent (architecture.md).
+  - Directive requires *real* tool installation; current host has no
+    engineering tools installed and C:\ free space is below the
+    threshold. System-level installs are a human approval gate
+    (MASTER §7, §29).
+- **BLOCKER B-1 — Taiga-S1 upstream repository not supplied:** the
+  directive contains `<INSERT THE ACTUAL TAIGA-S1 REPOSITORY URL HERE>`
+  and §13 requires inspecting the actual repo before designing the
+  adapter. Per directive §39, T-0601/T-0602 → BLOCKED; all independent
+  work proceeds. No Taiga API is guessed.
+- **BLOCKER B-2 — privileged/network installation approval:** real
+  installation of FreeCAD/KiCad/ngspice/Gazebo/Blender/Jupyter/
+  Scrapling requires network + possibly administrator rights, and this
+  host's C:\ is below the 1 GiB install threshold. Install tasks
+  (T-0801+) proceed as integration code + tests that SKIP when the tool
+  is absent; live execution awaits user approval + disk/network.
+- **BLOCKER B-3 — REA:** the directive now supplies a REA reference
+  (`morluto/rea`); unlike Taiga-S1 this is available, so REA tasks
+  (T-0701/T-0702) are unblocked for pipeline/template work. Runtime
+  integration still depends on the installed/available REA tool.
+- **Decision:** continue autonomously through the dependency graph in
+  §48 phase order, one tested task at a time (directive §1), stopping
+  only at the recorded blockers. Next task after T-0106: T-0202.
+
+## AUDIT-0013 — T-0106 macOS wrapper scripts (2026-10-08)
+
+- **Scope:** `scripts/macos/{install,update,healthcheck}.sh` — POSIX
+  `sh` thin wrappers over the verified shared module (MASTER §23),
+  completing the Phase 1 platform set (R3.7).
+- **Implementation (OBSERVED):** identical contract to T-0105 Linux —
+  `#!/usr/bin/env sh`; repo root resolved from `$0` (`CDPATH= cd -P
+  "$(dirname "$0")"` then `../..`); interpreter preferred `python3`,
+  fallback `python`, else exit 2; `exec "$python_cmd" -m src.pem.ops
+  <command> "$@"` so the exit code propagates. Executable bit set in
+  the git index (mode 100755).
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **164 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1):
+  38 governance + 9 PEM detection + 21 manifest + 22 PEM tools +
+  20 PEM report + 23 PEM ops + 17 installer + 14 Unix-script static
+  tests (parametrised over Linux + macOS). The two skips are the
+  per-platform `sh -n` syntax checks (no POSIX shell on this host).
+- **Test generalisation (§32, no weakening):** `tests/test_scripts_linux.py`
+  was replaced by `tests/test_scripts_unix.py`, parametrised over
+  `("linux", "macos")`. Every T-0105 assertion is preserved and now
+  applied to both platform sets (7 assertion tests × 2 platforms = 14).
+- **AC (T-0106):** all met — files exist with POSIX shebang and shared
+  delegation; exit propagation via `exec`; no tool ids except the
+  interpreter bootstrap; static tests assert the above; scripts tracked
+  executable (100755); R3.7 updated; full suite passes; state/audit/
+  chatmem updated.
+- **Limitations:** macOS scripts were NOT executed (no POSIX shell on
+  this host); runtime behavior on macOS is UNVERIFIED. Static
+  equivalence to the executed Windows path (same shared module) is all
+  that is claimed. `core.autocrlf=true` on this clone; blobs are LF, so
+  macOS/Linux checkouts are safe (a `*.sh text eol=lf` `.gitattributes`
+  rule is still advisable — deferred to T-1601).
+- **Files:** scripts/macos/*.sh (new), tests/test_scripts_unix.py (new;
+  tests/test_scripts_linux.py removed and superseded), requirements.md
+  (R3.7), roadmap/project-state/next-task/chatmem.md.

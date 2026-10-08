@@ -4,51 +4,43 @@ Actual repository state. Never fictional (MASTER §29). Rewritten every time
 a task is completed, blocked, or state changes.
 
 ## Current phase
-PHASE 1 — Project Environment Manager (in progress).
+PHASE 1 — Project Environment Manager (COMPLETE for code; installs gated).
+PHASE 2 — Configuration + tool registry (in progress).
 
 ## Overall status
-Governance complete; PEM detects the system, probes every manifest
-tool, generates the §25 environment reports, and runs shared platform
-operations (healthcheck with real exit codes; plan-only
-install/update) behind thin Windows wrappers, plus Linux POSIX wrapper
-scripts (static-only). Idempotent, guarded installation is now
-implemented (plan default; `--execute` performs it, refused while disk
-is low). Next: macOS wrappers. No engineering subsystem beyond
-PEM/core implemented.
+Governance complete; Phase 1 PEM complete (detection, manifest, reports,
+shared ops, idempotent guarded installer, Windows/Linux/macOS wrappers).
+Entering Phase 2 (shared config + tool registry). Not yet implemented:
+CIE, Scrapling, REA, Taiga-S1, engineering-tool integrations,
+orchestration, release audit. Taiga-S1 is externally BLOCKED (repo not
+supplied); live tool installation is gated on user approval + disk +
+network. Operating in autonomous build mode (checkpoint commits per task).
 
 ## Completed phases
 - PHASE 0 — Repository + governance (T-0001 COMPLETE, 2026-10-08)
 
 ## Completed tasks (last completed task listed last)
 - T-0001 — Repository governance bootstrap (2026-10-08) — 38 tests.
-- T-0101 — PEM system/hardware detection (2026-10-08) — live evidence in
-  AUDIT-0005.
-- T-0201 — Tool manifest schema + manifest + loader (2026-10-08) — live
-  evidence in AUDIT-0006.
-- T-0102 — PEM tool detection + capability states (2026-10-08) — live
-  tool-probe evidence in AUDIT-0007.
-- T-0103 — Environment report generation (2026-10-08) — 110 tests;
-  both report files generated live and confirmed gitignored
-  (AUDIT-0008).
-- T-0104 — Windows scripts + shared ops module (2026-10-08) — 133
-  tests; all three .ps1 wrappers executed on this host; healthcheck
-  exit 1 (low disk), install/update exit 0 plan-only; no-mutation
-  proven (AUDIT-0009).
-- T-0107 — Idempotent install logic + tests (2026-10-08) — 150 tests;
-  `src/pem/installer.py` + `install_command` manifest field + guarded
-  `install --execute`; live plan exit 0, `--execute` refused exit 3
-  (AUDIT-0010).
+- T-0101 — PEM system/hardware detection (2026-10-08) — AUDIT-0005.
+- T-0201 — Tool manifest schema + manifest + loader (2026-10-08) — AUDIT-0006.
+- T-0102 — PEM tool detection + capability states (2026-10-08) — AUDIT-0007.
+- T-0103 — Environment report generation (2026-10-08) — AUDIT-0008.
+- T-0104 — Windows scripts + shared ops module (2026-10-08) — AUDIT-0009.
+- T-0107 — Idempotent install logic + tests (2026-10-08) — AUDIT-0010.
+- T-0105 — Linux wrapper scripts (static-verified) (2026-10-08) — AUDIT-0011.
+- T-0106 — macOS wrapper scripts (static-verified) (2026-10-08) — AUDIT-0013.
 
 ## Last completed task
-- T-0105 — Linux wrapper scripts (2026-10-08) — 157 passed, 1 skipped
-  (`sh -n` skipped: no POSIX shell on this host); `scripts/linux/
-  {install,update,healthcheck}.sh` delegate to the shared module; static
-  validation only — scripts NOT executed (AUDIT-0011).
+- T-0106 — macOS wrapper scripts (2026-10-08) — 164 passed, 2 skipped;
+  `scripts/macos/{install,update,healthcheck}.sh` added; static tests
+  generalised to Linux+macOS (`tests/test_scripts_unix.py`). Phase 1
+  wrapper set complete. Not executed on this host (no POSIX shell).
 
 ## Current task
-- ID: T-0106
-- Title: macOS scripts (install/update/healthcheck)
+- ID: T-0202
+- Title: Shared configuration module
 - State: READY (defined in next-task.md; not yet started)
+- (Note: T-0601/T-0602 BLOCKED — Taiga-S1 repo not supplied. See Blockers.)
 
 ## Active subsystem
 - PEM: `src/pem/detect.py` (system), `src/pem/tools.py` (tool probes,
@@ -59,11 +51,19 @@ PEM/core implemented.
   `install_command`).
 - Scripts: `scripts/windows/{install,update,healthcheck}.ps1` (thin
   wrappers, executed and verified on this host);
-  `scripts/linux/{install,update,healthcheck}.sh` (thin POSIX wrappers,
+  `scripts/linux/{install,update,healthcheck}.sh` and
+  `scripts/macos/{install,update,healthcheck}.sh` (thin POSIX wrappers,
   static-verified only).
 
 ## Blockers
 - T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
+- **B-1 Taiga-S1 upstream repository not supplied** (directive §13/§39):
+  T-0601/T-0602 BLOCKED. No Taiga API is guessed; independent work
+  continues.
+- **B-2 Privileged/network installation approval** (MASTER §7/§29): real
+  installation of engineering tools needs network + possibly admin and
+  C:\ is below the disk threshold; install tasks proceed as code + tests
+  that SKIP when a tool is absent, awaiting user approval for live runs.
 
 ## Known issues
 - **No engineering toolchain installed on this host (OBSERVED,
@@ -110,11 +110,11 @@ PEM/core implemented.
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **157 passed, 1 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **164 passed, 2 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
-  + 8 Linux-script static tests. Skipped: `sh -n` syntax check (no
-  POSIX shell on this host).
+  + 14 Unix-script static tests (parametrised Linux + macOS). Skipped:
+  the two per-platform `sh -n` syntax checks (no POSIX shell on host).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -126,21 +126,22 @@ PEM/core implemented.
 
 ## Validation status
 - Governance validation + live OBSERVED detector/probe/report/script/
-  install-engine runs recorded in audit.md (AUDIT-0005..0011). Windows
+  install-engine runs recorded in audit.md (AUDIT-0005..0013). Windows
   wrappers executed on host: healthcheck exit 1 (C:\ below threshold),
   install/update exit 0 plan-only, 53-file snapshot proves zero
   mutation. Install engine: live plan exit 0; `--execute` refused
-  exit 3 (disk); no live mutation attempted. Linux wrappers: STATIC
-  validation only (file/shebang/delegation/tool-id checks); never
-  executed (no POSIX shell on this host). No engineering validation
-  applicable.
+  exit 3 (disk); no live mutation attempted. Linux + macOS wrappers:
+  STATIC validation only (file/shebang/delegation/tool-id checks);
+  never executed (no POSIX shell on this host). No engineering
+  validation applicable yet.
 
 ## Next action
-Start T-0106 (see next-task.md): macOS scripts (install/update/
-healthcheck) as thin wrappers over the verified shared code; cannot be
-executed on this Windows host — static validation only, no execution
-claim.
+Start T-0202 (see next-task.md): `src/core/config.py` shared
+configuration module (paths, config loading, single source for
+subsystems). After Phase 2–3 core primitives, proceed per §48 phase
+order; T-0601/T-0602 remain BLOCKED pending the Taiga-S1 repository.
 
 ## Last update
-2026-10-08 — T-0105 closed after 157 tests passed + 1 skip; Linux POSIX
-wrapper scripts added and static-verified (never executed).
+2026-10-08 — T-0106 closed (164 passed, 2 skipped); Phase 1 platform set
+complete; autonomous build directive audited (AUDIT-0012) with blockers
+recorded. Next: T-0202.

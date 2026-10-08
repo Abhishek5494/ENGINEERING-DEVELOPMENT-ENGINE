@@ -30,7 +30,9 @@ actions belong in `audit.md`.
   OBSERVED 2026-10-08 (`detect_tools()`: executable/module absent on
   PATH). Do not assume availability; install tasks (T-0104+) or user
   action required before any engineering-tool task (T-0801+) can run.
-- Taiga-S1 / REA: UNKNOWN by design (in-house, not implemented).
+- Taiga-S1 / REA: not integrated. Taiga-S1 upstream repository is NOT
+  supplied (blocker B-1 → T-0601/T-0602 BLOCKED); REA reference
+  repository is available (`morluto/rea`) but integration is pending.
 - Installed and probe-verified: Git 2.55.0 (C:\Program Files\Git), Python
   3.13.5 (Python313 user install) — OBSERVED 2026-10-08.
 
@@ -79,5 +81,21 @@ actions belong in `audit.md`.
 - On this host, pytest `tmp_path` lives on C:\; when C:\ is critically
   full, Windows temp cleanup can delete pytest tmp dirs mid-run, which
   surfaces as an error attributed to whichever test uses `tmp_path`.
+  surfaces as an error attributed to whichever test uses `tmp_path`.
   Check C:\ free space before trusting a surprise test failure
   (T-0104 incident, AUDIT-0009).
+
+## Autonomous build mode and blockers (2026-10-08 directive)
+
+- Operating in **autonomous build mode**: execute the roadmap task-by-task
+  without asking the user what to do next; update state/audit/docs, review
+  the diff, commit, then pick the next READY task by §48 phase order.
+- **BLOCKER B-1:** Taiga-S1 upstream repository not supplied (directive
+  placeholder) → T-0601/T-0602 BLOCKED; no Taiga API is guessed.
+- **BLOCKER B-2:** real (privileged/network) installation of engineering
+  tools requires human approval (MASTER §7/§29) and C:\ is below the
+  disk threshold → install tasks ship as code + SKIP-when-absent tests
+  pending approval.
+- Integration validation levels (IMPLEMENTED / STATIC-VALIDATED /
+  RUNTIME-VALIDATED / PARTIALLY-VALIDATED / BLOCKED / UNAVAILABLE) must
+  be stated explicitly; never upgrade a level without evidence.
