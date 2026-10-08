@@ -42,9 +42,9 @@ Last verified against repository: TASK-0001 bootstrap.
 
 | ID | Requirement | Status |
 |---|---|---|
-| R4.1 | Machine-readable manifest with tool, purpose, required/optional, platforms, min/preferred version, detection method, executable, dependencies, installation method, health check, capability | SPECIFIED |
-| R4.2 | Installers read the manifest instead of hard-coded dependencies | SPECIFIED |
-| R4.3 | Covers at least Git, Python, Jupyter, Taiga-S1, FreeCAD, KiCad, ngspice, Gazebo, Blender, REA, Scrapling | SPECIFIED |
+| R4.1 | Machine-readable manifest with tool, purpose, required/optional, platforms, min/preferred version, detection method, executable, dependencies, installation method, health check, capability | IMPLEMENTED (T-0201: config/tool-manifest.json + schema; versions null when UNKNOWN) |
+| R4.2 | Installers read the manifest instead of hard-coded dependencies | PARTIAL (loader `src/core/manifest.py` IMPLEMENTED; installers not yet built — T-0104+) |
+| R4.3 | Covers at least Git, Python, Jupyter, Taiga-S1, FreeCAD, KiCad, ngspice, Gazebo, Blender, REA, Scrapling | IMPLEMENTED (all 11 present, test-verified) |
 
 ## R5 — CIE (MASTER §2.3, §8–§13)
 

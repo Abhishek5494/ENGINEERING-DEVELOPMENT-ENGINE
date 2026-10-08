@@ -107,3 +107,59 @@ Append-only record of significant actions, findings and discrepancies
   tests/test_pem_detection.py, roadmap/project-state/next-task/memory
   closure updates.
 
+## AUDIT-0006 — 2026-10-08 — T-0201 tool manifest schema + manifest + loader executed
+
+- **Action:** implemented `config/tool-manifest.schema.json` (JSON
+  Schema draft-07), `config/tool-manifest.json` (11 tools), and
+  `src/core/manifest.py` (stdlib loader/validator), plus
+  `tests/test_manifest.py`.
+- **Implementation notes:**
+  - Manifest fields follow MASTER §24 (id, tool, purpose, required/optional,
+    supported_platforms, min_version, preferred_version, detection_method,
+    executable, dependencies, installation_method, health_check,
+    capability, optional notes).
+  - No fabricated versions: min_version is null for all 11 tools (UNKNOWN);
+    python preferred_version = "3.13" justified in notes (only version
+    OBSERVED/exercised on host). No installation-state keys allowed —
+    loader rejects `installed`/`version`/`status`/`state`/`path` fields.
+  - Taiga-S1, REA marked optional with detection_method "none" (in-house,
+    not yet implemented) so future health checks do not fail on them;
+    Scrapling detection = python_module, version UNKNOWN until T-0501.
+  - Loader validates: missing file, invalid JSON, missing fields, bad
+    types, unsupported required value/platform/capability/detection
+    method, duplicate ids, dangling dependency ids, unknown fields,
+    asserted installation state. Capability states restricted to
+    READY/LIMITED/UNAVAILABLE/UNKNOWN via `validate_capability_state`.
+- **Bug found by tests (fix applied before completion):** the
+  installation-state check ran after the unknown-field check, so an
+  `installed` key produced a generic "unknown field" error instead of the
+  specific rejection. Reordered; covered by
+  `test_rejects_asserted_installation_state`.
+- **Tests:** `python -m pytest tests/ -q` → **68 passed, 0 failed**
+  (2026-10-08): 38 governance + 9 PEM + 21 manifest.
+- **Smoke check:** `python -m src.core.manifest` →
+  "tool manifest OK: 11 tools: git, python, jupyter, taiga-s1, freecad,
+  kicad, ngspice, gazebo, blender, rea, scrapling".
+- **Acceptance criteria (T-0201):**
+  1. Schema covers all §24 fields + stable id — MET.
+  2. 11 tools present, schema-valid — MET (test-verified; loader enforces
+     schema-equivalent rules since jsonschema is not a stdlib dependency).
+  3. Loader raises descriptive ManifestError on every rejection path —
+     MET (21 tests including each path).
+  4. Capability state vocabulary limited to the four §22 states — MET
+     (`CAPABILITY_STATES`, exact-match test).
+  5. Tests cover valid load, each rejection path, 11 ids, no
+     installation-state claims — MET.
+  6. Full suite passes — MET (68 passed).
+  7. Importable as `from src.core.manifest import load_manifest` — MET.
+- **Limitations:** schema file is not mechanically enforced by the loader
+  (equivalent rules implemented manually; agreement tested); actual tool
+  probing is T-0102 (not done here); no Linux/macOS execution claim.
+- **Security:** no network; no external code; manifest values are inert
+  data (health_check/installation strings are descriptions, not executed
+  by the loader).
+- **Files:** config/tool-manifest.json, config/tool-manifest.schema.json,
+  src/core/__init__.py, src/core/manifest.py, tests/test_manifest.py,
+  requirements.md (R4), roadmap/project-state/next-task/audit/chatmem
+  closure updates.
+

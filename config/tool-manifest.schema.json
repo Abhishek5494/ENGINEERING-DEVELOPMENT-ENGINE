@@ -1,0 +1,118 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "engineering-development-engine/tool-manifest.schema.json",
+  "title": "Engineering Development Engine tool manifest",
+  "description": "Machine-readable tool registry derived from MASTER.md section 24. Describes tools and HOW to detect them; must never assert installation state (runtime detection results live in environment.json, produced by PEM).",
+  "type": "object",
+  "required": ["schema_version", "tools"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Manifest format version.",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/tool" }
+    }
+  },
+  "definitions": {
+    "tool": {
+      "type": "object",
+      "description": "One registered tool. Field names follow MASTER.md section 24.",
+      "required": [
+        "id",
+        "tool",
+        "purpose",
+        "required",
+        "supported_platforms",
+        "min_version",
+        "preferred_version",
+        "detection_method",
+        "executable",
+        "dependencies",
+        "installation_method",
+        "health_check",
+        "capability"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable machine identifier, lowercase kebab-case.",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "tool": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string", "minLength": 1 },
+        "required": {
+          "type": "string",
+          "enum": ["required", "optional"],
+          "description": "Whether the platform requires this tool."
+        },
+        "supported_platforms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "enum": ["windows", "linux", "macos"] }
+        },
+        "min_version": {
+          "type": ["string", "null"],
+          "description": "Minimum acceptable version, or null when UNKNOWN (never guessed)."
+        },
+        "preferred_version": {
+          "type": ["string", "null"],
+          "description": "Preferred/validated version, or null when UNKNOWN."
+        },
+        "detection_method": {
+          "type": "string",
+          "enum": ["command", "python_module", "path", "none"],
+          "description": "How PEM should probe for this tool (T-0102). 'none' = in-house or not yet detectable."
+        },
+        "executable": {
+          "type": ["string", "null"],
+          "description": "Executable/command name to probe, or null when not applicable."
+        },
+        "dependencies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "description": "id of another tool in this manifest."
+          }
+        },
+        "installation_method": {
+          "type": ["string", "null"],
+          "description": "How the tool is (or will be) installed; null when in-house/not applicable. Must not claim automation that does not exist."
+        },
+        "health_check": {
+          "type": ["string", "null"],
+          "description": "Command that verifies the tool runs, or null when not applicable."
+        },
+        "capability": {
+          "type": "array",
+          "uniqueItems": true,
+          "description": "Capabilities this tool serves (MASTER section 22 capability list).",
+          "items": {
+            "type": "string",
+            "enum": [
+              "LLM inference",
+              "CAD",
+              "PCB design",
+              "circuit simulation",
+              "robotics simulation",
+              "3D rendering",
+              "numerical optimization",
+              "web acquisition"
+            ]
+          }
+        },
+        "notes": {
+          "type": ["string", "null"],
+          "description": "Provenance/justification for version choices or other caveats."
+        }
+      }
+    }
+  }
+}
