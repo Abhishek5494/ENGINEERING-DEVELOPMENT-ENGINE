@@ -11,6 +11,8 @@ PHASE 4 — Component Intelligence Engine (COMPLETE for offline scope:
 T-0401/T-0402/T-0403; T-0404 awaits Scrapling T-0502).
 PHASE 7 — REA (COMPLETE for framework + offline inspection:
 T-0701/T-0702; Phase 5 T-0501 is BLOCKED on the install gate).
+PHASE 8 — Python/Jupyter integration (COMPLETE for offline build/validate;
+live execution UNAVAILABLE — Jupyter not installed).
 
 ## Overall status
 Governance complete; Phases 1–3 complete (PEM; `src/core/config.py`,
@@ -34,6 +36,8 @@ autonomous build mode (checkpoint commits per task).
 - PHASE 4 — CIE offline scope (T-0401..T-0403 COMPLETE; T-0404 gated on
   T-0502)
 - PHASE 7 — REA (T-0701/T-0702 COMPLETE; framework + offline inspection)
+- PHASE 8 — Python/Jupyter integration (T-0801 COMPLETE; execution gated
+  on Jupyter presence)
 
 ## Completed tasks (last completed task listed last)
 - T-0001 — Repository governance bootstrap (2026-10-08) — 38 tests.
@@ -58,19 +62,22 @@ autonomous build mode (checkpoint commits per task).
   AUDIT-0020.
 - T-0702 — REA offline inspection + evidence collection (2026-10-08) —
   AUDIT-0021.
+- T-0801 — Python/Jupyter integration (2026-10-08) — AUDIT-0022.
 
 ## Last completed task
-- T-0702 — REA offline inspection (2026-10-08) — 325 passed, 2 skipped;
-  `src/rea/inspection.py` (read-only fingerprinting + tool probing →
-  OBSERVED evidence) + `with_evidence`. REA scope for the roadmap is in
-  place.
+- T-0801 — Python/Jupyter integration (2026-10-08) — 333 passed, 3
+  skipped; `src/integrations/jupyter.py` (nbformat v4 build/validate,
+  `simulations/`-confined write, `jupyter nbconvert` execution gated on
+  presence, evidence labels). Live execution UNAVAILABLE (Jupyter not
+  installed) — recorded honestly, not faked.
 
 ## Current task
-- ID: T-0801
-- Title: Python/Jupyter integration
+- ID: T-0901
+- Title: FreeCAD integration
 - State: READY (defined in roadmap; next-task.md to be set)
 - (Note: Phase-5 T-0501 is BLOCKED on the install gate; T-0601/T-0602
-  BLOCKED — Taiga-S1 repo not supplied. See Blockers.)
+  BLOCKED — Taiga-S1 repo not supplied. FreeCAD is NOT installed, so
+  live CAD execution will be UNAVAILABLE unless installed. See Blockers.)
 
 ## Active subsystem
 - PEM: `src/pem/detect.py` (system), `src/pem/tools.py` (tool probes,
@@ -99,6 +106,10 @@ autonomous build mode (checkpoint commits per task).
   (seven §21 templates), `src/rea/inspection.py` (read-only file
   fingerprinting: magic-byte type, sha256/md5, bounded strings, tool
   probing), `src/rea/__init__.py` re-exports.
+- Integrations: `src/integrations/jupyter.py` (Python/Jupyter: nbformat v4
+  build/validate, `simulations/`-confined notebook write,
+  `jupyter nbconvert` execution gated on `jupyter_available`,
+  `notebook_evidence`), `src/integrations/__init__.py` re-exports.
 
 ## Blockers
 - T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
@@ -158,16 +169,17 @@ autonomous build mode (checkpoint commits per task).
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **325 passed, 2 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **333 passed, 3 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
   config + 29 core evidence + 20 core state + 14 CIE model/schema +
   7 CIE store + 5 CIE target + 14 CIE identify + 9 CIE provenance +
   13 CIE conflict + 8 REA pipeline + 8 REA records + 7 REA storage +
-  8 REA inspection tests.
-  Skipped: the two per-platform `sh -n` syntax checks (no POSIX shell on
-  host).
+  8 REA inspection + 8 Jupyter integration tests.
+  Skipped (3): the two per-platform `sh -n` syntax checks (no POSIX
+  shell on host) and the live-notebook execution test (Jupyter not
+  installed).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -202,17 +214,25 @@ autonomous build mode (checkpoint commits per task).
   observed, with unauthorized and recovered-source cases refused. REA
   (T-0702): unit-tested; live fingerprint of a PE fixture matched an
   independent `hashlib.sha256`, tool probing reported present/absent, and
-  `inspect_target` produced OBSERVED evidence (0→7 entries). No
-  engineering validation applicable yet.
+  `inspect_target` produced OBSERVED evidence (0→7 entries). Integrations
+  (T-0801): unit-tested; live build→validate→write of a notebook to
+  `simulations/` observed (527 bytes), `jupyter_available()` returned
+  `None` (Jupyter NOT installed), and `execute_notebook` raised
+  `JupyterUnavailable` — execution is **UNAVAILABLE** on this host, never
+  claimed as run. No engineering validation applicable yet.
 
 ## Next action
-Start T-0801 (Python/Jupyter integration; Phase 8, READY via T-0103):
-notebook-based analysis under `simulations/`/`projects/`, recorded as
-labelled evidence. Then further integrations (T-0901+), and T-0502/T-0404
-once Scrapling is installable; T-0601/T-0602 remain BLOCKED.
+Start T-0901 (FreeCAD integration; Phase 9, READY via T-0103):
+drive FreeCAD via CLI/API to produce CAD under `cad/` and verify with a
+FreeCAD recompute. FreeCAD is NOT installed, so this ships as a gated
+integration with skip-when-absent tests (like T-0801); live CAD execution
+is UNAVAILABLE unless installed. Then T-1001/T-1002/T-1101/T-1201, and
+T-0502/T-0404 once Scrapling is installable; T-0601/T-0602 remain
+BLOCKED.
 
 ## Last update
-2026-10-08 — T-0702 closed (325 passed, 2 skipped); REA offline
-inspection (file fingerprinting + tool probing → OBSERVED evidence) is in
-place. T-0501 remains BLOCKED under the install gate. Next: T-0801
-(Python/Jupyter integration).
+2026-10-08 — T-0801 closed (333 passed, 3 skipped); Python/Jupyter
+  integration (stdlib nbformat build/validate + gated `nbconvert`
+  execution + labelled evidence) is in place. Jupyter is NOT installed, so
+  live execution is UNAVAILABLE (honest skip). T-0501 remains BLOCKED
+  under the install gate. Next: T-0901 (FreeCAD integration).

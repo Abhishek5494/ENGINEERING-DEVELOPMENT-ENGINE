@@ -1043,3 +1043,47 @@ Append-only record of significant actions, findings and discrepancies
 - **Files:** src/rea/inspection.py, src/rea/records.py,
   src/rea/__init__.py, tests/test_rea_inspection.py, requirements.md
   (R7.6), roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0022 - T-0801 Python/Jupyter integration (2026-10-08)
+
+- **Task:** T-0801 Python/Jupyter integration — build/validate/execute
+  Jupyter notebooks as labelled evidence, gated on tool presence.
+- **Deliverables:** `src/integrations/__init__.py` +
+  `src/integrations/jupyter.py` — `JUPYTER_TOOL`, `jupyter_available`
+  (injectable `shutil.which`), `NotebookError`, `JupyterUnavailable`,
+  `NotebookRun`, `build_notebook` (nbformat v4.5, stdlib),
+  `validate_notebook`, `write_notebook` (confined to `simulations/`, no
+  overwrite by default), `execute_notebook` (`jupyter nbconvert --execute`
+  only when available), `notebook_evidence` (OBSERVED structure +
+  SIMULATED execution); `tests/test_integrations_jupyter.py`.
+- **Acceptance criteria:** AC1 build→validate — MET. AC2 invalid
+  notebooks raise `NotebookError` — MET. AC3 write round-trip + no
+  overwrite + path-escape rejection — MET. AC4 `jupyter_available`
+  injectable — MET. AC5 missing tool → `JupyterUnavailable`, real
+  execution covered by a skip-when-absent test — MET. AC6 labelled
+  evidence (OBSERVED/SIMULATED) — MET. AC7 package re-exports + full
+  suite — MET. AC8 docs/state + AUDIT-0022 — MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **333 passed, 3 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  325 + **8 T-0801 tests**; the third skip is the live-Jupyter test
+  (`jupyter` not installed on this host). The two pre-existing skips
+  remain the per-platform `sh -n` checks.
+- **Live evidence (OBSERVED):** built and validated a 2-code-cell
+  notebook and wrote it to `simulations/t0801_demo.ipynb` (527 bytes);
+  `jupyter_available()` returned `None` (OBSERVED — tool absent);
+  `execute_notebook` raised `JupyterUnavailable: jupyter is not
+  installed; notebook execution is UNAVAILABLE`. The demo notebook was
+  deleted after the observation (not committed).
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for notebook
+  construction/validation/IO; the execution path is IMPLEMENTED but
+  **UNAVAILABLE** on this host (no Jupyter) — never claimed as run.
+- **Limitations:** no Jupyter/`nbformat` package dependency (schema is a
+  stdlib subset, not the full nbformat JSON schema); no kernel/conv
+  extension handling; `${JUPYTER}` may point at `jupyter-lab`/`notebook`
+  only — `nbconvert` is required at runtime. Live execution is unverified
+  until Jupyter is installed (blocked by B-2 install gate).
+- **Files:** src/integrations/__init__.py, src/integrations/jupyter.py,
+  tests/test_integrations_jupyter.py, requirements.md (R9.3/R9.4),
+  roadmap/project-state/next-task/chatmem/memory.

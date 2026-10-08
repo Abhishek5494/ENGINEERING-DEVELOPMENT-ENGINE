@@ -35,8 +35,8 @@ Last updated: TASK-0001 (bootstrap).
 | T-0602 | Taiga-S1 orchestration core (task routing) | 6 | T-0601, T-0301, T-0403 | BLOCKED (depends on T-0601) |
 | T-0701 | REA pipeline + investigation record templates | 7 | T-0302 | COMPLETE |
 | T-0702 | REA tooling integration (inspect/trace) | 7 | T-0701 | COMPLETE |
-| T-0801 | Python/Jupyter integration | 8 | T-0103 | READY |
-| T-0901 | FreeCAD integration | 9 | T-0801 | PLANNED |
+| T-0801 | Python/Jupyter integration | 8 | T-0103 | COMPLETE |
+| T-0901 | FreeCAD integration | 9 | T-0801 | READY |
 | T-1001 | KiCad integration | 10 | T-0801 | PLANNED |
 | T-1002 | ngspice integration | 10 | T-0801 | PLANNED |
 | T-1101 | Gazebo integration | 11 | T-0801 | PLANNED |
@@ -154,7 +154,7 @@ Last updated: TASK-0001 (bootstrap).
 ### PHASE 8–12 — Engineering tool integrations
 
 Each task: detect tool via PEM, drive via CLI/API, write outputs to `cad/`, `electronics/`, `simulations/`, `models/`, verify with tool-native validation (FreeCAD recompute, KiCad DRC/ERC, ngspice op run, Gazebo world load, Blender render headless). Integration tests run only when tool present; otherwise SKIPPED with reason (never fake).
-- **T-0801** Python/Jupyter integration (notebooks under `simulations/` or `projects/`).
+- **T-0801** Python/Jupyter integration (notebooks under `simulations/` or `projects/`). `COMPLETE` — nbformat v4 build/validate (stdlib) + `jupyter nbconvert` execution gated on presence; tests SKIP when absent.
 - **T-0901** FreeCAD (mechanical authority).
 - **T-1001** KiCad (PCB authority).
 - **T-1002** ngspice (circuit authority).
@@ -200,3 +200,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0403 marked COMPLETE — `src/cie/provenance.py` (the eight §10 source tiers + `Provenance`) + `src/cie/conflicts.py` (`Fact`/`FieldRecord`, `STATUS=CONFLICT`, `governing` selection without overwriting), `config/fact-record.schema.json`, `tests/test_cie_provenance.py` + `tests/test_cie_conflicts.py`. 22 new tests; full suite 294 passed, 2 skipped. **Phase 4 complete** (T-0404 deferred: needs Scrapling T-0502). Next task: **T-0501 (inspect installed Scrapling + pin)** — Phase 5 precedes Phase 7 in §48, but it requires installing Scrapling (gated by B-2 network/privilege approval + C:\ disk threshold), so it is recorded BLOCKED and the next executable READY task is **T-0701 (REA pipeline + investigation templates)**.
 - 2026-10-08: T-0701 marked COMPLETE — `src/rea/pipeline.py` (ordered §18 stages, no skipping), `src/rea/records.py` (mandatory authorization §20; structural §19 evidence rules), `src/rea/storage.py` (seven §21 templates + `write_investigation`), `docs/investigations/README.md`, full suite 317 passed, 2 skipped. Next task: **T-0702 (REA tooling integration)** — Phase 7 before Phase 8 in §48 order (T-0801 is Phase 8 and also eligible).
 - 2026-10-08: T-0702 marked COMPLETE — `src/rea/inspection.py` (magic-byte file-type detection, bounded string extraction, streaming sha256/md5 fingerprint, tool probing via `shutil.which`, `inspect_target` → labelled `EvidenceEntry`), `with_evidence` helper in `records.py`, `tests/test_rea_inspection.py`. 8 new tests; full suite 325 passed, 2 skipped. **Phase 7 complete** (REA framework + offline inspection; deeper tracing deferred). Next task: **T-0801 (Python/Jupyter integration)** — Phase 8; READY (dep T-0103) and the next phase in §48 order.
+- 2026-10-08: T-0801 marked COMPLETE — `src/integrations/jupyter.py` (`build_notebook`/`validate_notebook` nbformat v4, `write_notebook` confined to `simulations/`, `execute_notebook` via `jupyter nbconvert` gated on `jupyter_available`, `notebook_evidence` → OBSERVED/SIMULATED), `tests/test_integrations_jupyter.py`. 8 new tests + 1 skipped-when-absent integration test; full suite 333 passed, 3 skipped. Jupyter is NOT installed on this host, so live execution is `UNAVAILABLE` (honest skip, not faked). Next task: **T-0901 (FreeCAD integration)** — Phase 9; READY (dep T-0103) and next in §48 phase order (note: FreeCAD also NOT installed, so it will ship as gated integration + skip-when-absent tests).

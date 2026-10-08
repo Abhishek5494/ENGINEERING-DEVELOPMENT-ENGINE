@@ -38,6 +38,10 @@ this file; on conflict, trust the repository (§43).
     `storage.py`); Phase 7 started.
 17. T-0702 REA offline inspection (`src/rea/inspection.py` +
     `with_evidence` in `records.py`); Phase 7 complete.
+18. T-0801 Python/Jupyter integration (`src/integrations/jupyter.py`:
+    stdlib nbformat build/validate, `simulations/`-confined write, gated
+    `nbconvert` execution, labelled evidence); Jupyter NOT installed →
+    live execution UNAVAILABLE (honest skip).
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
@@ -46,8 +50,8 @@ this file; on conflict, trust the repository (§43).
   `a90df34` — T-0105.
 - `646f529` — T-0106 + directive audit; `0e26ce2` — T-0202;
   `9257ddd` — T-0302; `fde672d` — T-0301; `a755b53` — T-0401.
-- `a473222` — T-0402 + T-0403 + T-0701.
-- (pending) — T-0702.
+- `a473222` — T-0402 + T-0403 + T-0701; `4395012` — T-0702.
+- (pending) — T-0801.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -68,10 +72,11 @@ this file; on conflict, trust the repository (§43).
   commit, pick next READY task by §48 phase order, continue (§56).
 
 ## Next task
-- `next-task.md` → **T-0801 Python/Jupyter integration** (Phase 8; after
-  REA). Phase-5 Scrapling (T-0501/T-0502) and Phase-6 Taiga
-  (T-0601/T-0602) stay BLOCKED (install gate / repo not supplied); T-0404
-  waits on T-0502.
+- `next-task.md` → **T-0901 FreeCAD integration** (Phase 9; mechanical
+  authority). FreeCAD is NOT installed on this host, so it will ship as a
+  gated integration with skip-when-absent tests (like T-0801). Phase-5
+  Scrapling (T-0501/T-0502) and Phase-6 Taiga (T-0601/T-0602) stay BLOCKED
+  (install gate / repo not supplied); T-0404 waits on T-0502.
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never

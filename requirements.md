@@ -94,7 +94,8 @@ Last verified against repository: TASK-0001 bootstrap.
 |---|---|---|
 | R9.1 | FreeCAD=mechanical, KiCad=PCB, ngspice=circuits, Python/Jupyter=math, Gazebo=robotics, Blender=visualization, Git=history, measurement=physical truth | SPECIFIED |
 | R9.2 | No subsystem performs another's specialized function | SPECIFIED |
-| R9.3 | Simulation is evidence, not physical proof; assumptions documented | SPECIFIED |
+| R9.3 | Simulation is evidence, not physical proof; assumptions documented | PARTIAL (T-0801: executable notebooks are recorded as SIMULATED evidence via `notebook_evidence`; structural validation is OBSERVED) |
+| R9.4 | Tool integrations detect the tool via PEM, drive it, and report `UNAVAILABLE` (with skipped tests) when absent — never a fake success | IMPLEMENTED (T-0801: `src/integrations/jupyter.py` gates execution on `jupyter_available`; live test skips when Jupyter absent) |
 
 ## R10 — Security (MASTER §14, §52)
 
