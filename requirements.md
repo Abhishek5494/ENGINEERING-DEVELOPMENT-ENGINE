@@ -30,9 +30,9 @@ Last verified against repository: TASK-0001 bootstrap.
 | ID | Requirement | Status |
 |---|---|---|
 | R3.1 | Detect OS, OS version, CPU, architecture, RAM, GPU/VRAM, storage | PARTIAL (T-0101: OS/version/CPU/arch/RAM/GPU names/storage OBSERVED on Windows host; VRAM not yet detected; Linux/macOS paths written but unexecuted) |
-| R3.2 | Detect Python, Git, engineering tools, versions, executable paths | SPECIFIED |
+| R3.2 | Detect Python, Git, engineering tools, versions, executable paths | IMPLEMENTED (T-0102: manifest-driven `detect_tools()`, probe-verified, OBSERVED on host) |
 | R3.3 | Detect package managers, relevant environment variables | SPECIFIED |
-| R3.4 | Report capabilities with states READY/LIMITED/UNAVAILABLE/UNKNOWN | SPECIFIED |
+| R3.4 | Report capabilities with states READY/LIMITED/UNAVAILABLE/UNKNOWN | IMPLEMENTED (T-0102: `capability_states()`, test-verified vocabulary) |
 | R3.5 | Generate environment.json and environment-report.md; never claim a tool is installed unless detection confirms it | SPECIFIED |
 | R3.6 | Idempotent installation — repeated setup does not blindly reinstall working components | SPECIFIED |
 | R3.7 | scripts/{windows,linux,macos}/{install,update,healthcheck} exist and detect platform automatically | SPECIFIED |

@@ -163,3 +163,69 @@ Append-only record of significant actions, findings and discrepancies
   requirements.md (R4), roadmap/project-state/next-task/audit/chatmem
   closure updates.
 
+## AUDIT-0007 — 2026-10-08 — T-0102 PEM tool detection + capability states executed
+
+- **Action:** implemented `src/pem/tools.py`
+  (`detect_tools()`, `capability_states()`) and
+  `tests/test_pem_tools.py`; ran detection live on this host; full suite
+  green.
+- **Implementation notes:**
+  - One bounded probe per tool (15 s timeout, no shell=True, shlex-parsed
+    argv); probes come from the trusted repo manifest health_check (or
+    `<executable> --version` fallback).
+  - States: executable missing → NOT_FOUND (OBSERVED); timeout/OSError →
+    UNKNOWN; exit 0 → DETECTED (version extracted only if actually
+    printed); python_module probe naming a missing module → NOT_FOUND;
+    non-zero + version output → DETECTED with health_ok=False; non-zero
+    without version → UNKNOWN (inconclusive). detection_method "none"
+    (taiga-s1, rea) → UNKNOWN, no probe run.
+  - Capability aggregation rules tested: READY / LIMITED (failed health
+    or version-below-known-min) / UNKNOWN (inconclusive or unprobeable) /
+    UNAVAILABLE (all providers conclusively absent); every final state
+    passes `validate_capability_state`.
+- **Live detection result (OBSERVED, 2026-10-08, `python -m src.pem.tools`):**
+  - git → DETECTED, version 2.55.0, C:\Program Files\Git\cmd\git.EXE
+  - python → DETECTED, version 3.13.5 (Python313 install path)
+  - jupyter → NOT_FOUND (module absent)
+  - scrapling → NOT_FOUND (module absent)
+  - freecad / kicad / ngspice / gazebo (gz) / blender → NOT_FOUND
+    (executable absent on PATH)
+  - taiga-s1 / rea → UNKNOWN (in-house, not implemented; no probe run)
+  - Capabilities: numerical optimization = READY; LLM inference =
+    UNKNOWN; CAD, PCB design, circuit simulation, robotics simulation,
+    3D rendering, web acquisition = UNAVAILABLE.
+- **Engineering-environment fact:** no engineering toolchain (FreeCAD,
+  KiCad, ngspice, Gazebo, Blender, Jupyter) is installed on this host —
+  installation work (T-0104+) is genuinely required before any
+  engineering-tool task can execute. Recorded in memory.md.
+- **Tests:** `python -m pytest tests/ -v` → **90 passed, 0 failed**
+  (2026-10-08): 38 governance + 9 PEM detection + 21 manifest + 22 PEM
+  tool detection. All mocked probe paths + real git/python probes.
+  (A prior run in this task had 1 failure: the project-state rewrite
+  dropped the §29 "Last completed task" heading — caught by the
+  governance test and fixed before commit.)
+- **Acceptance criteria (T-0102):**
+  1. detect_tools() records with id/state/version/executable_path/
+     evidence/probe/reason — MET.
+  2. capability_states() covers all eight §22 capabilities with exact
+     §22 vocabulary, rules as specified, validated — MET (8 aggregation
+     rule tests).
+  3. FileNotFoundError → NOT_FOUND; timeout/inconclusive → UNKNOWN;
+     version only when actually in output — MET (mocked tests).
+  4. Host run finds git + python; no false claims for other tools — MET
+     (evidence above; DETECTED implies probe evidence, test-asserted).
+  5. Mocked tests for all paths + real-host git/python test — MET.
+  6. Full suite passes — MET (90 passed).
+  7. Importable as specified — MET.
+- **Limitations:** version strings are first dotted-numeric tokens in
+  probe output (best effort; may truncate suffixes like
+  "2.55.0.windows.3" → "2.55.0"); Linux/macOS probe paths unexecuted
+  (Windows host); probes confirm PATH presence, not full installation
+  integrity.
+- **Security:** no network; no elevation; probes run only manifest-declared
+  local commands with bounded timeouts; no shell interpretation of
+  strings.
+- **Files:** src/pem/tools.py, tests/test_pem_tools.py, requirements.md
+  (R3.2/R3.4), roadmap/project-state/next-task/memory/audit/chatmem
+  closure updates.
+

@@ -22,9 +22,14 @@ actions belong in `audit.md`.
 - PySide6 6.11.1 (Qt 6.11.1 runtime) present on host — OBSERVED via
   pytest qt plugin load, 2026-10-08. Potentially relevant later for
   Qt-based tool automation; not yet verified by direct import.
-- Engineering tools (FreeCAD, KiCad, ngspice, Gazebo, Blender, Jupyter):
-  UNKNOWN — never assume installed; PEM tool detection (T-0102) must
-  probe them via the manifest (T-0201).
+- Engineering tools (FreeCAD, KiCad, ngspice, Gazebo, Blender, Jupyter,
+  Scrapling): **NOT installed on this host** — probe-verified
+  OBSERVED 2026-10-08 (`detect_tools()`: executable/module absent on
+  PATH). Do not assume availability; install tasks (T-0104+) or user
+  action required before any engineering-tool task (T-0801+) can run.
+- Taiga-S1 / REA: UNKNOWN by design (in-house, not implemented).
+- Installed and probe-verified: Git 2.55.0 (C:\Program Files\Git), Python
+  3.13.5 (Python313 user install) — OBSERVED 2026-10-08.
 
 ## Engineering rules (from MASTER.md — always in force)
 

@@ -15,8 +15,8 @@ Last updated: TASK-0001 (bootstrap).
 | T-0001 | Repository governance bootstrap | 0 | — | COMPLETE |
 | T-0002 | License decision | 0 | T-0001 | BLOCKED (needs human approval, MASTER §35) |
 | T-0101 | PEM system/hardware detection | 1 | T-0001 | COMPLETE |
-| T-0102 | PEM tool detection + capability states | 1 | T-0101, T-0201 | READY |
-| T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | PLANNED |
+| T-0102 | PEM tool detection + capability states | 1 | T-0101, T-0201 | COMPLETE |
+| T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | READY |
 | T-0104 | Windows scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
 | T-0105 | Linux scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
 | T-0106 | macOS scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
@@ -185,3 +185,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0001 marked COMPLETE — governance files + structure + governance test suite (38 passed) + Git baseline. Next task: T-0101.
 - 2026-10-08: T-0101 marked COMPLETE — `src/pem/detect.py` system detection (47 tests passed: 38 governance + 9 PEM). Next READY task: T-0201 (tool manifest; unblocks T-0102).
 - 2026-10-08: T-0201 marked COMPLETE — tool manifest + JSON schema + stdlib loader (68 tests passed). T-0102 now unblocked (deps T-0101 + T-0201 both COMPLETE); selected as next task over T-0202 because it is Phase 1 (earlier in §48 order).
+- 2026-10-08: T-0102 marked COMPLETE — manifest-driven tool detection + capability states (90 tests passed). Host evidence: git/python DETECTED; jupyter/freecad/kicad/ngspice/gazebo/blender/scrapling NOT_FOUND; taiga-s1/rea UNKNOWN (not implemented). T-0103 now READY.
