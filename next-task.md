@@ -2,92 +2,109 @@
 
 Current execution boundary (MASTER §30). Work ONLY on this task.
 
-## Task T-0104 — Windows scripts (install/update/healthcheck)
+## Task T-0107 — Idempotent install logic + tests
 - **State:** READY
 - **Phase:** 1 — Project Environment Manager
 
 ### Objective
-Create `scripts/windows/{install,update,healthcheck}.ps1` as thin
-wrappers over shared Python code per MASTER §23, backed by a new
-`src/pem/ops.py` command module that reuses the existing detectors
-(`detect_system`, `detect_tools`, `capability_states`,
-`build_environment`). Health check is fully functional with documented
-exit codes; install/update run in explicit plan-only mode (no mutation)
-until T-0107 delivers idempotent install logic — the scripts must say so
-honestly (MASTER §7, §23, §29).
+Deliver manifest-driven, idempotent installation logic per MASTER §22:
+act only when a tool is absent (NOT_FOUND) or detected below a known
+minimum version; never act on UNKNOWN; re-run safe — a second run
+performs zero changes when the environment is healthy. Wire it into
+`python -m src.pem.ops install --execute` (plan mode stays the
+default), with guarded execution and honest post-install re-probing
+(MASTER §7, §22, §23, §29).
 
 ### Dependencies
-- T-0103 (COMPLETE) — report/detector sources exist.
+- T-0103 (COMPLETE) — detectors/report constants exist.
+- T-0104 (COMPLETE) — `src/pem/ops.py` command layer exists.
 
 ### Affected components
-- `scripts/windows/install.ps1`, `scripts/windows/update.ps1`,
-  `scripts/windows/healthcheck.ps1` (new)
-- `src/pem/ops.py` (new)
-- `tests/test_pem_ops.py` (new)
-- `requirements.md` R3.7, R3.8; `architecture.md` status only if scope
-  differs
+- `src/pem/installer.py` (new)
+- `src/pem/ops.py` (add `--execute` flag to install; keep default =
+  plan)
+- `config/tool-manifest.json`, `config/tool-manifest.schema.json`,
+  `src/core/manifest.py` (new per-entry field `install_command`:
+  string or null — structured, machine-readable install command;
+  required on every entry so schema and loader stay in sync)
+- `tests/test_installer.py` (new)
+- `requirements.md` R3.6; roadmap/audit/state closure updates
 
 ### Constraints
-- Thin wrappers only: no tool lists, no version parsing, no business
-  logic in PowerShell — scripts resolve the repo root, call
-  `python -m src.pem.ops <command>` with forwarded args, and propagate
-  the exit code (a test asserts no manifest tool id appears in any .ps1).
-- Shared code only: `src/pem/ops.py` must reuse existing detectors —
-  no re-probing, no duplicated detection logic, no new third-party
-  dependencies.
-- Platform auto-detection: `ops` determines the current platform from
-  the runtime (§23) and filters manifest entries to it; do not accept a
-  platform override flag.
-- Exit codes (documented in `ops.py --help` output):
-  - `0` healthy — every manifest-required tool DETECTED with
-    `health_ok` and every observed storage volume free ≥
-    `LOW_DISK_THRESHOLD_BYTES`;
-  - `1` unhealthy — at least one required tool not DETECTED or failed
-    health, or a volume below the threshold (print each failing check);
-  - `2` execution error (import failure, unreadable manifest).
-- `install`/`update` are plan-only: they print a manifest-driven plan
-  (install: missing required/optional tools; update: detected versions
-  vs manifest preferred versions), perform ZERO changes, state plainly
-  that mutation arrives with T-0107, and exit 0 when the plan itself
-  computed successfully.
-- No network, no elevation, no installation in this task.
+- Manifest-driven only: install commands live in
+  `install_command` entries (template `{python}` expands to the current
+  interpreter at run time); no hard-coded tool list in code. Where no
+  safe command can be justified yet (GUI installers, package-manager
+  tools pending R3.3), the value is `null` and the engine reports
+  "manual install per <installation_method>" without acting.
+- Populated now (justified, not fabricated): pip-installable tools
+  (python_module detection) get `{python} -m pip install <package>`;
+  everything else `null` with an honest note — no package-manager
+  claims until R3.3 exists.
+- Idempotency rules (test-asserted): DETECTED and not below minimum →
+  skip (zero actions); DETECTED below `min_version` → run
+  `install_command` (upgrade case); NOT_FOUND → run
+  `install_command` if present, else manual-notice; **UNKNOWN → never
+  act** (inconclusive probes require investigation first).
+- Guarded execution: `--execute` refuses (distinct documented exit
+  code **3**, nothing performed) when any OBSERVED storage volume is
+  below `LOW_DISK_THRESHOLD_BYTES`; `--execute` never runs without the
+  explicit flag; plan mode remains the default and stays unchanged.
+- Evidence-based verification: after each executed command the engine
+  re-probes the tool and reports the resulting state with its probe
+  evidence; a failed command is reported as failed with the observed
+  exit code — never claimed installed (MASTER §7).
+- Injectability: the command runner and detectors are injectable
+  parameters so tests simulate present/absent/below-minimum states with
+  a fake runner (roadmap validation) — tests never touch the network,
+  never install anything, never modify the environment.
+- Exit codes: 0 = plan/execute completed (or all healthy), 1 = some
+  commands failed (post-probe still unhealthy), 2 = execution error,
+  3 = execute refused (preconditions not met, e.g. low disk).
+- No new third-party dependencies.
 
 ### Acceptance criteria
-1. All three `.ps1` files exist; each is parsed as syntactically valid
-   by the PowerShell language parser (invoked from a test).
-2. `python -m src.pem.ops healthcheck` runs on this host and returns a
-   documented exit code; the printed output names each failing check
-   (expected on this host: exit 1 because C:\ is below the low-disk
-   threshold — OBSERVED).
-3. Tests invoke the shared module as a subprocess with an injected
-   fixture manifest: missing required tool → exit 1; all healthy →
-   exit 0; a platform-filtered entry for another OS never appears in a
-   plan.
-4. All three Windows scripts are EXECUTED on this host (roadmap
-   validation): `healthcheck` propagates the shared exit code;
-   `install` and `update` exit 0 and print plan-only output — recorded
-   as OBSERVED evidence in audit.md.
-5. No manifest tool id appears in any `.ps1` (test-asserted).
-6. `install`/`update` mutate nothing: test asserts no file is created
-   or changed by a plan run in a temporary working directory.
-7. `requirements.md` R3.7/R3.8 updated truthfully; `python -m pytest
-   tests/ -v` passes (governance + PEM detection + manifest + PEM tools
-   + PEM report + new ops tests).
-8. Importable as `from src.pem.ops import main`.
+1. `src/pem/installer.py` exposes `plan_installs(...)` and
+   `apply_installs(...)` importable as specified in the module
+   docstring; `from src.pem.ops import main` still works.
+2. Manifest: all 11 entries carry `install_command` (string or null);
+   schema + loader enforce it (existing schema/loader agreement tests
+   must keep passing with the new field).
+3. Harness tests (fake runner): healthy run → zero runner calls;
+   absent tool with command → exactly one call with the expanded argv;
+   second run after simulated success → zero calls (idempotent);
+   UNKNOWN → never called; below-minimum → called; null command →
+   manual notice, no call.
+4. Guarded execution: injected low-disk system → exit 3, runner never
+   called, message names the volume.
+5. Post-probe honesty: simulated failed command → summary reports the
+   observed nonzero exit and the tool's resulting NOT_FOUND state;
+   nothing claims success.
+6. Live host evidence (OBSERVED, recorded in audit.md): plan mode
+   unchanged (exit 0, lists missing tools); `install --execute` on this
+   host **refuses with exit 3** naming C:\ (below threshold) — proving
+   the guard without touching the network or installing anything.
+7. `requirements.md` R3.6 → IMPLEMENTED (with the honest qualifier
+   that live mutation was not exercised on this host); roadmap,
+   project-state.md, audit.md, chatmem.md updated.
+8. `python -m pytest tests/ -v` passes (governance + PEM detection +
+   manifest + PEM tools + PEM report + PEM ops + new installer tests).
 
 ### Validation requirements
 - Execute the full suite; record the real result in audit.md.
-- Execute the three Windows scripts once on this host; capture exit
-  codes + sanitized output summary in audit.md as OBSERVED evidence.
+- Run plan mode and `--execute` (expect refusal) once on this host;
+  capture exit codes + sanitized output in audit.md as OBSERVED evidence.
 - Review `git status` / `git diff` before commit; commit message states
   what was tested.
-- After completion: update roadmap (T-0104 → COMPLETE, next task READY),
-  project-state.md, audit.md, requirements.md, and rewrite this file for
-  the next READY task (candidates: T-0107 idempotent install logic —
-  Phase 1, or T-0202 shared config — Phase 2; choose by §48 phase order
-  and record the reason).
+- After completion: update roadmap (T-0107 → COMPLETE, next task
+  READY), project-state.md, audit.md, requirements.md, and rewrite this
+  file for the next READY task (candidates: T-0105/T-0106 Linux/macOS
+  wrappers — now trivial thin wrappers over verified shared code, or
+  T-0202 shared config — Phase 2; choose by §48 phase order and record
+  the reason).
 
 ### Out of scope (do not pull in)
-- Actual installation/updating (T-0107), Linux/macOS scripts
-  (T-0105/T-0106), package-manager detection (R3.3), GUI, network
-  access, changes to detectors or the report generator.
+- Actually installing/updating anything on this host (disk + network
+  policy unconfirmed), package-manager detection (R3.3), uninstall,
+  Linux/macOS wrappers (T-0105/T-0106), GUI installer automation,
+  changes to detectors or report generation.

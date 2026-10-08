@@ -14,11 +14,12 @@ actions belong in `audit.md`.
   budget for resource-aware decisions (§38).
 - GPU: AMD Radeon(TM) Graphics (iGPU) + NVIDIA GeForce GTX 1650 (dGPU) —
   OBSERVED, 2026-10-08. VRAM: UNKNOWN (not queried).
-- Storage: C:\ ~213.8 GB total with only 6,135,808 bytes free
-  (2026-10-08T13:15Z, OBSERVED — was ~14 MB earlier the same day and is
-  shrinking; triggers the LOW_DISK_SPACE report warning, threshold 1 GiB);
-  D:\ ~297.2 GB total with ~96.8 GB free. Re-check free space before any
-  install task — C:\ may already block installs.
+- Storage: C:\ ~213.8 GB total, free space VOLATILE (OBSERVED:
+  6,135,808 bytes at 2026-10-08T13:15Z → 459,509,760 bytes later the
+  same day — Windows automatic temp cleanup runs); D:\ ~297.2 GB total
+  with ~96.8 GB free. Below the 1 GiB report/healthcheck threshold, so
+  healthcheck exits 1 on this host. Re-check immediately before any
+  install execution.
 - Toolchain probed at bootstrap: Git 2.55.0.windows.3, Python 3.13.5,
   Node v24.14.1, pytest 9.1.1 — OBSERVED (command output, 2026-10-08).
 - PySide6 6.11.1 (Qt 6.11.1 runtime) present on host — OBSERVED via
@@ -75,3 +76,8 @@ actions belong in `audit.md`.
   described as "installed" anywhere in output — even negations ("nothing
   is installed") fail the check; phrase suggestions as "no automatic
   installation is performed" instead (caught in T-0103).
+- On this host, pytest `tmp_path` lives on C:\; when C:\ is critically
+  full, Windows temp cleanup can delete pytest tmp dirs mid-run, which
+  surfaces as an error attributed to whichever test uses `tmp_path`.
+  Check C:\ free space before trusting a surprise test failure
+  (T-0104 incident, AUDIT-0009).

@@ -17,10 +17,10 @@ Last updated: TASK-0001 (bootstrap).
 | T-0101 | PEM system/hardware detection | 1 | T-0001 | COMPLETE |
 | T-0102 | PEM tool detection + capability states | 1 | T-0101, T-0201 | COMPLETE |
 | T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | COMPLETE |
-| T-0104 | Windows scripts (install/update/healthcheck) | 1 | T-0103 | READY |
+| T-0104 | Windows scripts (install/update/healthcheck) | 1 | T-0103 | COMPLETE |
 | T-0105 | Linux scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
 | T-0106 | macOS scripts (install/update/healthcheck) | 1 | T-0103 | PLANNED |
-| T-0107 | Idempotent install logic + tests | 1 | T-0103 | PLANNED |
+| T-0107 | Idempotent install logic + tests | 1 | T-0103 | READY |
 | T-0201 | Tool manifest schema + config/tool-manifest.json + loader | 2 | T-0001 | COMPLETE |
 | T-0202 | Shared configuration module | 2 | T-0001 | READY |
 | T-0301 | Project state persistence library | 3 | T-0001, T-0202 | PLANNED |
@@ -93,13 +93,13 @@ Last updated: TASK-0001 (bootstrap).
 - Acceptance criteria: both outputs generated; JSON schema-validated; report lists missing dependencies honestly.
 - Validation: tests assert schema, honesty rules (tool present iff detection says so).
 
-**T-0104/0105/0106 — Platform scripts (Windows/Linux/macOS)** — `T-0104 READY; T-0105/T-0106 PLANNED`
+**T-0104/0105/0106 — Platform scripts (Windows/Linux/macOS)** — `T-0104 COMPLETE; T-0105/T-0106 PLANNED`
 - Objective: `scripts/<platform>/{install,update,healthcheck}` thin wrappers over shared Python (§23).
 - Dependencies: T-0103. Constraints: platform auto-detection; no duplicated business logic.
 - Acceptance criteria: each script exists, is syntactically valid, calls shared code, exits nonzero on failed health check.
 - Validation: Windows scripts executed on this machine; Linux/macOS scripts syntax-checked only (no claim of execution).
 
-**T-0107 — Idempotent install logic + tests** — `PLANNED`
+**T-0107 — Idempotent install logic + tests** — `READY`
 - Objective: install missing dependencies only when absent or version-below-minimum; re-run safe (§22).
 - Dependencies: T-0103. Acceptance criteria: second run performs zero changes when healthy.
 - Validation: test harness simulating present/absent tool states.
@@ -187,3 +187,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0201 marked COMPLETE — tool manifest + JSON schema + stdlib loader (68 tests passed). T-0102 now unblocked (deps T-0101 + T-0201 both COMPLETE); selected as next task over T-0202 because it is Phase 1 (earlier in §48 order).
 - 2026-10-08: T-0102 marked COMPLETE — manifest-driven tool detection + capability states (90 tests passed). Host evidence: git/python DETECTED; jupyter/freecad/kicad/ngspice/gazebo/blender/scrapling NOT_FOUND; taiga-s1/rea UNKNOWN (not implemented). T-0103 now READY.
 - 2026-10-08: T-0103 marked COMPLETE — `src/pem/report.py` report generation + `config/environment-report.schema.json` (110 tests passed). Both report files generated on this host and confirmed gitignored. T-0104 now READY; selected as next over T-0202 because Phase 1 precedes Phase 2 in §48 order (same rationale as the T-0102 selection), and T-0104's dependency T-0103 just completed.
+- 2026-10-08: T-0104 marked COMPLETE — Windows wrappers + `src/pem/ops.py` shared operations (133 tests passed; all three .ps1 files executed on this host). Next task: T-0107 (idempotent install logic), selected over T-0105/T-0106/T-0202: same Phase 1, and shared install logic must exist before platform wrappers can do more than plan (MASTER §23 forbids duplicating business logic per platform). T-0105/T-0106 remain PLANNED and can then be added as thin wrappers; T-0202 is Phase 2 (§48 order).

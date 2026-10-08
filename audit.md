@@ -285,3 +285,76 @@ Append-only record of significant actions, findings and discrepancies
   tests/test_pem_report.py, src/pem/tools.py (required flag), .gitignore,
   requirements.md (R3.5), roadmap/project-state/next-task/chatmem/memory
   closure updates.
+
+---
+
+## AUDIT-0009 — T-0104 Windows scripts + shared ops (2026-10-08)
+
+- **Scope:** `src/pem/ops.py` (healthcheck/install/update commands over
+  the existing detectors; exit codes 0/1/2 documented in --help),
+  `scripts/windows/{install,update,healthcheck}.ps1` (thin wrappers:
+  repo-root resolution, interpreter lookup, exit-code propagation only),
+  `tests/test_pem_ops.py`.
+- **Tests:** `python -m pytest tests/ -v` → **133 passed, 0 failed**
+  (2026-10-08): 38 governance + 9 PEM detection + 21 manifest +
+  22 PEM tools + 20 PEM report + 23 PEM ops.
+- **DISCREPANCY RECORD — reported error in
+  `test_update_plan_reports_versions_and_never_mutates`:** the test was
+  reported failing after an interrupted run. Diagnosis: not reproducible
+  (isolated run + 3 full-file runs + 2 full-suite runs = 6/6 green, no
+  code or test changes needed between them). Root cause identified as
+  environmental: `tmp_path` resides on C:\, which had only 6,135,808
+  bytes free at the time (OBSERVED, AUDIT-0008); Windows automatic temp
+  cleanup (Storage Sense) purged `C:\Users\...\Temp` mid-run, deleting
+  the pytest tmp directory while the test held `monkeypatch.chdir` on it
+  → OSError attributed to that test (one of only two tests using
+  tmp_path). Supporting evidence: C:\ free space rose to 459,509,760
+  bytes between runs (cleanup occurred), after which all runs passed.
+  Resolution: test and implementation left UNCHANGED (not weakened —
+  version reporting and zero-mutation behavior verified independently,
+  below).
+- **Live execution (OBSERVED, 2026-10-08, this host):**
+  - `python -m src.pem.ops healthcheck` → **exit 1**: [PASS] git
+    2.55.0, [PASS] python 3.13.5, [FAIL] storage C:\ 459,505,664 bytes
+    free (threshold 1 GiB), [PASS] storage D:\ 96,802,582,528 bytes;
+    RESULT: UNHEALTHY (1 failed check).
+  - `scripts/windows/healthcheck.ps1` executed → propagates exit 1 with
+    identical output (wrapper matches shared code).
+  - `scripts/windows/install.ps1` → exit 0, PLAN-ONLY output.
+  - `scripts/windows/update.ps1` → exit 0; reports real versions
+    (git detected 2.55.0 / preferred UNKNOWN; python detected 3.13.5 /
+    preferred 3.13); NOT_FOUND/UNKNOWN tools → "nothing to update".
+  - **No-mutation proof:** 53-file snapshot (path|size|mtime) identical
+    before/after running install and update commands.
+- **AC (T-0104):**
+  1. Three .ps1 files exist; PowerShell language parser validates all — MET.
+  2. healthcheck runs on host, documented exit code, names failing
+     checks — MET (exit 1, C:\ named, evidence above).
+  3. Injected-fixture subprocess/CLI tests: missing required tool → 1;
+     healthy → 0; other-platform entries excluded from plans — MET.
+  4. All three Windows scripts EXECUTED on this host with observed exit
+     codes — MET (evidence above).
+  5. No manifest tool id in .ps1 — see discrepancy below.
+  6. install/update mutate nothing (tmp-dir test + 53-file snapshot) — MET.
+  7. R3.7/R3.8 updated; full suite passes — MET (133).
+  8. `from src.pem.ops import main` — MET.
+- **DISCREPANCY RECORD — AC5 wording vs interpreter bootstrap:** AC5
+  literally says no manifest tool id appears in any .ps1, but the
+  wrapper must invoke the Python interpreter, whose manifest id is
+  `python`. Resolution per §47 (record, do not silently overwrite):
+  test `test_no_manifest_tool_id_in_wrappers_except_interpreter_bootstrap`
+  asserts every tool id EXCEPT `python` is absent, and `python` may
+  appear only on plumbing lines (interpreter reference lines containing
+  `$python` / `-m src.pem.ops` / "python interpreter"). No tool list or
+  detection/installation logic exists in any wrapper.
+- **Limitations:** install/update are plan-only (mutation arrives with
+  T-0107); Linux/macOS wrappers not created (T-0105/T-0106) and their
+  scripts therefore not executed; platform detection covers
+  Windows/Linux/Darwin only; healthcheck does not evaluate optional
+  tools or capabilities; storage UNKNOWN is reported but not counted.
+- **Security:** no network; no elevation; no installation; wrappers
+  invoke only the local Python interpreter and shared module; exit-code
+  propagation only.
+- **Files:** src/pem/ops.py, scripts/windows/*.ps1 (3),
+  tests/test_pem_ops.py, requirements.md (R3.7/R3.8),
+  roadmap/project-state/next-task/chatmem closure updates.

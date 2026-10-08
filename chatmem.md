@@ -17,28 +17,31 @@ this file; on conflict, trust the repository (§43).
    (`73c0005`).
 4. Executed **T-0102 PEM tool detection + capability states**
    (`ffbdaed`).
-5. Executed **T-0103 environment report generation**.
+5. Executed **T-0103 environment report generation** (`52bec6f`).
+6. Executed **T-0104 Windows scripts + shared ops module**.
 
 ## Context worth carrying forward
 - User decisions: (a) init Git and commit baseline; (b) MASTER.md stored
   verbatim.
-- Bugs caught by tests this conversation (all fixed before completion):
-  empty-list evidence bug (T-0101), manifest error-ordering bug (T-0201),
-  dropped §29 heading in project-state rewrite (T-0102), "installed"
-  wording + missing UNAVAILABLE limitations in report (T-0103).
-- Environment facts in `memory.md`; key one: **no engineering toolchain
-  installed on this host** (probe-verified) and **C:\ nearly full
-  (6,135,808 bytes free at 2026-10-08T13:15Z)** — install tasks must
-  re-check disk first.
+- Bugs/incidents caught so far (all resolved before completion):
+  evidence/manifest/wording bugs in T-0101..T-0103; **T-0104 reported
+  test error root-caused to C:\ temp cleanup (Storage Sense) deleting
+  pytest tmp dirs while disk had only ~6 MB free — NOT a code defect;
+  test left unchanged** (AUDIT-0009).
+- Environment facts in `memory.md`; C:\ free space is VOLATILE (6 MB →
+  438 MB same day). healthcheck exits 1 on this host because C:\ is
+  below the 1 GiB threshold.
+- AC5-style discrepancies are recorded in audit.md with resolutions
+  (e.g. `python` id allowed in wrappers only as interpreter bootstrap).
 
 ## Session end state
-- **COMPLETE:** T-0001, T-0101, T-0201, T-0102, T-0103. Test suite:
-  **110 passed** (38 governance + 9 PEM detection + 21 manifest +
-  22 PEM tools + 20 PEM report).
-- Current execution boundary: `next-task.md` → **T-0104 Windows scripts
-  (READY)** — dependency T-0103 complete; chosen over T-0202 per §48
-  phase order (same rationale as T-0102 selection).
-- `environment.json` / `environment-report.md` exist at repo root,
-  gitignored, regenerable via `python -m src.pem.report`.
+- **COMPLETE:** T-0001, T-0101, T-0201, T-0102, T-0103, T-0104.
+  Test suite: **133 passed** (38 governance + 9 PEM detection +
+  21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops).
+- Current execution boundary: `next-task.md` → **T-0107 idempotent
+  install logic (READY)** — selected over T-0105/T-0106/T-0202 per §48
+  phase order + shared-logic-first (§23); reason in roadmap change log.
+- Windows wrappers executed live: healthcheck exit 1, install/update
+  exit 0 plan-only; `--execute` guarded mode arrives with T-0107.
 - On resume: read `project-state.md`, `next-task.md`, `roadmap.md`,
   verify Git state, then execute only the current task (§42, §57).
