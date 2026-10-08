@@ -64,7 +64,14 @@ def test_parse_roadmap_tasks_real_file() -> None:
     assert by_id["T-0901"].state == "COMPLETE"
     assert by_id["T-1001"].state == "COMPLETE"
     assert by_id["T-1002"].state == "COMPLETE"
-    assert by_id["T-1101"].state == "READY"
+    assert by_id["T-1101"].state == "COMPLETE"
+    assert by_id["T-1201"].state == "COMPLETE"
+    assert by_id["T-1301"].state == "BLOCKED"
+    assert by_id["T-1401"].state == "BLOCKED"
+    assert by_id["T-1501"].state == "BLOCKED"
+    assert by_id["T-1502"].state == "COMPLETE"
+    assert by_id["T-1601"].state == "COMPLETE"
+    assert by_id["T-1701"].state == "BLOCKED"
     assert by_id["T-0501"].state == "BLOCKED"
     assert by_id["T-0602"].state == "BLOCKED"
 
@@ -120,9 +127,9 @@ def test_set_roadmap_state_rejects_unknown_and_invalid() -> None:
 
 def test_parse_next_task_real_file() -> None:
     task = parse_next_task(read_text(NEXT_TASK))
-    assert task.id == "T-1101"
+    assert task.id == "T-1701"
     assert task.state in TASK_STATES
-    assert "gazebo" in task.title.lower()
+    assert "release" in task.title.lower()
 
 
 def test_set_next_task_state_roundtrip_and_update() -> None:

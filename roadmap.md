@@ -39,14 +39,14 @@ Last updated: TASK-0001 (bootstrap).
 | T-0901 | FreeCAD integration | 9 | T-0801 | COMPLETE |
 | T-1001 | KiCad integration | 10 | T-0801 | COMPLETE |
 | T-1002 | ngspice integration | 10 | T-0801 | COMPLETE |
-| T-1101 | Gazebo integration | 11 | T-0801 | READY |
-| T-1201 | Blender integration | 12 | T-0801 | PLANNED |
-| T-1301 | Unified engineering workflow (IDEA → validation) | 13 | T-0602, T-0404, T-0702, T-0901, T-1001, T-1002, T-1101, T-1201 | PLANNED |
-| T-1401 | Simulation / validation / BOM pipeline | 14 | T-1301 | PLANNED |
-| T-1501 | Security review + untrusted-input hardening | 15 | T-0502, T-0403 | PLANNED |
-| T-1502 | Recovery-after-interruption test | 15 | T-0301 | PLANNED |
-| T-1601 | Cross-platform hardening | 16 | T-0104, T-0105, T-0106 | PLANNED |
-| T-1701 | Release audit vs MASTER §54 checklist | 17 | T-1401, T-1501, T-1502, T-1601 | PLANNED |
+| T-1101 | Gazebo integration | 11 | T-0801 | COMPLETE |
+| T-1201 | Blender integration | 12 | T-0801 | COMPLETE |
+| T-1301 | Unified engineering workflow (IDEA → validation) | 13 | T-0602, T-0404, T-0702, T-0901, T-1001, T-1002, T-1101, T-1201 | BLOCKED (depends on BLOCKED T-0602/T-0404) |
+| T-1401 | Simulation / validation / BOM pipeline | 14 | T-1301 | BLOCKED (depends on BLOCKED T-1301) |
+| T-1501 | Security review + untrusted-input hardening | 15 | T-0502, T-0403 | BLOCKED (depends on BLOCKED T-0502) |
+| T-1502 | Recovery-after-interruption test | 15 | T-0301 | COMPLETE |
+| T-1601 | Cross-platform hardening | 16 | T-0104, T-0105, T-0106 | COMPLETE |
+| T-1701 | Release audit vs MASTER §54 checklist | 17 | T-1401, T-1501, T-1502, T-1601 | BLOCKED (deps T-1401/T-1501 BLOCKED) |
 
 ---
 
@@ -158,8 +158,8 @@ Each task: detect tool via PEM, drive via CLI/API, write outputs to `cad/`, `ele
 - **T-0901** FreeCAD (mechanical authority). `COMPLETE` — parametric macro generation + `cad/`-confined write, headless `freecadcmd` run gated on presence, artifact verification; tests SKIP when absent.
 - **T-1001** KiCad (PCB authority). `COMPLETE` — `kicad-cli` DRC/ERC/Gerber-export gated on presence; artifact verification; tests SKIP when absent.
 - **T-1002** ngspice (circuit authority). `COMPLETE` — batch simulation via `ngspice -b -o` gated on presence, operating-point parser, output verification; tests SKIP when absent.
-- **T-1101** Gazebo (robotics/physics authority).
-- **T-1201** Blender (visualization authority).
+- **T-1101** Gazebo (robotics/physics authority). `COMPLETE` — headless `gz sim -s` world load gated on presence, world writer, output verification; tests SKIP when absent.
+- **T-1201** Blender (visualization authority). `COMPLETE` — headless `blender --background --python` render gated on presence, script writer under `models/`, artifact verification, labelled evidence; live render UNAVAILABLE (Blender not installed).
 
 ### PHASE 13 — Unified engineering workflow (T-1301)
 End-to-end: component URL → CIE → analysis → simulation → CAD → electronics → validation, coordinated by Taiga-S1, with evidence labels throughout (§50). Validation: one demo project under `projects/` executed locally.
@@ -168,11 +168,12 @@ End-to-end: component URL → CIE → analysis → simulation → CAD → electr
 Model calibration loop: simulated vs measured (§1); BOM generation from component records; validation status tracking.
 
 ### PHASE 15 — Security / recovery / reliability
-- **T-1501** security review: untrusted inputs, no secrets in git, §14/§15/§52 compliance audit.
-- **T-1502** recovery test: interrupt + resume from repository state only (§42).
+- **T-1501** security review: untrusted inputs, no secrets in git, §14/§15/§52 compliance audit. BLOCKED (dep T-0502).
+- **T-1502** recovery test: interrupt + resume from repository state only (§42). COMPLETE. COMPLETE — `src/core/recovery.py` reconstructs state from governance files, rejecting contradictions; proven by `tests/test_recovery.py`.
 
 ### PHASE 16 — Cross-platform hardening (T-1601)
 Linux/macOS script execution evidence (VMs/CI), path handling, line endings, encoding.
+COMPLETE for text/path hardening (`src/core/xplat.py`: LF/UTF-8 I/O + line-ending audit + containment) and a live LF audit of the POSIX scripts. Linux/macOS *runtime* execution evidence still requires a VM/CI → UNAVAILABLE on this host.
 
 ### PHASE 17 — Release + final audit (T-1701)
 Walk the MASTER §54 release checklist; no claim without evidence; tag release.
@@ -204,3 +205,7 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0901 marked COMPLETE — `src/integrations/freecad.py` (parametric `build_box_macro`, `cad/`-confined `write_script`, headless `run_macro` gated on `freecad_available`, `verify_outputs`, `cad_evidence` → OBSERVED/SIMULATED), `tests/test_integrations_freecad.py`. 7 new tests + 1 skipped-when-absent; full suite 340 passed, 4 skipped. FreeCAD NOT installed → live CAD execution is `UNAVAILABLE` (honest skip). Next task: **T-1001 (KiCad integration)** — Phase 10; READY (dep T-0801) and next in §48 order (KiCad also NOT installed → gated integration + skip-when-absent tests).
 - 2026-10-08: T-1001 marked COMPLETE — `src/integrations/kicad.py` (`kicad-cli` DRC/ERC/Gerber-export commands gated on `kicad_cli`, `verify_artifacts`, `kicad_evidence` → OBSERVED), `tests/test_integrations_kicad.py`. 7 new tests + 1 skipped-when-absent; full suite 347 passed, 5 skipped. KiCad NOT installed → live PCB execution is `UNAVAILABLE` (honest skip). Next task: **T-1002 (ngspice integration)** — Phase 10; READY (dep T-0801) and next in §48 order (ngspice also NOT installed → gated integration + skip-when-absent tests).
 - 2026-10-08: T-1002 marked COMPLETE — `src/integrations/ngspice.py` (batch `ngspice -b -o` gated on `ngspice_cli`, `write_netlist` confined to `simulations/`, `parse_op_point`, `verify_outputs`, `ngspice_evidence` → SIMULATED/OBSERVED), `tests/test_integrations_ngspice.py`. 7 new tests + 1 skipped-when-absent; full suite 352 passed, 6 skipped. ngspice NOT installed → live simulation is `UNAVAILABLE` (honest skip). Next task: **T-1101 (Gazebo integration)** — Phase 11; READY (dep T-0801) and next in §48 order (Gazebo also NOT installed → gated integration + skip-when-absent tests).
+- 2026-10-08: T-1101 marked COMPLETE — `src/integrations/gazebo.py` (headless `gz sim -s -r --iterations` gated on `gazebo_cli`, `write_world` confined to `models/`, `verify_outputs`, `gazebo_evidence` → SIMULATED/OBSERVED), `tests/test_integrations_gazebo.py`. 6 new tests + 1 skipped-when-absent; full suite 360 passed, 7 skipped. Gazebo NOT installed → live simulation is `UNAVAILABLE` (honest skip). Next task: **T-1201 (Blender integration)** — Phase 12; READY (dep T-0801) and next in §48 order (Blender also NOT installed → gated integration + skip-when-absent tests).
+- 2026-10-08: T-1201 marked COMPLETE — `src/integrations/blender.py` (headless `blender --background --python` gated on `blender_cli`, `write_script` confined to `models/`, `verify_outputs`, `blender_evidence` → SIMULATED/OBSERVED), `tests/test_integrations_blender.py`; package re-exports disambiguated (`verify_blender_outputs`/`write_blender_script`). 6 new tests + 1 skipped-when-absent; full suite 366 passed, 8 skipped. Blender NOT installed → live rendering is `UNAVAILABLE` (honest skip). **Phase 12 complete.** Next task by §48 order: Phase 13 T-1301 depends on BLOCKED T-0602/T-0404 → BLOCKED; Phase 14 T-1401 depends on T-1301 → BLOCKED; Phase 15 T-1501 depends on BLOCKED T-0502 → BLOCKED; the next executable READY task is **T-1502 (recovery-after-interruption test)** (Phase 15, dep T-0301 COMPLETE).
+- 2026-10-08: T-1502 marked COMPLETE — `src/core/recovery.py` (`recover`/`recover_consistent`/`assert_recoverable` reconstruct state from `MASTER.md`/`project-state.md`/`next-task.md`/`roadmap.md` only, never conversation; raises `RecoveryError` on missing docs, malformed §29 sections, a COMPLETE boundary, or a READY task with an incomplete dependency — MASTER §42/§43/§47), `tests/test_recovery.py`. 7 new tests; full suite 373 passed, 8 skipped. Live: `assert_recoverable(REPO_ROOT)` → boundary T-1502, blocked set {T-0002, T-0501, T-0601, T-0602, T-1301, T-1401, T-1501}. Next task by §48 order: **T-1601 (cross-platform hardening)** — Phase 16; READY (deps T-0104/T-0105/T-0106 COMPLETE). Phase 17 T-1701 remains blocked on T-1401/T-1501.
+- 2026-10-08: T-1601 marked COMPLETE — `src/core/xplat.py` (`normalise_newlines`, `read_text_utf8` BOM-tolerant, `write_text_lf`, `line_ending_report`, `path_within`), `tests/test_xplat.py`. 7 new tests; full suite 380 passed, 8 skipped. Live: `line_ending_report` over `scripts/**/*.sh` → all LF-only (OBSERVED); Linux/macOS runtime execution stays UNAVAILABLE (no POSIX shell/VM). **Phase 16 complete.** Remaining: Phase 13/14 (T-1301/T-1401) and Phase 15 T-1501 are BLOCKED (T-0602/T-0404/T-0502), so Phase 17 **T-1701 (release audit) is BLOCKED** — no further executable task; surface blockers and stop (MASTER §44/§48).

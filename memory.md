@@ -139,3 +139,21 @@ actions belong in `audit.md`.
 - Integration validation levels (IMPLEMENTED / STATIC-VALIDATED /
   RUNTIME-VALIDATED / PARTIALLY-VALIDATED / BLOCKED / UNAVAILABLE) must
   be stated explicitly; never upgrade a level without evidence.
+
+## Recovery + integration conventions (T-0801…T-1502)
+
+- On resume, reconstruct state from repository evidence only via
+  `src/core/recovery.py` (`assert_recoverable`), never from conversation
+  (MASTER §42/§43). It rejects a COMPLETE boundary, a READY task with an
+  incomplete dependency, and an in-progress task that disagrees with the
+  boundary.
+- Engineering integrations (`src/integrations/jupyter.py`, `freecad.py`,
+  `kicad.py`, `ngspice.py`, `gazebo.py`, `blender.py`) follow one shape:
+  an injectable `*_cli` presence probe, a `<Tool>Error`/`<Tool>Unavailable`
+  pair, a `<Tool>Run` dataclass, a repo-confined writer, a gated run
+  command, `verify_outputs`, and `<tool>_evidence` returning
+  `EvidenceEntry`. Live tests SKIP when the tool is absent; absence is
+  `UNAVAILABLE`, never a passing test.
+- Name clashes across integration modules are resolved by re-exporting
+  aliases from `src/integrations/__init__.py` (`verify_cad_outputs`,
+  `verify_blender_outputs`, `write_blender_script`).

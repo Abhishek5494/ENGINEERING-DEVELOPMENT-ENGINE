@@ -1213,3 +1213,149 @@ Append-only record of significant actions, findings and discrepancies
 - **Files:** src/integrations/ngspice.py, src/integrations/__init__.py,
   tests/test_integrations_ngspice.py, requirements.md (R9.7),
   roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0026 - T-1101 Gazebo integration (2026-10-08)
+
+- **Task:** T-1101 Gazebo integration — robotics/physics authority;
+  headless world load + bounded run, gated on tool presence.
+- **Deliverables:** `src/integrations/gazebo.py` — `GAZEBO_TOOLS`,
+  `gazebo_cli` (injectable), `GazeboError`, `GazeboUnavailable`,
+  `GazeboRun`, `write_world` (confined to `models/`, no overwrite/
+  escape), `run_headless` (`gz sim -s -r --iterations` gated),
+  `verify_outputs`, `gazebo_evidence` (SIMULATED run / OBSERVED files);
+  `src/integrations/__init__.py` re-exports (FreeCAD's `verify_outputs`
+  re-exported as `verify_cad_outputs` to avoid the name clash);
+  `tests/test_integrations_gazebo.py`.
+- **Acceptance criteria:** AC1 `gazebo_cli` injectable — MET. AC2
+  `write_world` round-trip/no-overwrite/escape — MET. AC3 `run_headless`
+  gates + argv + `GazeboRun` — MET. AC4 `verify_outputs` — MET. AC5
+  evidence labels — MET. AC6 re-exports + full suite — MET. AC7 live test
+  skips when absent — MET. AC8 docs/state + AUDIT-0026 — MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **360 passed, 7 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  354 + **6 T-1101 tests**; the 7th skip is the live-Gazebo test (Gazebo
+  not installed). The two pre-existing skips remain the per-platform
+  `sh -n` checks; the others are live Jupyter/FreeCAD/KiCad/ngspice.
+- **Live evidence (OBSERVED):** wrote `models/t1101_demo.sdf` (67 bytes)
+  and deleted it after observation; `gazebo_cli()` returned `None`;
+  `run_headless` raised `GazeboUnavailable: Gazebo is not installed;
+  robotics simulation is UNAVAILABLE`.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for world write/
+  evidence; the simulation path is IMPLEMENTED but **UNAVAILABLE** on this
+  host (no Gazebo) — never claimed as run.
+- **Limitations:** no world/model synthesis (caller-supplied SDF/URDF); no
+  sensor/controller authoring; run results are not parsed. Live simulation
+  unverified until Gazebo is installed (blocked by B-2).
+- **Files:** src/integrations/gazebo.py, src/integrations/__init__.py,
+  tests/test_integrations_gazebo.py, requirements.md (R9.8),
+  roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0027 - T-1201 Blender integration (2026-10-08)
+
+- **Task:** T-1201 Blender integration — visualization authority; headless
+  `--background --python` render, gated on tool presence.
+- **Deliverables:** `src/integrations/blender.py` — `BLENDER_TOOLS`,
+  `blender_cli` (injectable), `BlenderError`, `BlenderUnavailable`,
+  `BlenderRun`, `write_script` (confined to `models/`, no overwrite/
+  escape), `run_background` (`blender --background --python` gated),
+  `verify_outputs`, `blender_evidence` (SIMULATED render / OBSERVED files);
+  `src/integrations/__init__.py` re-exports with disambiguated names
+  (`write_blender_script`, `verify_blender_outputs`);
+  `tests/test_integrations_blender.py`.
+- **Acceptance criteria:** AC1 `blender_cli` injectable — MET. AC2
+  `write_script` round-trip/no-overwrite/escape — MET. AC3 `run_background`
+  gates + argv + `BlenderRun` — MET. AC4 `verify_outputs` — MET. AC5
+  evidence labels — MET. AC6 re-exports + full suite — MET. AC7 live test
+  skips when absent — MET. AC8 docs/state + AUDIT-0027 — MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **366 passed, 8 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  360 + **6 T-1201 tests**; the 8th skip is the live-Blender test (Blender
+  not installed). Two skips are the per-platform `sh -n` checks; the rest
+  are live Jupyter/FreeCAD/KiCad/ngspice/Gazebo.
+- **Live evidence (OBSERVED):** wrote `models/t1201_demo.py` (54 bytes),
+  `verify_outputs` reported its size, deleted after observation;
+  `blender_cli()` returned `None`; `run_background` raised
+  `BlenderUnavailable: Blender is not installed; rendering is UNAVAILABLE`.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for script write/
+  verify; the render path is IMPLEMENTED but **UNAVAILABLE** on this host
+  (no Blender) — never claimed as run.
+- **Limitations:** no scene/model synthesis (caller-supplied script); no
+  render parsing; live render unverified until Blender is installed
+  (blocked by B-2).
+- **Dependency propagation (§48):** with Phase 12 done, Phase 13 T-1301
+  (deps T-0602/T-0404 BLOCKED) → BLOCKED; Phase 14 T-1401 (dep T-1301) →
+  BLOCKED; Phase 15 T-1501 (dep T-0502 BLOCKED) → BLOCKED; next executable
+  READY task is **T-1502** (recovery-after-interruption test; dep T-0301
+  COMPLETE).
+- **Files:** src/integrations/blender.py, src/integrations/__init__.py,
+  tests/test_integrations_blender.py, requirements.md (R9.9),
+  roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0028 - T-1502 recovery-after-interruption (2026-10-08)
+
+- **Task:** T-1502 recovery-after-interruption test (MASTER §42/§43/§47):
+  reconstruct state from repository evidence only, never conversation.
+- **Deliverables:** `src/core/recovery.py` — `RECOVERY_DOCUMENTS`,
+  `RecoveryError`, `RecoveredState` (`current_task_*`, `task_states`,
+  `blockers`, `.in_progress`, `.blocked`), `recover`,
+  `recover_consistent`, `assert_recoverable`; `tests/test_recovery.py`.
+- **Acceptance criteria:** AC1 boundary from `next-task.md` — MET. AC2
+  missing document / malformed §29 section → `RecoveryError` — MET. AC3
+  simulated interruption reconstructs state — MET. AC4 READY-with-
+  incomplete-dep and COMPLETE-boundary rejected — MET. AC5 live
+  `assert_recoverable(REPO_ROOT)` returns T-1502 — MET. AC6 full suite —
+  MET. AC7 docs/state + AUDIT-0028 — MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **373 passed, 8 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  366 + **7 T-1502 tests** (the earlier 3 failures were the pinned state
+  assertions, now advanced to T-1502/T-1601). Skips unchanged (2 × `sh -n`
+  + 6 live-tool tests).
+- **Live evidence (OBSERVED):** `assert_recoverable(REPO_ROOT)` returned
+  boundary **T-1502 “Recovery-after-interruption test”** (state READY),
+  in-progress `()`, blocked `('T-0002','T-0501','T-0601','T-0602','T-1301',
+  'T-1401','T-1501')`, 3 blocker clauses — the repository is
+  self-consistent with no conversation memory.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED (real governance
+  files parsed and consistency-checked).
+- **Limitations:** recovery is read-only (no automatic rewrite); it does
+  not model interrupted multi-step transactions beyond governance files.
+- **Files:** src/core/recovery.py, tests/test_recovery.py,
+  requirements.md (R1.6), roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0029 - T-1601 cross-platform hardening (2026-10-08)
+
+- **Task:** T-1601 cross-platform hardening (MASTER §27/§47): LF line
+  endings, UTF-8 encoding, CWD-independent path containment.
+- **Deliverables:** `src/core/xplat.py` — `CrossPlatformError`,
+  `LineEndingReport`, `normalise_newlines`, `read_text_utf8` (BOM-tolerant),
+  `write_text_lf`, `line_ending_report`, `path_within`;
+  `tests/test_xplat.py`.
+- **Acceptance criteria:** AC1 newline normalisation — MET. AC2 UTF-8
+  round-trip — MET. AC3 line-ending classification — MET. AC4
+  containment — MET. AC5 live LF audit of `scripts/**/*.sh` — MET. AC6
+  full suite — MET. AC7 docs/state + AUDIT-0029 — MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **380 passed, 8 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  373 + **7 T-1601 tests**. Skips unchanged.
+- **Live evidence (OBSERVED):** `line_ending_report` over the POSIX
+  wrappers under `scripts/` reported **LF-only** for every `*.sh` file;
+  no runtime execution of the POSIX scripts was attempted (no POSIX shell
+  on this host) — that remains UNAVAILABLE.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for text/path
+  helpers; Linux/macOS *runtime* execution is UNAVAILABLE (VM/CI needed).
+- **End-of-roadmap note (§44/§48):** with Phase 16 complete, the only
+  unfinished tasks are BLOCKED — Phase 13 T-1301 and Phase 14 T-1401
+  (via T-0602/T-0404), Phase 15 T-1501 (via T-0502), and Phase 17 T-1701
+  (depends on T-1401/T-1501). There is **no further executable task**;
+  the autonomous build stops here and surfaces the blockers rather than
+  faking completion.
+- **Files:** src/core/xplat.py, tests/test_xplat.py, requirements.md
+  (R3.9), roadmap/project-state/next-task/chatmem/memory.

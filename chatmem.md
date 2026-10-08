@@ -53,6 +53,25 @@ this file; on conflict, trust the repository (§43).
     `ngspice -b -o` gated on presence, `write_netlist`, `parse_op_point`,
     `verify_outputs`, labelled evidence); ngspice NOT installed → live
     simulation UNAVAILABLE.
+22. T-1101 Gazebo integration (`src/integrations/gazebo.py`: headless
+    `gz sim -s` gated on presence, `write_world`, `verify_outputs`,
+    labelled evidence); Gazebo NOT installed → live robotics UNAVAILABLE.
+23. T-1201 Blender integration (`src/integrations/blender.py`: headless
+    `blender --background --python` gated on presence, `write_script`,
+    `verify_outputs`, labelled evidence); Blender NOT installed → live
+    rendering UNAVAILABLE. Phase 12 complete.
+24. Dependency propagation for §48: T-1301 (Phase 13, deps T-0602/T-0404)
+    → BLOCKED; T-1401 (Phase 14, dep T-1301) → BLOCKED; T-1501 (Phase 15,
+    dep T-0502) → BLOCKED.
+25. T-1502 recovery-after-interruption (`src/core/recovery.py`:
+    repository-evidence-only state reconstruction, contradiction
+    rejection §42/§43; `assert_recoverable(REPO_ROOT)` → boundary T-1502).
+    Full suite 373 passed, 8 skipped.
+26. T-1601 cross-platform hardening (`src/core/xplat.py`: LF/UTF-8 text
+    I/O, `line_ending_report`, `path_within`); live audit shows POSIX
+    `scripts/**/*.sh` are LF-only. Full suite 380 passed, 8 skipped.
+    **No executable task remains** — T-1701 (release audit) is BLOCKED via
+    T-1401/T-1501 → stop and surface blockers.
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
@@ -63,7 +82,8 @@ this file; on conflict, trust the repository (§43).
   `9257ddd` — T-0302; `fde672d` — T-0301; `a755b53` — T-0401.
 - `a473222` — T-0402 + T-0403 + T-0701; `4395012` — T-0702;
   `ef9e727` — T-0801.
-- (pending) — T-0901, T-1001, T-1002.
+- `030e191` — T-0901 + T-1001 + T-1002.
+- (pending) — T-1101, T-1201, T-1502, T-1601.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -84,12 +104,13 @@ this file; on conflict, trust the repository (§43).
   commit, pick next READY task by §48 phase order, continue (§56).
 
 ## Next task
-- `next-task.md` → **T-1101 Gazebo integration** (Phase 11;
-  robotics/physics authority). Gazebo is NOT installed on this host, so it
-  will ship as a gated integration with skip-when-absent tests (like
-  T-0801/T-0901/T-1001/T-1002). Phase-5 Scrapling (T-0501/T-0502) and
-  Phase-6 Taiga (T-0601/T-0602) stay BLOCKED (install gate / repo not
-  supplied); T-0404 waits on T-0502.
+- `next-task.md` → **T-1701 Release audit vs MASTER §54 checklist**
+  (Phase 17) — State **BLOCKED**: it depends on T-1401 (BLOCKED via
+  T-0602/T-0404) and T-1501 (BLOCKED via T-0502). No further executable
+  task remains; the autonomous build stops and surfaces:
+  - B-1: supply the Taiga-S1 upstream repo → T-0601/T-0602/T-1301/T-1401.
+  - B-2: install approval + disk threshold → T-0501/T-0502/T-0404/T-1501.
+  - T-0002 license decision (human, §35).
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never

@@ -17,19 +17,37 @@ PHASE 9 — FreeCAD integration (COMPLETE for macro generation/write;
 live CAD execution UNAVAILABLE — FreeCAD not installed).
 PHASE 10 — KiCad + ngspice integrations (COMPLETE for offline command/
 parse logic; live PCB/circuit execution UNAVAILABLE — tools not installed).
+PHASE 11 — Gazebo integration (COMPLETE for world write/headless logic;
+live robotics simulation UNAVAILABLE — Gazebo not installed).
+PHASE 12 — Blender integration (COMPLETE for script write/headless render
+logic; live rendering UNAVAILABLE — Blender not installed).
+PHASE 13/14 — Unified workflow (T-1301) and validation/BOM pipeline
+(T-1401) — BLOCKED (depend on BLOCKED T-0602/T-0404).
+PHASE 15 — Security review T-1501 BLOCKED (dep T-0502); recovery test
+T-1502 COMPLETE (state reconstructed from repository evidence only).
+PHASE 16 — Cross-platform hardening T-1601 COMPLETE (LF/UTF-8 text + path
+containment; POSIX runtime evidence still UNAVAILABLE without a VM/CI).
+PHASE 17 — Release audit T-1701 BLOCKED (deps T-1401/T-1501 BLOCKED). No
+further executable task remains; the build stops and surfaces blockers.
 
 ## Overall status
 Governance complete; Phases 1–3 complete (PEM; `src/core/config.py`,
-`state.py`, `evidence.py`). Phase 4 CIE offline scope complete: data model
-+ schema + SQLite/JSON store (T-0401), URL ingestion + exact
-identification (T-0402), provenance + source priority + conflicts
-(T-0403). REA framework + offline inspection complete (T-0701/T-0702).
-Not yet implemented: CIE cross-source search (T-0404, needs
-Scrapling), Scrapling, Taiga-S1, engineering-tool integrations,
-orchestration, release audit. Taiga-S1 is externally BLOCKED (repo not
-supplied) and T-0501 is BLOCKED on the install gate; live tool
-installation is gated on user approval + disk + network. Operating in
-autonomous build mode (checkpoint commits per task).
+`state.py`, `evidence.py`, `xplat.py`, `recovery.py`). Phase 4 CIE offline
+scope complete: data model + schema + SQLite/JSON store (T-0401), URL
+ingestion + exact identification (T-0402), provenance + source priority +
+conflicts (T-0403). REA framework + offline inspection complete
+(T-0701/T-0702). Engineering-tool integrations complete for offline
+command/evidence logic: Jupyter (T-0801), FreeCAD (T-0901), KiCad
+(T-1001), ngspice (T-1002), Gazebo (T-1101), Blender (T-1201); live
+execution is UNAVAILABLE (tools not installed). Recovery-after-
+interruption (T-1502) and cross-platform hardening (T-1601) complete.
+Not implemented: CIE cross-source search (T-0404, needs Scrapling),
+Scrapling, Taiga-S1, end-to-end orchestration (T-1301), validation/BOM
+pipeline (T-1401), security review (T-1501), release audit (T-1701).
+Taiga-S1 is externally BLOCKED (repo not supplied) and Scrapling is
+BLOCKED on the install gate; live tool installation is gated on user
+approval + disk + network. Autonomous build stopped at the blocked
+boundary (no fake completion).
 
 ## Completed phases
 - PHASE 0 — Repository + governance (T-0001 COMPLETE, 2026-10-08)
@@ -46,6 +64,14 @@ autonomous build mode (checkpoint commits per task).
   FreeCAD presence)
 - PHASE 10 — KiCad + ngspice integrations (T-1001/T-1002 COMPLETE;
   execution gated on tool presence)
+- PHASE 11 — Gazebo integration (T-1101 COMPLETE; execution gated on
+  Gazebo presence)
+- PHASE 12 — Blender integration (T-1201 COMPLETE; execution gated on
+  Blender presence)
+- PHASE 13/14 — BLOCKED (T-1301/T-1401; deps T-0602/T-0404 BLOCKED)
+- PHASE 15 — T-1501 BLOCKED (dep T-0502), T-1502 COMPLETE
+- PHASE 16 — T-1601 COMPLETE (deps T-0104/T-0105/T-0106)
+- PHASE 17 — T-1701 BLOCKED (deps T-1401/T-1501 BLOCKED)
 
 ## Completed tasks (last completed task listed last)
 - T-0001 — Repository governance bootstrap (2026-10-08) — 38 tests.
@@ -74,20 +100,26 @@ autonomous build mode (checkpoint commits per task).
 - T-0901 — FreeCAD integration (2026-10-08) — AUDIT-0023.
 - T-1001 — KiCad integration (2026-10-08) — AUDIT-0024.
 - T-1002 — ngspice integration (2026-10-08) — AUDIT-0025.
+- T-1101 — Gazebo integration (2026-10-08) — AUDIT-0026.
+- T-1201 — Blender integration (2026-10-08) — AUDIT-0027.
+- T-1502 — Recovery-after-interruption test (2026-10-08) — AUDIT-0028.
+- T-1601 — Cross-platform hardening (2026-10-08) — AUDIT-0029.
 
 ## Last completed task
-- T-1002 — ngspice integration (2026-10-08) — 352 passed, 6 skipped;
-  `src/integrations/ngspice.py` (batch simulation gated on presence,
-  operating-point parser, output verification, evidence labels). Live
-  simulation UNAVAILABLE (ngspice not installed) — recorded honestly.
+- T-1601 — Cross-platform hardening (2026-10-08) — 380 passed, 8 skipped;
+  `src/core/xplat.py` (LF/UTF-8 text I/O, line-ending audit, path
+  containment); live LF audit of `scripts/**/*.sh`. POSIX runtime evidence
+  UNAVAILABLE (no POSIX shell/VM) — recorded honestly.
 
 ## Current task
-- ID: T-1101
-- Title: Gazebo integration
-- State: READY (defined in roadmap; next-task.md to be set)
-- (Note: Phase-5 T-0501 is BLOCKED on the install gate; T-0601/T-0602
-  BLOCKED — Taiga-S1 repo not supplied. Gazebo is NOT installed, so live
-  robotics simulation will be UNAVAILABLE unless installed. See Blockers.)
+- ID: T-1701
+- Title: Release audit vs MASTER §54 checklist
+- State: BLOCKED (depends on BLOCKED T-1401/T-1501)
+- (Note: all non-blocked phases are complete. No further executable task
+  remains. Remaining blockers: B-1 Taiga-S1 repo not supplied
+  (T-0601/T-0602/T-1301/T-1401); B-2 install approval + C:\ below
+  threshold (T-0501/T-0502/T-0404/T-1501); T-0002 license awaiting human
+  approval. The release audit cannot proceed until these are resolved.)
 
 ## Active subsystem
 - PEM: `src/pem/detect.py` (system), `src/pem/tools.py` (tool probes,
@@ -102,6 +134,12 @@ autonomous build mode (checkpoint commits per task).
   `scripts/macos/{install,update,healthcheck}.sh` (thin POSIX wrappers,
   static-verified only).
 
+- Recovery: `src/core/recovery.py` (T-1502: `recover`/
+  `recover_consistent`/`assert_recoverable` reconstruct state from
+  `MASTER.md`/`project-state.md`/`next-task.md`/`roadmap.md` only and
+  reject contradictions — MASTER §42/§43).
+- Cross-platform: `src/core/xplat.py` (T-1601: `normalise_newlines`,
+  `read_text_utf8`, `write_text_lf`, `line_ending_report`, `path_within`).
 - CIE: `src/cie/model.py` (§12 `Component` + `UNKNOWN` sentinel +
   `MotorSpec` §13 + `DerivedValue`), `config/component.schema.json`
   (draft-07), `src/cie/store.py` (`ComponentStore` SQLite + JSON I/O);
@@ -130,6 +168,12 @@ autonomous build mode (checkpoint commits per task).
 - Integrations (circuits): `src/integrations/ngspice.py` (ngspice circuit
   authority: batch `ngspice -b -o` gated on `ngspice_cli`, `write_netlist`,
   `parse_op_point`, `verify_outputs`).
+- Integrations (robotics): `src/integrations/gazebo.py` (Gazebo
+  robotics/physics authority: headless `gz sim -s` gated on `gazebo_cli`,
+  `write_world` under `models/`, `verify_outputs`).
+- Integrations (visualization): `src/integrations/blender.py` (Blender
+  visualization authority: headless `blender --background --python` gated
+  on `blender_cli`, `write_script` under `models/`, `verify_outputs`).
 
 ## Blockers
 - T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
@@ -189,17 +233,19 @@ autonomous build mode (checkpoint commits per task).
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **352 passed, 6 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **380 passed, 8 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
   config + 29 core evidence + 20 core state + 14 CIE model/schema +
   7 CIE store + 5 CIE target + 14 CIE identify + 9 CIE provenance +
   13 CIE conflict + 8 REA pipeline + 8 REA records + 7 REA storage +
-  8 REA inspection + 8 Jupyter + 7 FreeCAD + 7 KiCad + 7 ngspice tests.
-  Skipped (6): the two per-platform `sh -n` syntax checks (no POSIX
-  shell on host), and the live-Jupyter, live-FreeCAD, live-KiCad and
-  live-ngspice tests (those tools are not installed).
+  8 REA inspection + 8 Jupyter + 7 FreeCAD + 7 KiCad + 7 ngspice +
+  6 Gazebo + 6 Blender + 7 recovery + 7 cross-platform tests.
+  Skipped (8): the two per-platform `sh -n` syntax checks (no POSIX
+  shell on host), and the live-Jupyter, live-FreeCAD, live-KiCad,
+  live-ngspice, live-Gazebo and live-Blender tests (those tools are not
+  installed).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -250,22 +296,38 @@ autonomous build mode (checkpoint commits per task).
   unit-tested; live `ngspice_cli()` returned `None` (ngspice NOT
   installed), `parse_op_point` extracted `{'in': 5.0, 'out': 3.3}` from a
   captured block, and `run_simulation` raised `NgspiceUnavailable` —
-  circuit simulation is **UNAVAILABLE** on this host. No engineering
-  validation applicable yet.
+  circuit simulation is **UNAVAILABLE** on this host. Gazebo (T-1101):
+  unit-tested; live `write_world` wrote an SDF under `models/` (67 bytes),
+  `gazebo_cli()` returned `None` (Gazebo NOT installed), and
+  `run_headless` raised `GazeboUnavailable` — robotics simulation is
+  **UNAVAILABLE** on this host. Blender (T-1201): unit-tested; live
+  `write_script` wrote a Python script under `models/` (54 bytes),
+  `verify_outputs` reported its size, `blender_cli()` returned `None`
+  (Blender NOT installed), and `run_background` raised
+  `BlenderUnavailable` — rendering is **UNAVAILABLE** on this host.
+  Recovery (T-1502): unit-tested; live `assert_recoverable(REPO_ROOT)`
+  reconstructed boundary T-1502 with blocked set {T-0002, T-0501, T-0601,
+  T-0602, T-1301, T-1401, T-1501} from repository evidence alone. Cross-platform (T-1601): unit-tested;
+  live `line_ending_report` over `scripts/**/*.sh` reported LF-only; the
+  POSIX wrappers remain STATIC-validated only (no POSIX shell to execute
+  them). No engineering validation applicable yet.
 
 ## Next action
-Start T-1101 (Gazebo integration; Phase 11, READY via T-0801): drive
-Gazebo headless to load a caller-supplied world/model and capture the run
-as labelled evidence. Gazebo is NOT installed, so this ships as a gated
-integration with skip-when-absent tests (like T-0801/T-0901/T-1001/
-T-1002); live robotics simulation is UNAVAILABLE unless installed. Then
-T-1201 (Blender), and T-0502/T-0404 once Scrapling is installable;
-T-0601/T-0602 remain BLOCKED (T-1301 orchestration depends on these and
-will be PARTIAL/BLOCKED until then).
+No further executable task remains. All non-blocked phases are complete
+(1–12, T-1502 recovery, T-1601 hardening). To continue, a human must
+clear the blockers:
+- **B-1:** supply the Taiga-S1 upstream repository → unblocks
+  T-0601/T-0602 → T-1301 → T-1401.
+- **B-2:** approve network/privileged installs (Scrapling) and raise
+  C:\ above the 1 GiB threshold → unblocks T-0501/T-0502 → T-0404 →
+  T-1501.
+- **T-0002:** license decision (§35).
+When those are resolved, resume with the next executable task in §48
+order; eventually T-1701 (release audit) walks the §54 checklist.
 
 ## Last update
-2026-10-08 — T-1002 closed (352 passed, 6 skipped); ngspice integration
-  (batch simulation gated on presence + operating-point parser + output
-  verification + labelled evidence) is in place. ngspice is NOT installed,
-  so live simulation is UNAVAILABLE (honest skip). T-0501 remains BLOCKED
-  under the install gate. Next: T-1101 (Gazebo integration).
+2026-10-08 — T-1601 closed (380 passed, 8 skipped); cross-platform
+  text/path hardening (`src/core/xplat.py`) is in place and the POSIX
+  scripts are proven LF-only live. Phase 16 complete. Remaining tasks
+  (T-1301/T-1401/T-1501/T-1701) are all BLOCKED on B-1/B-2, so the
+  autonomous build stops and surfaces the blockers (no fake completion).

@@ -15,7 +15,7 @@ Last verified against repository: TASK-0001 bootstrap.
 | R1.3 | next-task.md defines the current execution boundary with ID/objective/deps/constraints/acceptance criteria/validation | IMPLEMENTED (T-0301: parse/validate/update programmatically via `src/core/state.py`) |
 | R1.4 | roadmap.md is a dependency-aware task graph using task states PLANNED/READY/IN_PROGRESS/BLOCKED/COMPLETE/DEFERRED/CANCELLED | IMPLEMENTED (TASK-0001; T-0301: table + detail-block states parsed/validated/updated programmatically, invalid states rejected) |
 | R1.5 | MEMORY / CHATMEM / AUDIT remain separated | IMPLEMENTED |
-| R1.6 | On startup/resume, read repository state and reconstruct real state from evidence, not conversation | PARTIAL (T-0301: `src/core/state.py` reads/validates project-state, next-task and roadmap; startup wiring not yet built) |
+| R1.6 | On startup/resume, read repository state and reconstruct real state from evidence, not conversation | IMPLEMENTED (T-0301: `src/core/state.py` reads/validates project-state, next-task and roadmap; T-1502: `src/core/recovery.py` reconstructs state from governance files only, rejecting contradictions — MASTER §42/§43) |
 
 ## R2 — Git governance (MASTER §40)
 
@@ -37,6 +37,7 @@ Last verified against repository: TASK-0001 bootstrap.
 | R3.6 | Idempotent installation — repeated setup does not blindly reinstall working components | IMPLEMENTED (T-0107: `src/pem/installer.py` acts only on NOT_FOUND or below-`min_version`; never acts on UNKNOWN; guarded `install --execute` (exit 3 refusal); test-verified second run makes zero changes. Live mutation not exercised on this host — C:\ below threshold) |
 | R3.7 | scripts/{windows,linux,macos}/{install,update,healthcheck} exist and detect platform automatically | IMPLEMENTED (all three wrapper sets exist: T-0104 Windows, T-0105 Linux, T-0106 macOS; platform auto-detected in shared `src/pem/ops.py`, test-verified. Runtime validation: Windows executed on host; Linux/macOS static-validated only — no POSIX shell on this host) |
 | R3.8 | Shared configuration; business logic not duplicated across platform scripts | IMPLEMENTED (T-0104: all logic in `src/pem/ops.py`; wrappers are test-asserted to contain no tool lists/business logic. T-0202: `src/core/config.py` is the single source for repo root/canonical paths/config loading; `report.py`+`manifest.py` repointed to it) |
+| R3.9 | Cross-platform text/path hardening: LF line endings, UTF-8 encoding, CWD-independent containment | IMPLEMENTED (T-1601: `src/core/xplat.py` `normalise_newlines`/`read_text_utf8`/`write_text_lf`/`line_ending_report`/`path_within`; live audit confirms POSIX `scripts/**/*.sh` are LF-only. Linux/macOS *runtime* execution remains UNAVAILABLE — no POSIX shell/VM on this host) |
 
 ## R4 — Tool manifest (MASTER §24)
 
@@ -99,6 +100,8 @@ Last verified against repository: TASK-0001 bootstrap.
 | R9.5 | FreeCAD is the mechanical CAD authority; models are produced/verified by FreeCAD, not hand-written | IMPLEMENTED (T-0901: `build_box_macro` generates a FreeCAD macro; `verify_outputs` requires the FreeCAD-produced `.FCStd`; live run gated/UNAVAILABLE when absent) |
 | R9.6 | KiCad is the PCB authority; boards are checked/fabricated by KiCad, not fabricated by us | IMPLEMENTED (T-1001: `run_drc`/`run_erc`/`export_gerbers` drive `kicad-cli`; `verify_artifacts` requires KiCad-produced outputs; live commands gated/UNAVAILABLE when absent) |
 | R9.7 | ngspice is the circuit-simulation authority; results come from ngspice, not fabricated | IMPLEMENTED (T-1002: `run_simulation` drives `ngspice -b -o`; `parse_op_point` parses real output; `verify_outputs` requires ngspice-produced files; live run gated/UNAVAILABLE when absent) |
+| R9.8 | Gazebo is the robotics/physics authority; runs come from Gazebo, not fabricated | IMPLEMENTED (T-1101: `run_headless` drives `gz sim -s`; `write_world` takes caller-supplied SDF; `verify_outputs` requires Gazebo outputs; live run gated/UNAVAILABLE when absent) |
+| R9.9 | Blender is the visualization authority; renders come from Blender, not fabricated | IMPLEMENTED (T-1201: `run_background` drives `blender --background --python`; `write_script` takes caller-supplied script; `verify_outputs` requires Blender artifacts; live render gated/UNAVAILABLE when absent) |
 
 ## R10 — Security (MASTER §14, §52)
 
