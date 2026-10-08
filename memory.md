@@ -96,6 +96,19 @@ actions belong in `audit.md`.
   with a real method. `config/component.schema.json` is the draft-07
   mirror; `src/cie/store.py` (`ComponentStore`) persists to SQLite and
   imports/exports JSON losslessly. Never invent ratings.
+- `src/cie/identify.py` (T-0402) turns a fetched page into an
+  `Identification` → `Component`; precedence JSON-LD › OpenGraph ›
+  `<title>`/canonical; an opaque page raises `IdentificationError`
+  instead of degrading to a generic search. Acquisition is injected — no
+  network in tests. `src/cie/provenance.py`/`conflicts.py` (T-0403) give
+  every fact a `Provenance` (the eight §10 source tiers) and keep all
+  facts, setting `STATUS=CONFLICT` with a `governing` selection — never
+  overwrite.
+- `src/rea/` (T-0701): the §18 pipeline is strictly ordered (no skipping);
+  an `Investigation` cannot exist without documented authorization (§20);
+  findings enforce §19 structurally (no recovered-source claims, no
+  OBSERVED reconstruction); `write_investigation` emits the seven §21
+  files under `docs/investigations/<name>/`.
 - Environment reports (`environment.json`, `environment-report.md`) are
   produced by `src/pem/report.py` from detector outputs only; regenerate
   with `python -m src.pem.report` after environment changes.

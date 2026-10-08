@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Component identification",
+  "description": "Exact-product identification extracted from one page (MASTER section 8/9). Unknown fields are omitted; only url and host are always present.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["url", "host"],
+  "properties": {
+    "url": {"type": "string", "minLength": 1},
+    "host": {"type": "string", "minLength": 1},
+    "title": {"type": "string"},
+    "manufacturer": {"type": "string"},
+    "model": {"type": "string"},
+    "sku": {"type": "string"},
+    "part_number": {"type": "string"},
+    "seller": {"type": "string"},
+    "product_url": {"type": "string"},
+    "specifications": {"type": "object"}
+  }
+}

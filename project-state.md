@@ -7,17 +7,22 @@ a task is completed, blocked, or state changes.
 PHASE 1 — Project Environment Manager (COMPLETE for code; installs gated).
 PHASE 2 — Configuration + tool registry (COMPLETE).
 PHASE 3 — Core primitives: config, state, evidence (COMPLETE).
-PHASE 4 — Component Intelligence Engine (in progress: T-0401 done).
+PHASE 4 — Component Intelligence Engine (COMPLETE for offline scope:
+T-0401/T-0402/T-0403; T-0404 awaits Scrapling T-0502).
+PHASE 7 — REA (next executable: T-0701; Phase 5 T-0501 is BLOCKED on the
+install gate).
 
 ## Overall status
 Governance complete; Phases 1–3 complete (PEM; `src/core/config.py`,
-`state.py`, `evidence.py`). Phase 4 CIE started: component data model +
-schema + SQLite/JSON store (T-0401) done. Not yet implemented: CIE
-ingestion/provenance (T-0402/T-0403), Scrapling, REA, Taiga-S1,
-engineering-tool integrations, orchestration, release audit. Taiga-S1 is
-externally BLOCKED (repo not supplied); live tool installation is gated
-on user approval + disk + network. Operating in autonomous build mode
-(checkpoint commits per task).
+`state.py`, `evidence.py`). Phase 4 CIE offline scope complete: data model
++ schema + SQLite/JSON store (T-0401), URL ingestion + exact
+identification (T-0402), provenance + source priority + conflicts
+(T-0403). Not yet implemented: CIE cross-source search (T-0404, needs
+Scrapling), Scrapling, REA, Taiga-S1, engineering-tool integrations,
+orchestration, release audit. Taiga-S1 is externally BLOCKED (repo not
+supplied) and T-0501 is BLOCKED on the install gate; live tool
+installation is gated on user approval + disk + network. Operating in
+autonomous build mode (checkpoint commits per task).
 
 ## Completed phases
 - PHASE 0 — Repository + governance (T-0001 COMPLETE, 2026-10-08)
@@ -25,6 +30,9 @@ on user approval + disk + network. Operating in autonomous build mode
   gated)
 - PHASE 2 — Configuration + tool registry (T-0202 COMPLETE, 2026-10-08)
 - PHASE 3 — Core primitives (T-0301, T-0302 COMPLETE, 2026-10-08)
+- PHASE 4 — CIE offline scope (T-0401..T-0403 COMPLETE; T-0404 gated on
+  T-0502)
+- PHASE 7 — REA framework (T-0701 COMPLETE; T-0702 READY)
 
 ## Completed tasks (last completed task listed last)
 - T-0001 — Repository governance bootstrap (2026-10-08) — 38 tests.
@@ -41,18 +49,24 @@ on user approval + disk + network. Operating in autonomous build mode
 - T-0301 — Project-state persistence library (2026-10-08) — AUDIT-0016.
 - T-0401 — CIE component data model + schema + storage (2026-10-08) —
   AUDIT-0017.
+- T-0402 — CIE URL ingestion + exact identification (2026-10-08) —
+  AUDIT-0018.
+- T-0403 — CIE provenance + source priority + conflicts (2026-10-08) —
+  AUDIT-0019.
+- T-0701 — REA pipeline + investigation templates (2026-10-08) —
+  AUDIT-0020.
 
 ## Last completed task
-- T-0401 — CIE component data model + schema + storage (2026-10-08) —
-  253 passed, 2 skipped; `src/cie/model.py` (§12/§13, UNKNOWN sentinel,
-  no padding), `config/component.schema.json`, `src/cie/store.py`
-  (SQLite + JSON). CIE foundation in place.
+- T-0701 — REA pipeline + investigation templates (2026-10-08) —
+  315 passed, 2 skipped; `src/rea/` (ordered §18 pipeline, authorized
+  §19/§20 records, seven §21 storage templates). REA framework in place.
 
 ## Current task
-- ID: T-0402
-- Title: CIE URL ingestion + exact-identification flow
+- ID: T-0702
+- Title: REA tooling integration (inspect/trace)
 - State: READY (defined in next-task.md; not yet started)
-- (Note: T-0601/T-0602 BLOCKED — Taiga-S1 repo not supplied. See Blockers.)
+- (Note: Phase-5 T-0501 is BLOCKED on the install gate; T-0601/T-0602
+  BLOCKED — Taiga-S1 repo not supplied. See Blockers.)
 
 ## Active subsystem
 - PEM: `src/pem/detect.py` (system), `src/pem/tools.py` (tool probes,
@@ -70,6 +84,11 @@ on user approval + disk + network. Operating in autonomous build mode
 - CIE: `src/cie/model.py` (§12 `Component` + `UNKNOWN` sentinel +
   `MotorSpec` §13 + `DerivedValue`), `config/component.schema.json`
   (draft-07), `src/cie/store.py` (`ComponentStore` SQLite + JSON I/O);
+  `src/cie/target.py` (URL validation) + `src/cie/identify.py` (exact
+  product identification → `Component`, no network), `config/identification.schema.json`;
+  `src/cie/provenance.py` (eight §10 source tiers + `Provenance`) +
+  `src/cie/conflicts.py` (`Fact`/`FieldRecord`, `CONFLICT`, governing
+  selection), `config/fact-record.schema.json`;
   `src/cie/__init__.py` re-exports.
 
 ## Blockers
@@ -78,9 +97,11 @@ on user approval + disk + network. Operating in autonomous build mode
   T-0601/T-0602 BLOCKED. No Taiga API is guessed; independent work
   continues.
 - **B-2 Privileged/network installation approval** (MASTER §7/§29): real
-  installation of engineering tools needs network + possibly admin and
-  C:\ is below the disk threshold; install tasks proceed as code + tests
-  that SKIP when a tool is absent, awaiting user approval for live runs.
+  installation of engineering tools (incl. Scrapling for T-0501/T-0502)
+  needs network + possibly admin and C:\ is below the disk threshold;
+  install tasks proceed as code + tests that SKIP when a tool is absent,
+  awaiting user approval for live runs. T-0501 is BLOCKED under this gate;
+  Phase-4 T-0404 depends on T-0502.
 
 ## Known issues
 - **No engineering toolchain installed on this host (OBSERVED,
@@ -128,13 +149,15 @@ on user approval + disk + network. Operating in autonomous build mode
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **253 passed, 2 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **317 passed, 2 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
   config + 29 core evidence + 20 core state + 14 CIE model/schema +
-  7 CIE store tests. Skipped: the two per-platform `sh -n` syntax
-  checks (no POSIX shell on host).
+  7 CIE store + 5 CIE target + 14 CIE identify + 9 CIE provenance +
+  13 CIE conflict + 8 REA pipeline + 8 REA records + 7 REA storage tests.
+  Skipped: the two per-platform `sh -n` syntax checks (no POSIX shell on
+  host).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -159,17 +182,25 @@ on user approval + disk + network. Operating in autonomous build mode
   roadmap/next-task/project-state observed; byte-identical no-op
   round-trips proven. CIE (T-0401): unit-tested; live build→SQLite
   save→fetch round-trip observed and schema acceptance/rejection
-  verified against a fabricated record. No engineering validation
-  applicable yet.
+  verified against a fabricated record. CIE (T-0402): unit-tested; live
+  identification over a JSON-LD fixture observed (identity + component
+  mapping) and an opaque page refused with `IdentificationError`; no
+  network performed. CIE (T-0403): unit-tested; live §11 conflict
+  observed — marketplace 10,000 vs datasheet 8,500 → `CONFLICT`, both
+  retained, governing = datasheet. REA (T-0701): unit-tested; live
+  authorized-investigation build + pipeline advance + seven-file write
+  observed, with unauthorized and recovered-source cases refused. No
+  engineering validation applicable yet.
 
 ## Next action
-Start T-0402 (see next-task.md): CIE URL ingestion + exact-identification
-flow — turn a supplied product/manufacturer URL into a candidate
-component id/attributes, refusing to act on ambiguous identity (§9).
-Then T-0403 (provenance + source priority + conflicts), Scrapling and REA
-per §48 order; T-0601/T-0602 remain BLOCKED pending the Taiga-S1 repo.
+Start T-0702 (see next-task.md): REA offline inspection — file
+fingerprinting (size/hashes/type/strings) + external-tool probing recorded
+as labelled evidence (Phase 7; precedes Phase 8 T-0801 in §48 order).
+Then T-0801 (Python/Jupyter), further integrations, and T-0502/T-0404
+once Scrapling is installable; T-0601/T-0602 remain BLOCKED.
 
 ## Last update
-2026-10-08 — T-0401 closed (253 passed, 2 skipped); CIE foundation
-(model + schema + SQLite/JSON store) added; T-0402/T-0403 now READY.
-Next: T-0402 (CIE URL ingestion + exact identification).
+2026-10-08 — T-0701 closed (315 passed, 2 skipped); the REA framework
+(ordered pipeline, authorized records, §21 storage templates) is in
+place. T-0501 remains BLOCKED under the install gate. Next: T-0702
+(REA tooling integration).

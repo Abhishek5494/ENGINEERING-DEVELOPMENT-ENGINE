@@ -28,6 +28,14 @@ this file; on conflict, trust the repository (§43).
     reconciled the T-0601/T-0602 roadmap table-vs-detail state mismatch.
 13. T-0401 CIE component data model + schema + storage (`src/cie/model.py`,
     `config/component.schema.json`, `src/cie/store.py`); Phase 4 started.
+14. T-0402 CIE URL ingestion + exact identification (`src/cie/target.py`,
+    `src/cie/identify.py`, `config/identification.schema.json`).
+15. T-0403 CIE provenance + §10 source priority + §11 conflicts
+    (`src/cie/provenance.py`, `src/cie/conflicts.py`,
+    `config/fact-record.schema.json`); Phase 4 offline scope complete.
+15b. T-0501 recorded BLOCKED (install gate); next executable = Phase 7.
+16. T-0701 REA framework (`src/rea/pipeline.py`, `records.py`,
+    `storage.py`); Phase 7 started.
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
@@ -35,8 +43,8 @@ this file; on conflict, trust the repository (§43).
   `52bec6f` — T-0103; `1445c77` — T-0104; `bac844a` — T-0107;
   `a90df34` — T-0105.
 - `646f529` — T-0106 + directive audit; `0e26ce2` — T-0202;
-  `9257ddd` — T-0302; `fde672d` — T-0301.
-- (pending) — T-0401 CIE component data model + schema + storage.
+  `9257ddd` — T-0302; `fde672d` — T-0301; `a755b53` — T-0401.
+- (pending) — T-0402, T-0403, T-0701.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -57,11 +65,10 @@ this file; on conflict, trust the repository (§43).
   commit, pick next READY task by §48 phase order, continue (§56).
 
 ## Next task
-- `next-task.md` → **T-0402 CIE URL ingestion + exact identification**
-  (Phase 4; T-0403 also READY, but T-0402 is the pipeline entry point per
-  §9 IDENTIFY-first). Then T-0403 provenance/priority/conflicts, Scrapling
-  (T-0501+), REA (T-0701+), engineering integrations (T-0801+). Taiga
-  (T-0601/T-0602) stays BLOCKED until the repo is supplied.
+- `next-task.md` → **T-0702 REA tooling integration (inspect/trace)**
+  (Phase 7; followed by T-0801 Python/Jupyter in Phase 8). Phase-5
+  Scrapling (T-0501/T-0502) and Phase-6 Taiga (T-0601/T-0602) stay BLOCKED
+  (install gate / repo not supplied); T-0404 waits on T-0502.
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never

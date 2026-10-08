@@ -819,3 +819,182 @@ Append-only record of significant actions, findings and discrepancies
   config/component.schema.json, tests/test_cie_model.py,
   tests/test_cie_store.py, requirements.md (R5.6–R5.8),
   roadmap/project-state/next-task/chatmem/memory.
+
+## AUDIT-0018 — T-0402 CIE URL ingestion + exact identification (2026-10-08)
+
+- **Scope:** the CIE entry point (§8/§9) — `src/cie/target.py`
+  (URL validation) and `src/cie/identify.py` (exact-product
+  identification + `Component` mapping), `config/identification.schema.json`,
+  `tests/test_cie_target.py`, `tests/test_cie_identify.py`. Stdlib only;
+  acquisition is injected, so **no network** is performed here.
+- **Implementation (OBSERVED):**
+  - `parse_target` accepts absolute http/https URLs with a host, lowercases
+    and strips a leading `www.`, preserves the original URL, and raises
+    `TargetError` for empty/relative/unsupported input.
+  - `_PageParser` (stdlib `html.parser`) collects `<title>`, whitelisted
+    product `<meta>` tags, the canonical link and JSON-LD blobs. Only
+    `application/ld+json` `<script>` content is kept; other scripts and all
+    visible text are ignored (treated as data, never executed).
+  - JSON-LD `Product` (including inside `@graph`/lists) is walked for
+    `name`/`brand`/`manufacturer`/`model`/`sku`/`mpn`/`offers.seller` and
+    `additionalProperty` → specifications. Precedence: JSON-LD ›
+    OpenGraph (`og:title`, `product:brand`, `product:retailer`, `og:url`)
+    › `<title>`/canonical. Malformed JSON-LD is skipped, not fatal.
+  - Missing fields stay `UNKNOWN`; `to_dict` omits them (no padding);
+    `to_component` maps identity onto a §12 `Component` with `source_urls`
+    and derived `id` (`host-model`), setting nothing it did not observe.
+  - Exact-identification rule: a page with no title/manufacturer/model/
+    sku/part number raises `IdentificationError` ("refuse generic search")
+    — no degradation to `"775 motor"`-style search.
+  - `ingest(url, acquire)` validates the target, calls the injected
+    acquirer, then identifies; an acquirer error propagates (no silent
+    fallback). This keeps T-0402 network-free ahead of Scrapling (T-0502).
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **272 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  253 + **19 T-0402 tests** (5 target + 14 identification). The two skips
+  remain the per-platform `sh -n` checks.
+- **Live evidence (OBSERVED):** over a JSON-LD fixture page,
+  `identify_page` returned
+  `{url, host, title:"Acme 775 Motor", manufacturer:"Acme", model:"M775",
+  sku:"SKU-775", part_number:"MPN-775", seller:"ShopCo", product_url,
+  specifications:{"RPM":"8500"}}`; `to_component()` produced
+  `{id:"shop.example.invalid-m775", name, manufacturer, model,
+  part_number, sku, source_urls, specifications}` (no UNKNOWN keys); an
+  opaque page raised `IdentificationError` ("no exact product identity
+  found; refuse generic search (§8)").
+- **AC (T-0402):** 1 target validation — MET. 2 identity fields default
+  UNKNOWN — MET. 3 JSON-LD Product parsing incl. malformed-skip — MET.
+  4 OG/`<title>`/canonical fallbacks with JSON-LD precedence — MET.
+  5 `to_component` §12 mapping, no padding — MET. 6 opaque page raises —
+  MET. 7 `ingest` injected acquirer, no fallback — MET. 8 draft-07
+  identification schema validates/rejects — MET. 9 package re-exports +
+  full suite — MET (272 + 2 skip). 10 docs/state updated — MET.
+- **Limitations:** no real fetching/Scrapling (T-0502); no per-fact
+  provenance object, source priority or conflict detection (T-0403);
+  extraction covers JSON-LD/OG/meta/title/canonical only (no retailer
+  CSS/table scraping — deliberately out of scope until T-0502); prices
+  are read into meta but not yet modelled; `id` derivation is
+  best-effort (`host-key`) and may collide across URLs differing only by
+  query — a caller may pass an explicit `component_id`.
+- **Security (§14/§15 spirit):** untrusted HTML is parsed, never
+  executed; only `ld+json` script text is read and only via `json.loads`;
+  no URL following, no network, no filesystem writes. A
+  prompt-injection-style fixture (page instructing "ignore previous
+  instructions") did not alter behaviour — such text is data, not an
+  instruction.
+- **Files:** src/cie/target.py, src/cie/identify.py, src/cie/__init__.py,
+  config/identification.schema.json, tests/test_cie_target.py,
+  tests/test_cie_identify.py, requirements.md (R5.1 partial),
+  roadmap/project-state/next-task/chatmem/memory.
+
+## AUDIT-0019 — T-0403 CIE provenance + source priority + conflicts (2026-10-08)
+
+- **Scope:** §10/§11 — `src/cie/provenance.py` (source tiers + provenance),
+  `src/cie/conflicts.py` (facts + conflict detection), 
+  `config/fact-record.schema.json`, `tests/test_cie_provenance.py`,
+  `tests/test_cie_conflicts.py`. Stdlib only; no network; no change to
+  the §12 record or the ingestion flow.
+- **Implementation (OBSERVED):**
+  - `SourceKind` holds exactly the eight §10 tiers; `SOURCE_PRIORITY`
+    lists them most→least authoritative; `source_rank` is 0-based and
+    `is_more_authoritative` matches (datasheet > marketplace > AI).
+  - `Provenance` requires a non-empty `source_url` and an ISO
+    `YYYY-MM-DD` date (rejects `2026/10/08`, `2026-13-40`, empty URL);
+    `publisher` is optional and omitted when UNKNOWN; round-trips.
+  - `Fact(value, provenance, evidence_label=OBSERVED)` validates the §6
+    label via `src.core.evidence`; a non-`Provenance` provenance or a bad
+    label raises `FactError`.
+  - `FieldRecord.status`: `UNKNOWN` (no real facts), `SINGLE` (one),
+    `AGREED` (many, one value), `CONFLICT` (≥2 distinct values). Every
+    input fact is retained; UNKNOWN-valued facts never conflict.
+  - `FieldRecord.governing` selects the most authoritative real fact
+    (source rank, then §6 evidence strength, then later retrieval date,
+    then insertion order) — a selection, never a deletion.
+  - `conflicting_fields` returns exactly the CONFLICT field names.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **294 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  272 + **22 T-0403 tests** (9 provenance + 13 conflicts). The two skips
+  remain the per-platform `sh -n` checks.
+- **Live evidence (OBSERVED — the §11 example):** two facts on `rpm` —
+  marketplace `10,000` (`MARKETPLACE_LISTING`) and manufacturer datasheet
+  `8,500` (`MANUFACTURER_DATASHEET`) — produced
+  `status == "CONFLICT"`, both facts retained, and `governing.value == 8500`
+  with `provenance.kind == "MANUFACTURER_DATASHEET"`; a one-fact field
+  reported `status == "SINGLE"`.
+- **AC (T-0403):** 1 eight tiers + order — MET. 2 provenance validation +
+  round-trip — MET. 3 `Fact` label validation + round-trip — MET.
+  4 statuses UNKNOWN/SINGLE/AGREED/CONFLICT — MET. 5 governing authority
+  with retention — MET. 6 serialisation + draft-07 schema validate/reject
+  — MET. 7 `conflicting_fields` — MET. 8 re-exports + full suite — MET.
+  9 docs/state updated — MET.
+- **Limitations:** no acquisition to feed real facts yet (T-0502); no
+  cross-source search (T-0404); the fact bundle is not yet persisted to
+  the SQLite store nor embedded in `Component` (a later integration
+  point); `governing` is deterministic but does not yet flag
+  *unresolvable* authority ties for human review (§11 is satisfied by
+  storing + marking; resolution policy can evolve).
+- **Security:** no network; treats all values as data; JSON-LD read-only
+  path unchanged from T-0402.
+- **Files:** src/cie/provenance.py, src/cie/conflicts.py,
+  src/cie/__init__.py, config/fact-record.schema.json,
+  tests/test_cie_provenance.py, tests/test_cie_conflicts.py,
+  requirements.md (R5.3–R5.5), roadmap/project-state/next-task/chatmem/
+  memory.
+
+## AUDIT-0020 — T-0701 REA pipeline + investigation templates (2026-10-08)
+
+- **Scope:** MASTER §16–§21 — `src/rea/pipeline.py` (ordered stages),
+  `src/rea/records.py` (authorized investigation + §19 evidence rules),
+  `src/rea/storage.py` (seven §21 templates), `docs/investigations/README.md`,
+  `tests/test_rea_{pipeline,records,storage}.py`. Stdlib only; no target
+  was inspected or executed.
+- **Implementation (OBSERVED):**
+  - `ReaStage`/`REA_STAGES` are the ten §18 stages in order;
+    `stage_index` is 0-based. `ReaPipeline` starts before TARGET and
+    `advance()` moves strictly in order — skipping or jumping raises
+    `PipelineError` (enforcing "never jump from 'Feature X exists' to
+    'implement Feature X'"); it refuses to advance past VERIFY.
+  - `Investigation` requires a lowercase slug name, a target, and
+    `authorized=True` with a non-empty `authorization_basis`; otherwise
+    `AuthorizationError` (STOP, §20). `build_investigation` constructs the
+    authorized form.
+  - `Finding` enforces §19 structurally: `source_recovered=True` raises
+    `EvidenceRuleError` (recovered pseudocode is never claimed as the
+    original source); `reconstructed=True` with `OBSERVED` raises (a
+    reconstruction is inferred/calculated/simulated); labels validated via
+    `src.core.evidence`. `EvidenceEntry` carries a labelled statement +
+    optional source.
+  - `TEMPLATE_FILES` is exactly the seven §21 files; `render_template`
+    produces Markdown from the record (no drift between record and
+    storage); `write_investigation` creates `docs/investigations/<name>/`
+    and refuses to overwrite unless `overwrite=True`.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **317 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  294 + **23 REA tests** (8 pipeline + 8 records + 7 storage). The two
+  skips remain the per-platform `sh -n` checks.
+- **Live evidence (OBSERVED):** built an authorized investigation
+  (`motor-controller`, one `OBSERVED` finding), advanced a pipeline
+  through TARGET→IDENTIFY, wrote it to a temp directory and listed the
+  seven files; constructing an unauthorized investigation raised
+  `AuthorizationError` and a `source_recovered=True` finding raised
+  `EvidenceRuleError`.
+- **AC (T-0701):** 1 ten ordered stages — MET. 2 sequential pipeline,
+  skip/jump refused — MET. 3 authorization gate + slug validation — MET.
+  4 evidence rules (recovered-source, reconstruction≠OBSERVED) — MET.
+  5 `to_dict` — MET. 6 seven templates + rendered content — MET.
+  7 `write_investigation` (7 files, no overwrite) — MET. 8 re-exports +
+  full suite — MET. 9 docs/state updated — MET.
+- **Limitations:** this is the framework only — no binary/JS/.NET
+  inspection or tracing tools are wired (T-0702); templates are
+  generated but no investigation has been run; authorization is a
+  caller-declared boolean + basis (not an external approval system).
+- **Security/ethics (§20):** the API structurally forbids an
+  unauthorized investigation; the module performs no inspection, no
+  network and no execution; guidance to only investigate authorized
+  targets is recorded in the module docstring and the investigations
+  README.
+- **Files:** src/rea/pipeline.py, src/rea/records.py, src/rea/storage.py,
+  src/rea/__init__.py, docs/investigations/README.md,
+  tests/test_rea_pipeline.py, tests/test_rea_records.py,
+  tests/test_rea_storage.py, requirements.md (R7.x),
+  roadmap/project-state/next-task/chatmem/memory.

@@ -2,102 +2,94 @@
 
 Current execution boundary (MASTER §30). Work ONLY on this task.
 
-## Task T-0402 — CIE URL ingestion + exact-identification flow
+## Task T-0702 — REA tooling integration (inspect/trace)
 - **State:** READY
-- **Phase:** 4 — Component Intelligence Engine (CIE)
+- **Phase:** 7 — Reverse Engineering Engine (REA)
 
 ### Objective
-Implement the CIE entry point (MASTER §8, §9): given an exact product URL
-and the page's HTML, extract the product's identity — title, manufacturer,
-model, SKU, part number, seller, product URL and listed specifications —
-and map it onto a `Component` record. The system MUST identify the exact
-product first and MUST NOT fall back to a generic search ("775 motor")
-when identity cannot be established; in that case it refuses and reports
-why. Acquisition itself is delegated through an injected acquirer so this
-task performs NO network access (Scrapling wiring is T-0502).
+Give the REA pipeline real, offline inspection capability (MASTER §18
+`INSPECT` / `COLLECT EVIDENCE`): fingerprint a **caller-provided,
+authorized** file (size, hashes, detected file type, printable strings),
+probe which external inspection tools are actually available, and record
+the results as labelled `EvidenceEntry` objects on an `Investigation`.
+The target is only *read* — never executed. Everything is stdlib-first;
+external tools are optional and honestly reported when absent.
 
 ### Dependencies
-- T-0401 (COMPLETE — `Component`/`UNKNOWN`/`MotorSpec`, `src/cie`), T-0302
-  (COMPLETE — evidence labels), T-0202 (COMPLETE — shared paths).
+- T-0701 (COMPLETE — pipeline + investigation records + storage),
+  T-0302 (COMPLETE — evidence labels).
 
 ### Affected components
-- `src/cie/target.py` (new): `Target`, `TargetError`, `parse_target`
-  (URL validation + host extraction; no network).
-- `src/cie/identify.py` (new): `Identification`, `Acquirer` protocol,
-  `identify_page(url, html)`, `ingest(url, acquire)`.
-- `src/cie/__init__.py` (re-export the new public names).
-- `config/identification.schema.json` (new; draft-07 for `Identification`).
-- `tests/test_cie_target.py`, `tests/test_cie_identify.py` (new) with
-  fixture HTML strings (no network).
-- `requirements.md` (R5.x), roadmap/audit/project-state/next-task/chatmem
-  closure updates.
+- `src/rea/inspection.py` (new): `FileFingerprint`, `fingerprint_file`,
+  `detect_file_type`, `extract_strings`, `probe_tools`, `inspect_target`,
+  `InspectionError`.
+- `src/rea/records.py` (extend): reuse `EvidenceEntry`; add a helper
+  `with_evidence(investigation, entries, unknowns=(), behavior_notes=())`
+  that returns a new `Investigation` with appended evidence.
+- `src/rea/__init__.py` (re-export new public names).
+- `tests/test_rea_inspection.py` (new).
+- `requirements.md` (R7.x), roadmap/audit/project-state/next-task/chatmem/
+  memory updates.
 
-### Identity sources (in priority order within one page)
-1. JSON-LD (`<script type="application/ld+json">`, schema.org `Product`):
-   `name`, `brand`, `manufacturer`, `sku`, `mpn`, `offers.seller`,
-   `additionalProperty` (name/value specs).
-2. OpenGraph / product `<meta>` tags: `og:title`, `og:site_name`,
-   `og:url`, `product:brand`, `product:price:amount`,
-   `product:price:currency`, `product:retailer`.
-3. `<title>` element and the canonical link (`<link rel="canonical">`).
-Anything not found stays `UNKNOWN` (never fabricated). Later (T-0403) each
-extracted fact gains provenance; for now provenance is the page URL.
+### Behaviour
+- `detect_file_type(head)` recognises at least PE (`MZ`), ELF (`\x7fELF`),
+  Mach-O, ZIP, and PDF from magic bytes; otherwise `"UNKNOWN"`.
+- `extract_strings(data, min_length=4, max_strings=...)` returns printable
+  ASCII runs (stdlib, bounded) — the target's own bytes are treated as
+  data.
+- `fingerprint_file(path)` returns size + sha256 (+ md5) + file type +
+  bounded string count; it refuses directories/missing files with
+  `InspectionError`.
+- `probe_tools(names)` maps a tool-name list to resolved paths via
+  `shutil.which` (missing → `None`), so an investigation never claims a
+  tool it does not have.
+- `inspect_target(path, tools=None)` returns a tuple of `EvidenceEntry`
+  (all `OBSERVED`): file identity (path, size), sha256, detected type,
+  string count, and one entry per probed tool reporting present/absent.
+- `with_evidence(...)` composes an updated `Investigation`.
 
 ### Constraints
-- Standard library only (`html.parser`, `json`, `urllib.parse`, `re`).
-  No `requests`, no network, no Scrapling — the acquirer is injected.
-- Untrusted input (§14 spirit): the parser only *extracts*; it never
-  evaluates scripts, never follows URLs, never imports/executes page
-  content. Non-`ld+json` `<script>` contents are ignored. A malformed
-  JSON-LD block is skipped, not fatal.
-- Exact-identification rule (§8/§9): if a page yields no usable identity
-  signal (no title AND no model/sku/part number/manufacturer), raise
-  `IdentificationError` — do NOT degrade to a generic search.
-- Identity fields map into §12 `Component`; only real values are set,
-  everything else is omitted/UNKNOWN.
-- No fabricated data: extraction never invents a manufacturer/model.
+- Standard library only (`hashlib`, `shutil`, `struct`, `pathlib`, `re`).
+  No network, no execution of the target, no disassembly performed here —
+  external tools are only *detected*, not run, in this task.
+- Never claim a tool result that was not produced (§46): absent tools are
+  reported as absent/UNKNOWN, not assumed.
+- Read at most a bounded prefix/size (default 16 MiB) and record the cap
+  as a limitation rather than silently truncating.
+- Only operate on a path the caller passes; no directory walking of the
+  system, no secret extraction (§20).
 
 ### Acceptance criteria
-1. `parse_target(url)` validates scheme+host (`http`/`https`), rejects
-   empty/invalid/relative URLs with `TargetError`, and exposes `url`,
-   `host` (lowercased, no `www.` prefix) and `scheme`.
-2. `identify_page(url, html)` returns an `Identification` whose
-   `title`/`manufacturer`/`model`/`sku`/`part_number`/`seller`/
-   `product_url` are `UNKNOWN` when absent, populated when present.
-3. JSON-LD `Product` is parsed: `name`, `brand`/`manufacturer`, `sku`,
-   `mpn`, `offers` seller all extracted; `additionalProperty` becomes the
-   specifications mapping; malformed JSON-LD is ignored (other signals
-   still used).
-4. OpenGraph/`<title>`/canonical fallbacks fill fields JSON-LD lacks;
-   JSON-LD wins when both are present.
-5. `to_component()` yields a `Component` (id derived from
-   host+model/sku, or supplied) with `name`, `manufacturer`, `model`,
-   `part_number`, `sku`, `source_urls=(url,)` and `specifications`, with
-   no UNKNOWN padding.
-6. `identify_page` raises `IdentificationError` on an empty/opaque page
-   (e.g. `<html></html>`) — proving the no-generic-search rule.
-7. `ingest(url, acquire)` calls the injected `acquire(url)`, then
-   `identify_page`; a raising acquirer propagates (no silent fallback).
-8. `config/identification.schema.json` is a valid draft-07 schema for the
-   serialized `Identification`; a stdlib checker validates a good record
-   and rejects a wrong-typed field.
-9. `from src.cie import ...` exposes the new names; full suite passes
+1. `detect_file_type` classifies PE/ELF/Mach-O/ZIP/PDF and returns
+   `"UNKNOWN"` for arbitrary bytes.
+2. `extract_strings` finds embedded ASCII strings and respects
+   `min_length`/`max_strings`.
+3. `fingerprint_file` returns a `FileFingerprint` with the correct size
+   and a stable sha256 (verified against `hashlib` on a temp file) and the
+   detected type; missing file / directory raises `InspectionError`.
+4. `probe_tools` returns a path for an existing tool (e.g. `python`) and
+   `None` for a bogus name.
+5. `inspect_target` returns `OBSERVED` `EvidenceEntry` objects covering
+   identity, sha256, type, string count and tool availability; every entry
+   is a valid `EvidenceEntry`.
+6. `with_evidence` returns a new `Investigation` whose evidence is the old
+   plus the new, leaving the original unchanged.
+7. `from src.rea import ...` exposes the new names; full suite passes
    (`python -m pytest tests/ -v`).
-10. Roadmap (T-0402 COMPLETE; T-0403 and T-0502 unblock as applicable),
-    requirements, project-state, audit (AUDIT-0018), chatmem, memory
-    updated.
+8. Roadmap (T-0702 COMPLETE; T-0801 READY), requirements, project-state,
+   audit (AUDIT-0021), chatmem, memory updated.
 
 ### Validation requirements
 - Run the full suite; record the real result in audit.md.
-- Live evidence: run `identify_page` over a fixture HTML string with a
-  JSON-LD product block and over an opaque page; print the extracted
-  `Identification` dict and the `Component` dict, and show the opaque page
-  raising `IdentificationError` — OBSERVED, not claimed.
+- Live evidence: fingerprint a temp file with known bytes, print its type,
+  size and sha256, and show `inspect_target` producing evidence entries;
+  show `probe_tools(["python", "definitely-not-a-tool-xyz"])` resolving one
+  and not the other — OBSERVED, not claimed.
 - Review `git status` / `git diff` before commit.
-- After completion, pick the next READY task by §48 order (T-0403 is
-  READY; T-0502 depends on T-0501) and record the reason.
+- After completion, pick the next READY task by §48 order (T-0801 Python/
+  Jupyter is Phase 8 and READY) and record the reason.
 
 ### Out of scope (do not pull in)
-- Real network fetching / Scrapling (T-0502), provenance objects + source
-  priority + conflict detection (T-0403), authoritative re-search (§10),
-  engineering conclusions. No CLI/UI.
+- Running/disassembling/executing targets, dynamic tracing, debugging,
+  attaching to processes (a later, separately-authorized capability),
+  Taiga orchestration, engineering integrations. No CLI/UI.

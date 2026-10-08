@@ -50,11 +50,11 @@ Last verified against repository: TASK-0001 bootstrap.
 
 | ID | Requirement | Status |
 |---|---|---|
-| R5.1 | Ingest exact product/manufacturer/distributor/datasheet URLs and identifiers (model, SKU, MPN) | SPECIFIED |
+| R5.1 | Ingest exact product/manufacturer/distributor/datasheet URLs and identifiers (model, SKU, MPN) | PARTIAL (T-0402: URL target validation + exact-product identification from a fetched page — title/manufacturer/model/SKU/MPN/seller/specs; refuses generic search. Real fetching is delegated to an injected acquirer; network is T-0502) |
 | R5.2 | Pipeline: IDENTIFY → ACQUIRE → EXTRACT → NORMALIZE → VERIFY → COMPARE → EVIDENCE → MODEL before engineering conclusions | SPECIFIED |
-| R5.3 | Store provenance (source URL, retrieval date) for every extracted fact | SPECIFIED |
-| R5.4 | Apply source priority (manufacturer > distributor > marketplace > community > AI) | SPECIFIED |
-| R5.5 | Detect and store conflicts with STATUS=CONFLICT; never silently overwrite | SPECIFIED |
+| R5.3 | Store provenance (source URL, retrieval date) for every extracted fact | IMPLEMENTED (T-0403: `src/cie/provenance.py` `Provenance` requires source_url + ISO date + `SourceKind`) |
+| R5.4 | Apply source priority (manufacturer > distributor > marketplace > community > AI) | IMPLEMENTED (T-0403: the eight §10 tiers in `SOURCE_PRIORITY`; `is_more_authoritative`/`source_rank`) |
+| R5.5 | Detect and store conflicts with STATUS=CONFLICT; never silently overwrite | IMPLEMENTED (T-0403: `src/cie/conflicts.py` `FieldRecord` retains all facts, sets `CONFLICT`, selects a `governing` fact; `config/fact-record.schema.json`) |
 | R5.6 | Machine-readable component record with fields of MASTER §12; unknowns stay UNKNOWN; no padding fields | IMPLEMENTED (T-0401: `src/cie/model.py` `Component` + `UNKNOWN` sentinel; `to_dict` omits UNKNOWN; `config/component.schema.json` draft-07) |
 | R5.7 | Motor data model fields per MASTER §13; derived values identify their calculation | IMPLEMENTED (T-0401: `MotorSpec` covers the §13 fields; `DerivedValue` requires a non-empty `method` and a §6 evidence label) |
 | R5.8 | Component storage: local SQLite store + JSON import/export with lossless round-trip (T-0401) | IMPLEMENTED (T-0401: `src/cie/store.py` `ComponentStore` upsert/get/all/delete + `export_json`/`import_json`; tested) |
@@ -73,11 +73,11 @@ Last verified against repository: TASK-0001 bootstrap.
 
 | ID | Requirement | Status |
 |---|---|---|
-| R7.1 | Authorized targets only; stop when authorization insufficient | SPECIFIED |
-| R7.2 | Full pipeline from IDENTIFY to VERIFY before any reimplementation | SPECIFIED |
-| R7.3 | Evidence classified; recovered pseudocode ≠ original source | SPECIFIED |
-| R7.4 | Investigation records under docs/investigations/<name>/ with scope, evidence, findings, behavior, unknowns, limitations, implementation-notes | SPECIFIED |
-| R7.5 | Strict separation from CIE | SPECIFIED |
+| R7.1 | Authorized targets only; stop when authorization insufficient | IMPLEMENTED (T-0701: `Investigation` requires `authorized=True` + a non-empty basis, else `AuthorizationError`) |
+| R7.2 | Full pipeline from IDENTIFY to VERIFY before any reimplementation | IMPLEMENTED (T-0701: `src/rea/pipeline.py` ten ordered §18 stages; out-of-order/skip raises `PipelineError`) |
+| R7.3 | Evidence classified; recovered pseudocode ≠ original source | IMPLEMENTED (T-0701: `Finding`/`EvidenceEntry` carry §6 labels; `source_recovered=True` and OBSERVED-reconstruction raise `EvidenceRuleError`) |
+| R7.4 | Investigation records under docs/investigations/<name>/ with scope, evidence, findings, behavior, unknowns, limitations, implementation-notes | IMPLEMENTED (T-0701: `src/rea/storage.py` writes exactly the seven §21 files) |
+| R7.5 | Strict separation from CIE | IMPLEMENTED (T-0701: `src/rea/` imports only `src/core`; investigations stored under `docs/investigations/`, not with CIE data) |
 
 ## R8 — Engineering truth and evidence (MASTER §5–§7)
 
