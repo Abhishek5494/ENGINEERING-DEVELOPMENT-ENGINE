@@ -10,10 +10,11 @@ PHASE 1 — Project Environment Manager (in progress).
 Governance complete; PEM detects the system, probes every manifest
 tool, generates the §25 environment reports, and runs shared platform
 operations (healthcheck with real exit codes; plan-only
-install/update) behind thin Windows wrappers. Idempotent, guarded
-installation is now implemented (plan default; `--execute` performs it,
-refused while disk is low). Next: Linux/macOS wrappers. No engineering
-subsystem beyond PEM/core implemented.
+install/update) behind thin Windows wrappers, plus Linux POSIX wrapper
+scripts (static-only). Idempotent, guarded installation is now
+implemented (plan default; `--execute` performs it, refused while disk
+is low). Next: macOS wrappers. No engineering subsystem beyond
+PEM/core implemented.
 
 ## Completed phases
 - PHASE 0 — Repository + governance (T-0001 COMPLETE, 2026-10-08)
@@ -33,17 +34,20 @@ subsystem beyond PEM/core implemented.
   tests; all three .ps1 wrappers executed on this host; healthcheck
   exit 1 (low disk), install/update exit 0 plan-only; no-mutation
   proven (AUDIT-0009).
-
-## Last completed task
 - T-0107 — Idempotent install logic + tests (2026-10-08) — 150 tests;
   `src/pem/installer.py` + `install_command` manifest field + guarded
-  `install --execute`; live plan exit 0 (7 tools), `--execute` refused
-  exit 3 (C:\ 451,891,200 bytes < 1 GiB) — no mutation performed
+  `install --execute`; live plan exit 0, `--execute` refused exit 3
   (AUDIT-0010).
 
+## Last completed task
+- T-0105 — Linux wrapper scripts (2026-10-08) — 157 passed, 1 skipped
+  (`sh -n` skipped: no POSIX shell on this host); `scripts/linux/
+  {install,update,healthcheck}.sh` delegate to the shared module; static
+  validation only — scripts NOT executed (AUDIT-0011).
+
 ## Current task
-- ID: T-0105
-- Title: Linux scripts (install/update/healthcheck)
+- ID: T-0106
+- Title: macOS scripts (install/update/healthcheck)
 - State: READY (defined in next-task.md; not yet started)
 
 ## Active subsystem
@@ -54,7 +58,9 @@ subsystem beyond PEM/core implemented.
 - Core: `src/core/manifest.py` (manifest loader; requires
   `install_command`).
 - Scripts: `scripts/windows/{install,update,healthcheck}.ps1` (thin
-  wrappers, executed and verified on this host).
+  wrappers, executed and verified on this host);
+  `scripts/linux/{install,update,healthcheck}.sh` (thin POSIX wrappers,
+  static-verified only).
 
 ## Blockers
 - T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
@@ -68,8 +74,9 @@ subsystem beyond PEM/core implemented.
   T-0103 → 459,509,760 at T-0104 close → 451,891,200 at T-0107 close.
   Still below the 1 GiB threshold, so live `install --execute` refuses
   (exit 3) on this host; re-check before any install execution.
-- Linux/macOS probe/code paths unexecuted (Windows host) — T-1601;
-  Linux/macOS wrappers not yet created (T-0105/T-0106).
+- Linux/macOS probe/code paths unexecuted (Windows host; no POSIX shell)
+  — T-1601. Linux wrappers now exist but static-verified only (T-0105);
+  macOS wrappers not yet created (T-0106).
 - Version extraction is best-effort first dotted-numeric token (e.g.
   "2.55.0.windows.3" reported as "2.55.0").
 - Non-pip tools carry `install_command: null` (package-manager
@@ -103,9 +110,11 @@ subsystem beyond PEM/core implemented.
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **150 passed, 0 failed** (2026-10-08,
+- `python -m pytest tests/ -v` → **157 passed, 1 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
-  21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer.
+  21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
+  + 8 Linux-script static tests. Skipped: `sh -n` syntax check (no
+  POSIX shell on this host).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -117,18 +126,21 @@ subsystem beyond PEM/core implemented.
 
 ## Validation status
 - Governance validation + live OBSERVED detector/probe/report/script/
-  install-engine runs recorded in audit.md (AUDIT-0005..0010). Windows
+  install-engine runs recorded in audit.md (AUDIT-0005..0011). Windows
   wrappers executed on host: healthcheck exit 1 (C:\ below threshold),
   install/update exit 0 plan-only, 53-file snapshot proves zero
   mutation. Install engine: live plan exit 0; `--execute` refused
-  exit 3 (disk); no live mutation attempted. No engineering validation
+  exit 3 (disk); no live mutation attempted. Linux wrappers: STATIC
+  validation only (file/shebang/delegation/tool-id checks); never
+  executed (no POSIX shell on this host). No engineering validation
   applicable.
 
 ## Next action
-Start T-0105 (see next-task.md): Linux scripts (install/update/
+Start T-0106 (see next-task.md): macOS scripts (install/update/
 healthcheck) as thin wrappers over the verified shared code; cannot be
-executed on this Windows host — syntax-check only, no execution claim.
+executed on this Windows host — static validation only, no execution
+claim.
 
 ## Last update
-2026-10-08 — T-0107 closed after 150 tests passed; guarded idempotent
-install engine added; `--execute` refused live (C:\ below threshold).
+2026-10-08 — T-0105 closed after 157 tests passed + 1 skip; Linux POSIX
+wrapper scripts added and static-verified (never executed).

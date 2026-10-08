@@ -450,3 +450,57 @@ Append-only record of significant actions, findings and discrepancies
   src/core/manifest.py, tests/test_installer.py (new),
   scripts/windows/install.ps1 + update.ps1 (comment accuracy),
   requirements.md (R3.6), roadmap/project-state/next-task/chatmem.md.
+
+## AUDIT-0011 — T-0105 Linux wrapper scripts (2026-10-08)
+
+- **Scope:** `scripts/linux/{install,update,healthcheck}.sh` — POSIX
+  `sh` thin wrappers over the verified shared module (MASTER §23).
+- **Implementation (OBSERVED):**
+  - Shebang `#!/usr/bin/env sh`; repo root resolved relative to the
+    script path via `CDPATH= cd -P "$(dirname "$0")"` then `../..`
+    (no hard-coded absolute path).
+  - Interpreter discovery prefers `python3`, falls back to `python`,
+    else prints an error and exits 2 (matches the Windows wrapper).
+  - Each script delegates with `exec "$python_cmd" -m src.pem.ops
+    <command> "$@"` — `exec` replaces the shell so the shared module's
+    exit code is the script's exit code (propagation, no swallowing).
+    `install.sh` forwards `"$@"` (so `--execute` is available); the
+    others also forward `"$@"`.
+- **Validation method and result (MEASURED):**
+  - `Get-Command sh` / `bash` on this host → **not found** (both
+    absent), so the scripts were **NOT executed** and no runtime
+    behavior is claimed. Only static validation was performed.
+  - `python -m pytest tests/ -v` → **157 passed, 1 skipped**
+    (2026-10-08, Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM
+    detection + 21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops
+    + 17 installer + **7 linux-script static tests**; the skipped test
+    is `test_scripts_are_syntactically_valid_when_sh_available`
+    (skipif no `sh` on PATH) — honest skip, not a pass.
+  - Static tests (all passed) assert: files exist; exact POSIX shebang;
+    delegation line `-m src.pem.ops <command>`; the delegation line uses
+    `exec ` (propagation); `python3`/`python` discovery + exit 2; no
+    manifest tool id except `python` (and `python` only on plumbing
+    lines — same resolution as T-0104 AC5); no hard-coded absolute path.
+  - Binary-level check: each file begins with `b'#!/'` (no BOM).
+- **AC (T-0105):**
+  1. Three `.sh` files exist with POSIX shebang and call
+     `python -m src.pem.ops <command>` — MET.
+  2. Exit-code propagation — MET (`exec` on the delegation line).
+  3. No tool id except the interpreter token; no tool logic — MET.
+  4. Static tests assert the above; `sh -n` runs only if `sh` exists —
+     MET (static pass; `sh -n` correctly skipped here).
+  5. R3.7 updated with honest qualifier; roadmap T-0105 COMPLETE,
+     T-0106 READY — MET.
+  6. Full suite passes (157 + 1 skip) — MET.
+  7. project-state.md / audit.md / chatmem.md updated — MET.
+- **Limitations:** Linux scripts never executed on this host (no POSIX
+  shell); actual Linux runtime behavior (paths, argument forwarding,
+  exit-code semantics) is UNVERIFIED — static equivalence to the
+  verified shared code is all that is claimed. macOS wrappers absent
+  (T-0106).
+- **Security:** no network; no elevation; wrapper performs no logic of
+  its own; it only locates the interpreter and delegates to the shared
+  module.
+- **Files:** scripts/linux/install.sh, update.sh, healthcheck.sh (new),
+  tests/test_scripts_linux.py (new), requirements.md (R3.7),
+  roadmap/project-state/next-task/chatmem.md.
