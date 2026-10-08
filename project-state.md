@@ -6,14 +6,13 @@ a task is completed, blocked, or state changes.
 ## Current phase
 PHASE 1 — Project Environment Manager (COMPLETE for code; installs gated).
 PHASE 2 — Configuration + tool registry (COMPLETE).
-PHASE 3 — Core primitives: state, evidence (evidence DONE; state next).
+PHASE 3 — Core primitives: config, state, evidence (COMPLETE).
+PHASE 4 — Component Intelligence Engine (next: T-0401 READY).
 
 ## Overall status
-Governance complete; Phase 1 PEM complete (detection, manifest, reports,
-shared ops, idempotent guarded installer, Windows/Linux/macOS wrappers);
-Phase 2 complete (shared `src/core/config.py`); Phase 3 in progress
-(evidence/claim primitives + ADR-0002 done; project-state persistence
-next). Not yet implemented: CIE, Scrapling, REA, Taiga-S1,
+Governance complete; Phases 1–3 complete (PEM; shared `src/core/config.py`;
+`src/core/state.py` project-state library; `src/core/evidence.py` +
+ADR-0002). Not yet implemented: CIE, Scrapling, REA, Taiga-S1,
 engineering-tool integrations, orchestration, release audit. Taiga-S1 is
 externally BLOCKED (repo not supplied); live tool installation is gated
 on user approval + disk + network. Operating in autonomous build mode
@@ -21,6 +20,10 @@ on user approval + disk + network. Operating in autonomous build mode
 
 ## Completed phases
 - PHASE 0 — Repository + governance (T-0001 COMPLETE, 2026-10-08)
+- PHASE 1 — PEM (T-0101..T-0107, T-0201 COMPLETE for code; live installs
+  gated)
+- PHASE 2 — Configuration + tool registry (T-0202 COMPLETE, 2026-10-08)
+- PHASE 3 — Core primitives (T-0301, T-0302 COMPLETE, 2026-10-08)
 
 ## Completed tasks (last completed task listed last)
 - T-0001 — Repository governance bootstrap (2026-10-08) — 38 tests.
@@ -32,16 +35,19 @@ on user approval + disk + network. Operating in autonomous build mode
 - T-0107 — Idempotent install logic + tests (2026-10-08) — AUDIT-0010.
 - T-0105 — Linux wrapper scripts (static-verified) (2026-10-08) — AUDIT-0011.
 - T-0106 — macOS wrapper scripts (static-verified) (2026-10-08) — AUDIT-0013.
+- T-0202 — Shared configuration module (2026-10-08) — AUDIT-0014.
+- T-0302 — Evidence/claim classification primitives (2026-10-08) — AUDIT-0015.
+- T-0301 — Project-state persistence library (2026-10-08) — AUDIT-0016.
 
 ## Last completed task
-- T-0106 — macOS wrapper scripts (2026-10-08) — 164 passed, 2 skipped;
-  `scripts/macos/{install,update,healthcheck}.sh` added; static tests
-  generalised to Linux+macOS (`tests/test_scripts_unix.py`). Phase 1
-  wrapper set complete. Not executed on this host (no POSIX shell).
+- T-0301 — project-state persistence library (2026-10-08) — 232 passed,
+  2 skipped; `src/core/state.py` parses/validates/updates roadmap,
+  next-task and project-state with byte-identical no-op round-trips.
+  Surfaced and fixed the T-0601/T-0602 table-vs-detail state mismatch.
 
 ## Current task
-- ID: T-0202
-- Title: Shared configuration module
+- ID: T-0401
+- Title: Component data model + schema + storage (CIE)
 - State: READY (defined in next-task.md; not yet started)
 - (Note: T-0601/T-0602 BLOCKED — Taiga-S1 repo not supplied. See Blockers.)
 
@@ -114,12 +120,12 @@ on user approval + disk + network. Operating in autonomous build mode
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **212 passed, 2 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **232 passed, 2 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
-  config + 29 core evidence tests. Skipped: the two per-platform `sh -n`
-  syntax checks (no POSIX shell on host).
+  config + 29 core evidence + 20 core state tests. Skipped: the two
+  per-platform `sh -n` syntax checks (no POSIX shell on host).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -131,7 +137,7 @@ on user approval + disk + network. Operating in autonomous build mode
 
 ## Validation status
 - Governance validation + live OBSERVED detector/probe/report/script/
-  install-engine runs recorded in audit.md (AUDIT-0005..0015). Windows
+  install-engine runs recorded in audit.md (AUDIT-0005..0016). Windows
   wrappers executed on host: healthcheck exit 1 (C:\ below threshold),
   install/update exit 0 plan-only, 53-file snapshot proves zero
   mutation. Install engine: live plan exit 0; `--execute` refused
@@ -140,15 +146,17 @@ on user approval + disk + network. Operating in autonomous build mode
   never executed (no POSIX shell on this host). Core config: unit-tested;
   live REPO_ROOT + manifest load verified; YAML branch executed (PyYAML
   present). Core evidence (T-0302): unit-tested; live ranking/strongest
-  observed. No engineering validation applicable yet.
+  observed. Core state (T-0301): unit-tested; live parse of the real
+  roadmap/next-task/project-state observed; byte-identical no-op
+  round-trips proven. No engineering validation applicable yet.
 
 ## Next action
-Start T-0301 (see next-task.md): project-state persistence library —
-parse/validate/update `project-state.md`, `next-task.md` and roadmap
-task states programmatically (§29, §30, §32). Then CIE (T-0401, now
-READY) per §48 order; T-0601/T-0602 remain BLOCKED pending the Taiga-S1
-repo.
+Start T-0401 (see next-task.md): CIE component data model + JSON schema +
+storage (SQLite/JSON), UNKNOWN for missing fields (§12/§13). Then CIE
+ingestion/source-conflict tasks, Scrapling and REA per §48 order;
+T-0601/T-0602 remain BLOCKED pending the Taiga-S1 repo.
 
 ## Last update
-2026-10-08 — T-0302 closed (212 passed, 2 skipped); evidence primitives
-+ ADR-0002 landed; T-0401/T-0701 unblocked. Next: T-0301.
+2026-10-08 — T-0301 closed (232 passed, 2 skipped); Phase 3 complete;
+project-state library added and the roadmap T-0601/T-0602 table-vs-detail
+mismatch reconciled. Next: T-0401 (CIE).

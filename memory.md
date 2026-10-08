@@ -85,6 +85,10 @@ actions belong in `audit.md`.
   SIMULATED > MANUFACTURER-SPECIFIED > CALCULATED > ASSUMED > INFERRED >
   UNKNOWN. Use `Claim` to attach a label/source/date to any fact; never
   label an inference as observation.
+- `src/core/state.py` (T-0301) is the programmatic interface to the
+  governance files: roadmap task states, next-task state, and
+  project-state sections. Prefer it over hand-editing state; no-op
+  updates are byte-identical, and invalid task states are rejected.
 - Environment reports (`environment.json`, `environment-report.md`) are
   produced by `src/pem/report.py` from detector outputs only; regenerate
   with `python -m src.pem.report` after environment changes.

@@ -1,8 +1,9 @@
 """core package — shared services used by all subsystems.
 
 Exposes the tool-manifest loader (T-0201), the shared configuration /
-canonical-path module (T-0202), and the evidence/claim primitives
-(T-0302). Project-state utilities arrive in T-0301.
+canonical-path module (T-0202), the evidence/claim primitives (T-0302),
+and the project-state library (T-0301). The manifest loader lives in
+``src.core.manifest``.
 """
 
 from src.core.config import (
@@ -37,6 +38,22 @@ from src.core.evidence import (
     rank,
     strongest,
 )
+from src.core.state import (
+    REQUIRED_STATE_SECTIONS,
+    TASK_STATES,
+    NextTask,
+    RoadmapTask,
+    StateSection,
+    TaskStateError,
+    normalise_state,
+    parse_next_task,
+    parse_roadmap_tasks,
+    parse_state_sections,
+    require_state_sections,
+    set_next_task_state,
+    set_roadmap_task_state,
+    set_state_section,
+)
 
 __all__ = [
     "REPO_ROOT",
@@ -67,4 +84,18 @@ __all__ = [
     "is_stronger",
     "compare",
     "strongest",
+    "TASK_STATES",
+    "REQUIRED_STATE_SECTIONS",
+    "TaskStateError",
+    "RoadmapTask",
+    "NextTask",
+    "StateSection",
+    "normalise_state",
+    "parse_roadmap_tasks",
+    "set_roadmap_task_state",
+    "parse_next_task",
+    "set_next_task_state",
+    "parse_state_sections",
+    "require_state_sections",
+    "set_state_section",
 ]

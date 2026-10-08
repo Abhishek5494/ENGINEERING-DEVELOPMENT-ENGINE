@@ -12,10 +12,10 @@ Last verified against repository: TASK-0001 bootstrap.
 |---|---|---|
 | R1.1 | Repository maintains MASTER.md, architecture.md, requirements.md, roadmap.md, project-state.md, next-task.md, memory.md, chatmem.md, audit.md, decisions/, docs/future-opportunities.md | IMPLEMENTED (TASK-0001) |
 | R1.2 | project-state.md reflects actual repository state; never fictional | IMPLEMENTED |
-| R1.3 | next-task.md defines the current execution boundary with ID/objective/deps/constraints/acceptance criteria/validation | IMPLEMENTED |
-| R1.4 | roadmap.md is a dependency-aware task graph using task states PLANNED/READY/IN_PROGRESS/BLOCKED/COMPLETE/DEFERRED/CANCELLED | IMPLEMENTED |
+| R1.3 | next-task.md defines the current execution boundary with ID/objective/deps/constraints/acceptance criteria/validation | IMPLEMENTED (T-0301: parse/validate/update programmatically via `src/core/state.py`) |
+| R1.4 | roadmap.md is a dependency-aware task graph using task states PLANNED/READY/IN_PROGRESS/BLOCKED/COMPLETE/DEFERRED/CANCELLED | IMPLEMENTED (TASK-0001; T-0301: table + detail-block states parsed/validated/updated programmatically, invalid states rejected) |
 | R1.5 | MEMORY / CHATMEM / AUDIT remain separated | IMPLEMENTED |
-| R1.6 | On startup/resume, read repository state and reconstruct real state from evidence, not conversation | SPECIFIED |
+| R1.6 | On startup/resume, read repository state and reconstruct real state from evidence, not conversation | PARTIAL (T-0301: `src/core/state.py` reads/validates project-state, next-task and roadmap; startup wiring not yet built) |
 
 ## R2 — Git governance (MASTER §40)
 

@@ -699,3 +699,68 @@ Append-only record of significant actions, findings and discrepancies
   decisions/ADR-0002-evidence-ordering.md (new), tests/test_core_evidence.py
   (new), requirements.md (R8.1–R8.3), roadmap/project-state/next-task/
   chatmem/memory.
+
+## AUDIT-0016 — T-0301 project-state persistence library (2026-10-08)
+
+- **Scope:** `src/core/state.py` (new) — read/validate/update the
+  repository's own governance state (MASTER §29, §30, §31, §32):
+  roadmap task states, the next-task execution boundary, and
+  project-state sections. Pure text transforms; filesystem I/O only via
+  explicit `read_text`/`write_text` helpers. `src/core/__init__.py`
+  re-exports. `tests/test_core_state.py` (new). Stdlib only.
+- **Implementation (OBSERVED):**
+  - `TASK_STATES` = exactly the seven §32 states.
+  - `normalise_state` — case/whitespace tolerant; rejects anything else
+    with `TaskStateError`.
+  - Roadmap: `parse_roadmap_tasks` reads each `| T-XXXX | … |` row into
+    id/title/phase/dependencies/state and raises on an invalid state;
+    `set_roadmap_task_state` updates both the table cell and the
+    `**T-XXXX — …** — \`STATE\`` detail marker, is idempotent, and
+    rejects unknown ids/invalid states.
+  - next-task: `parse_next_task` / `set_next_task_state` over the
+    `## Task T-XXXX — …` header and `- **State:** …` line.
+  - project-state: `parse_state_sections`, `require_state_sections`
+    (all fourteen §29 headings) and `set_state_section` (one body
+    replaced, every other byte preserved).
+  - Updates edit tokens in the existing text rather than re-rendering, so
+    a no-op is byte-identical (round-trip proven on the real files).
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **232 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  212 + **20 state tests**. The two skips remain the per-platform
+  `sh -n` checks.
+- **Live evidence (OBSERVED):** parsed the real `roadmap.md` → 35 tasks,
+  `T-0301` state READY; parsed the real `next-task.md` → `T-0301 READY`;
+  parsed `project-state.md` → 15 sections and `require_state_sections`
+  passed.
+- **DISCREPANCY RECORD — roadmap table vs detail-block state mismatch
+  (§47):** the T-0601/T-0602 table rows carried `BLOCKED (…)` while
+  their detail blocks still read `` `PLANNED` `` — an inconsistency
+  introduced when the blockers were recorded in AUDIT-0012 and not
+  propagated to the detail lines. The same class of drift had also left
+  T-0401's detail block at `` `PLANNED` `` while its table row was
+  already `READY` (after T-0302). The new library surfaced both
+  (idempotency/state tests failed on the stale markers). Resolution:
+  corrected the three detail blocks to match their table rows
+  (`BLOCKED`, `BLOCKED`, `READY`) and recorded here; no state was
+  changed — only made self-consistent. Lesson: update table and detail
+  state together (or use `set_roadmap_task_state`).
+- **AC (T-0301):**
+  1. Public API present — MET. 2. Seven states + rejection — MET.
+  3. Roadmap parse/update/idempotency/rejection — MET. 4. next-task
+  parse/update/idempotency — MET. 5. project-state sections +
+  require + set — MET. 6. Byte-identical round-trips on the real files —
+  MET. 7. All seven states accepted; fabricated states rejected — MET.
+  8. Re-exported from `src.core` — MET. 9. Full suite passes — MET
+  (232 + 2 skip). 10. Docs/roadmap/state/audit/memory updated — MET.
+- **Limitations:** `set_state_section` replaces the body verbatim (it
+  does not add a trailing newline, so callers control spacing); roadmap
+  editing assumes the documented `| … |` table and `**T-XXXX — …**`
+  marker formats; `write_text` uses `newline=""` (no newline
+  translation); the library is not yet wired into an automated startup
+  loop (R1.6 remains PARTIAL).
+- **Security:** no network, no elevation; pure transforms by default,
+  writes only when a caller invokes `write_text`.
+- **Files:** src/core/state.py (new), src/core/__init__.py,
+  tests/test_core_state.py (new), requirements.md (R1.3/R1.4/R1.6),
+  roadmap.md (T-0301 COMPLETE + T-0601/T-0602 detail reconciliation),
+  project-state/next-task/chatmem/memory.

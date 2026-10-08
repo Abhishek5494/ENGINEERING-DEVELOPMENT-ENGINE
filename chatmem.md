@@ -24,14 +24,17 @@ this file; on conflict, trust the repository (§43).
     report/manifest repointed at it.
 11. T-0302 evidence/claim primitives (`src/core/evidence.py`) + ADR-0002
     evidence-strength order; CIE T-0401 + REA T-0701 unblocked.
+12. T-0301 project-state persistence library (`src/core/state.py`);
+    reconciled the T-0601/T-0602 roadmap table-vs-detail state mismatch.
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
 - `c639ce8` — T-0101; `73c0005` — T-0201; `ffbdaed` — T-0102;
   `52bec6f` — T-0103; `1445c77` — T-0104; `bac844a` — T-0107;
   `a90df34` — T-0105.
-- `646f529` — T-0106 + directive audit; `0e26ce2` — T-0202.
-- (pending) — T-0302 evidence primitives.
+- `646f529` — T-0106 + directive audit; `0e26ce2` — T-0202;
+  `9257ddd` — T-0302.
+- (pending) — T-0301 project-state library.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -52,10 +55,11 @@ this file; on conflict, trust the repository (§43).
   commit, pick next READY task by §48 phase order, continue (§56).
 
 ## Next task
-- `next-task.md` → **T-0301 project-state persistence library** (Phase 3;
-  §48 phase order before CIE). Then CIE (T-0401+, now READY), Scrapling
-  (T-0501+), REA (T-0701+, now READY), engineering integrations (T-0801+).
-  Taiga (T-0601/T-0602) stays BLOCKED until the repo is supplied.
+- `next-task.md` → **T-0401 CIE component data model + schema + storage**
+  (Phase 4; earliest READY subsystem after Phases 1–3). Then CIE
+  ingestion/source tasks (T-0402/T-0403), Scrapling (T-0501+), REA
+  (T-0701+), engineering integrations (T-0801+). Taiga (T-0601/T-0602)
+  stays BLOCKED until the repo is supplied.
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never
