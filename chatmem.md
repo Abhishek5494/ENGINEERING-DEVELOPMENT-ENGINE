@@ -28,7 +28,7 @@ this file; on conflict, trust the repository (§43).
 
 ## Session end state
 - **T-0001 COMPLETE**: governance files, §28 structure, roadmap task
-  graph (34 tasks), governance test suite (38 passed), Git baseline
+  graph (35 tasks), governance test suite (38 passed), Git baseline
   committed. Details in `audit.md` (AUDIT-0001/0002/0003).
 - Current execution boundary: `next-task.md` → **T-0101 PEM
   system/hardware detection (READY)**.

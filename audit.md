@@ -22,7 +22,7 @@ Append-only record of significant actions, findings and discrepancies
 - **Steps:**
   1. `git init` + `.gitignore` (Python caches, machine-specific `environment.json`, secrets patterns, OS/editor junk).
   2. Created §28 directory skeleton with `.gitkeep` placeholders.
-  3. Wrote `MASTER.md` (verbatim), `README.md`, `architecture.md`, `requirements.md`, `roadmap.md` (task graph: 34 tasks, Phases 0–17), `project-state.md`, `next-task.md`, `memory.md`, `chatmem.md`, `audit.md` (this file), `docs/future-opportunities.md`, `decisions/ADR-0001`.
+  3. Wrote `MASTER.md` (verbatim), `README.md`, `architecture.md`, `requirements.md`, `roadmap.md` (task graph: 35 tasks, Phases 0–17), `project-state.md`, `next-task.md`, `memory.md`, `chatmem.md`, `audit.md` (this file), `docs/future-opportunities.md`, `decisions/ADR-0001`.
   4. Wrote `tests/test_repo_governance.py`.
   5. Ran `python -m pytest tests/ -v` → result recorded below.
   6. Reviewed `git status`, committed baseline.
@@ -39,7 +39,7 @@ Append-only record of significant actions, findings and discrepancies
 
 1. §27 files present and substantive — MET (verified by tests).
 2. §28 directory skeleton present — MET (verified by tests).
-3. Dependency-aware roadmap with task states — MET (34 tasks, Phases 0–17, all 7 states defined).
+3. Dependency-aware roadmap with task states — MET (35 tasks, Phases 0–17, all 7 states defined).
 4. next-task.md in §30 format — MET (now points at T-0101 after closure).
 5. `python -m pytest tests/ -v` passes — MET (38 passed).
 6. Baseline committed; `git status` clean — MET (verified before commit).
@@ -50,4 +50,10 @@ Append-only record of significant actions, findings and discrepancies
 - **Action:** marked T-0001 COMPLETE in roadmap.md; rewrote project-state.md and next-task.md; selected next READY task **T-0101 (PEM system/hardware detection)** per dependency order (T-0002 remains BLOCKED on license approval).
 - **Evidence:** test log above; Git baseline commit (see `git log`).
 - **Limitations:** roadmap details for Phases 4–17 are plans, not verified designs; they will be refined as evidence arrives (recorded in roadmap change log).
+
+## AUDIT-0004 — 2026-10-08 — discrepancy correction (§43)
+
+- **Discrepancy:** the baseline commit message and three documents claimed the roadmap contains "34 tasks"; the actual count of unique task IDs is **35** (verified with a regex count over `roadmap.md`).
+- **Resolution:** audit.md and chatmem.md corrected to 35; the commit message of `3453e15` is left unchanged because rewriting history is not authorized (§40) — this entry is the authoritative correction.
+- **Evidence:** OBSERVED (scripted count of `T-\d{4}` IDs in roadmap.md = 35).
 
