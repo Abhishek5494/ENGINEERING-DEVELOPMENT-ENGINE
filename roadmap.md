@@ -24,8 +24,8 @@ Last updated: TASK-0001 (bootstrap).
 | T-0201 | Tool manifest schema + config/tool-manifest.json + loader | 2 | T-0001 | COMPLETE |
 | T-0202 | Shared configuration module | 2 | T-0001 | COMPLETE |
 | T-0301 | Project state persistence library | 3 | T-0001, T-0202 | READY |
-| T-0302 | Evidence/claim classification primitives | 3 | T-0001, T-0202 | READY |
-| T-0401 | Component data model + schema + storage | 4 | T-0302 | PLANNED |
+| T-0302 | Evidence/claim classification primitives | 3 | T-0001, T-0202 | COMPLETE |
+| T-0401 | Component data model + schema + storage | 4 | T-0302 | READY |
 | T-0402 | CIE URL ingestion + exact-identification flow | 4 | T-0401 | PLANNED |
 | T-0403 | Provenance + source priority + conflict detection | 4 | T-0401 | PLANNED |
 | T-0404 | Authoritative source search + cross-source compare | 4 | T-0402, T-0502 | PLANNED |
@@ -33,7 +33,7 @@ Last updated: TASK-0001 (bootstrap).
 | T-0502 | Scrapling acquisition→sanitization→extraction under CIE | 5 | T-0501, T-0401 | PLANNED |
 | T-0601 | Taiga-S1 runtime selection + resource awareness | 6 | T-0103, T-0301 | BLOCKED (Taiga-S1 upstream repo not supplied) |
 | T-0602 | Taiga-S1 orchestration core (task routing) | 6 | T-0601, T-0301, T-0403 | BLOCKED (depends on T-0601) |
-| T-0701 | REA pipeline + investigation record templates | 7 | T-0302 | PLANNED |
+| T-0701 | REA pipeline + investigation record templates | 7 | T-0302 | READY |
 | T-0702 | REA tooling integration (inspect/trace) | 7 | T-0701 | PLANNED |
 | T-0801 | Python/Jupyter integration | 8 | T-0103 | PLANNED |
 | T-0901 | FreeCAD integration | 9 | T-0801 | PLANNED |
@@ -124,10 +124,10 @@ Last updated: TASK-0001 (bootstrap).
 - Dependencies: T-0001, T-0202. Acceptance criteria: read + write round-trip; rejects invalid task states.
 - Validation: pytest round-trip tests.
 
-**T-0302 — Evidence/claim classification primitives** — `PLANNED`
+**T-0302 — Evidence/claim classification primitives** — `COMPLETE`
 - Objective: `src/core/evidence.py` — evidence labels (§6), truth-hierarchy ordering (§5), claim record structure; used by CIE/REA/Taiga.
 - Dependencies: T-0001, T-0202. Acceptance criteria: enum of exactly the eight labels; ordering enforced; invalid labels rejected.
-- Validation: pytest.
+- Validation: pytest (29 new tests pass; full suite 212 passed, 2 skipped). Ordering recorded in ADR-0002.
 
 ### PHASE 4 — Component Intelligence Engine
 
@@ -193,3 +193,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: **Autonomous build directive received** (full-programme directive). Audited repository against it (AUDIT-0012). Repo genuine and clean at `a90df34`; no rewrites needed. **BLOCKERS recorded:** (1) Taiga-S1 upstream repository URL not supplied (directive placeholder) → T-0601/T-0602 BLOCKED; (2) real system-level tool installation (FreeCAD/KiCad/ngspice/Gazebo/Blender/Jupyter/Scrapling) requires a human approval gate for privileged/network installs (MASTER §7/§29) and C:\ is below the disk threshold → install tasks remain gated; integration code proceeds with tests that SKIP when a tool is absent (roadmap rule, no fake execution). Full remaining plan = phases 2–17.
 - 2026-10-08: T-0106 marked COMPLETE — `scripts/macos/{install,update,healthcheck}.sh` POSIX `sh` wrappers; static tests generalised to cover Linux + macOS (`tests/test_scripts_unix.py`, replacing the Linux-only file). Phase 1 platform wrapper set is complete (R3.7). Next task: **T-0202 (shared configuration module)**, selected over T-1601/T-0301 per §48 phase order (Phase 2 before Phase 3/16).
 - 2026-10-08: T-0202 marked COMPLETE — `src/core/config.py` single source for repo root, canonical directories and config loading (JSON always; YAML when a parser is available, honestly raising otherwise). `src/core/__init__.py` re-exports; `src/pem/report.py` and `src/core/manifest.py` repointed at `config.REPO_ROOT`/`config.MANIFEST_PATH` (duplication removed; all prior tests unchanged). 19 new tests; full suite 183 passed, 2 skipped. YAML branch executed live (PyYAML present). Next task: **T-0302 (evidence/claim classification primitives)**, selected over T-0301 because both are Phase 3 and T-0302 unblocks the critical path to CIE (T-0401) and REA (T-0701).
+- 2026-10-08: T-0302 marked COMPLETE — `src/core/evidence.py`: exactly the eight §6 labels (`EvidenceLabel`), strength ordering per ADR-0002 (MEASURED > OBSERVED > SIMULATED > MANUFACTURER-SPECIFIED > CALCULATED > ASSUMED > INFERRED > UNKNOWN), `parse_label` rejecting anything else, `rank`/`is_stronger`/`compare`/`strongest`, and a validated `Claim` record (UNKNOWN forbids a value; others require one). 29 new tests; full suite 212 passed, 2 skipped. T-0401 and T-0701 now READY. Next task: **T-0301 (project state persistence library)** — Phase 3 precedes Phase 4 in §48 order and T-0301 is READY.

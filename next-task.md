@@ -2,90 +2,95 @@
 
 Current execution boundary (MASTER §30). Work ONLY on this task.
 
-## Task T-0302 — Evidence / claim classification primitives
+## Task T-0301 — Project state persistence library
 - **State:** READY
 - **Phase:** 3 — Core primitives (project memory)
-- **Selected because:** both T-0301 and T-0302 are Phase 3 with deps met;
-  T-0302 unblocks the critical path to CIE (T-0401) and REA (T-0701).
 
 ### Objective
-Create `src/core/evidence.py`: the single, shared vocabulary for
-engineering evidence used by CIE, REA and Taiga-S1 (MASTER §5, §6).
-It must define exactly the eight §6 labels, a documented strength
-ordering consistent with the §5 truth hierarchy, helpers to compare
-labels, and a validated `Claim` record that attaches a label + source +
-retrieval date to a value. Unknown/invalid labels are rejected — never
-silently defaulted.
+Create `src/core/state.py`: a standard-library library that reads,
+validates and updates the repository's own governance state
+programmatically — the task states in `roadmap.md` (§31, §32), the
+execution boundary in `next-task.md` (§30), and the sections of
+`project-state.md` (§29). This makes state changes testable and
+consistent instead of hand-edited, and lets later orchestration read
+real state rather than trusting conversation (§42, §43).
 
 ### Dependencies
-- T-0001 (COMPLETE), T-0202 (COMPLETE — shared config/paths).
+- T-0001 (COMPLETE), T-0202 (COMPLETE — shared paths).
 
 ### Affected components
-- `src/core/evidence.py` (new)
+- `src/core/state.py` (new)
 - `src/core/__init__.py` (re-export the public names)
-- `tests/test_core_evidence.py` (new)
-- `decisions/ADR-0002-evidence-ordering.md` (new — the §6 label ordering
-  is an architectural decision because §6 lists labels but the §5
-  hierarchy does not name all eight; record the mapping/rationale)
-- `requirements.md` (new evidence requirement row), roadmap/audit/
+- `tests/test_core_state.py` (new)
+- `requirements.md` (R1.x task-state requirement status), roadmap/audit/
   project-state/next-task/chatmem closure updates
 
-### Exact §6 labels (canonical, verbatim)
-`OBSERVED`, `MEASURED`, `MANUFACTURER-SPECIFIED`, `CALCULATED`,
-`SIMULATED`, `INFERRED`, `ASSUMED`, `UNKNOWN`.
-There are exactly eight; no additions, no aliases that change meaning.
+### Data/vocabulary (exact)
+- Task states (§32), exactly seven: `PLANNED`, `READY`, `IN_PROGRESS`,
+  `BLOCKED`, `COMPLETE`, `DEFERRED`, `CANCELLED`.
+- `project-state.md` sections (§29), the fourteen required headings:
+  current phase, overall status, completed phases, current task, last
+  completed task, active subsystem, blockers, known issues, architecture
+  status, environment status, test status, validation status, next
+  action, last update.
 
 ### Constraints
-- Standard library only. Case-insensitive / underscore-vs-hyphen input
-  may be normalised on input, but stored/exposed labels are canonical.
-- The strength ordering must be documented and justified against §5.
-  Proposed (strongest → weakest), to be recorded in ADR-0002:
-  MEASURED > OBSERVED > SIMULATED > MANUFACTURER-SPECIFIED >
-  CALCULATED > ASSUMED > INFERRED > UNKNOWN.
-  (`ASSUMED` above `INFERRED` follows §5: empirical estimates precede AI
-  reasoning; OBSERVED is placed as direct first-hand evidence just below
-  measured physical data.) An invalid label is never given a rank.
-- Honesty: a claim labelled UNKNOWN carries no value claim (value must be
-  `None`); presenting an inference as observation must be impossible
-  through these primitives (the label is explicit and required).
-- No network, no file I/O, no side effects at import.
+- Standard library only (`re`, `pathlib`, `dataclasses`). No new deps.
+- **Round-trip safe:** reading a governance file and writing it back with
+  no change must produce byte-identical text. Updating a single state
+  changes only that token/cell/section; everything else is preserved
+  verbatim. Implement this by editing tokens in the existing text, not by
+  re-rendering the whole file.
+- Invalid task-state tokens are rejected with `TaskStateError` (never
+  silently coerced). `normalise_state` may accept case-insensitive input
+  but returns the canonical upper-case token.
+- Missing file, missing required section, or unknown task id ⇒ clear
+  `TaskStateError`. Never fabricate content.
+- No network, no mutation unless an explicit update function is called;
+  update functions return new text (pure), with thin helpers that write
+  to a path only when asked.
 
 ### Acceptance criteria
-1. `src/core/evidence.py` exposes `EVIDENCE_LABELS` (a length-8 tuple of
-   the canonical labels in a stable order), an `EvidenceLabel` type
-   (enum), `EvidenceError`, `parse_label`, `rank`, `is_stronger`,
-   `compare`, `strongest`, and a `Claim` record.
-2. `parse_label` accepts canonical labels (and normalised forms) and
-   rejects anything else with `EvidenceError` (test covers a fabricated
-   label such as `"INSTALLED"` and empty/`None`). Roadmap acceptance
-   criterion: enum of exactly the eight labels.
-3. `rank`/`is_stronger`/`compare` implement the ADR-0002 order with tests
-   for each adjacent pair and a documented total order. Roadmap
-   acceptance criterion: ordering enforced.
-4. `Claim` stores `field`/`value`/`label`/`source`/`retrieved_at`/
-   `note`; constructing with an invalid label raises `EvidenceError`
-   (roadmap criterion: invalid labels rejected); a non-UNKNOWN claim
-   with `value is None` raises (no fabricated data, §7); an UNKNOWN claim
-   carries no value; claims serialize to a plain dict (JSON-ready).
-5. `strongest(claims)` returns the highest-strength claim and is
-   stable/tie-broken by input order; empty input → `None`.
-6. `from src.core.evidence import ...` works; `src/core` re-exports.
-7. Full suite passes (`python -m pytest tests/ -v`).
-8. ADR-0002 + roadmap (T-0302 COMPLETE, next → T-0301 or CIE start per
-   §48 order), requirements, project-state, audit (new AUDIT entry),
-   chatmem, memory updated.
+1. `src/core/state.py` exposes `TASK_STATES`, `REQUIRED_STATE_SECTIONS`,
+   `TaskStateError`, `normalise_state`, `parse_roadmap_tasks`,
+   `set_roadmap_task_state`, `parse_next_task`, `set_next_task_state`,
+   `parse_state_sections`, `set_state_section`, `require_state_sections`.
+2. `TASK_STATES` has exactly the seven §32 states; `normalise_state`
+   accepts case/whitespace variants and rejects others.
+3. Roadmap: `parse_roadmap_tasks` returns one record per `| T-XXXX | … |`
+   row with `id`, `title`, `phase`, `dependencies`, `state`; a row with an
+   invalid state raises `TaskStateError`; `set_roadmap_task_state` updates
+   the table cell **and** the matching `**T-XXXX — …** — \`STATE\`` detail
+   marker, is idempotent (same state ⇒ byte-identical output), and raises
+   for an unknown id or invalid state.
+4. next-task: `parse_next_task` returns `id`, `title`, `state` from the
+   `## Task T-XXXX — …` + `- **State:** …` lines; `set_next_task_state`
+   replaces only the state token and is idempotent.
+5. project-state: `parse_state_sections` returns ordered `(heading, body)`
+   records; `require_state_sections` raises when any of the fourteen §29
+   headings is missing; `set_state_section` replaces one section body and
+   preserves all others byte-for-byte.
+6. Round-trip tests: for the three real repository files, parse→write with
+   no change is byte-identical; a single update changes only the intended
+   bytes (asserted by diffing lines).
+7. All seven §32 states are accepted; at least one fabricated state (e.g.
+   `DONE`) is rejected in every update function.
+8. `from src.core.state import ...` works; `src/core` re-exports.
+9. Full suite passes (`python -m pytest tests/ -v`).
+10. Roadmap (T-0301 COMPLETE; next task per §48 order — CIE T-0401 is
+    READY and is the earliest major subsystem), requirements, project-
+    state, audit (new AUDIT entry), chatmem, memory updated.
 
 ### Validation requirements
 - Run the full suite and record the real result in audit.md.
-- Live evidence: build/compare a couple of claims in a one-off command
-  and record the observed ordering (OBSERVED, not claimed).
+- Live evidence: parse the real `roadmap.md` and print the T-0302 state +
+  count of tasks; parse the real `next-task.md`; list `project-state.md`
+  section headings — all OBSERVED, not claimed.
 - Review `git status` / `git diff` before commit.
-- After completion: next READY is T-0301 (state persistence) — then CIE
-  (T-0401) which depends on T-0302. Select by §48 phase order and record
-  the reason.
+- After completion: next READY is likely CIE T-0401 (Phase 4); record the
+  §48-order reason, or T-0701 if a Phase ordering decision favours REA.
 
 ### Out of scope (do not pull in)
-- Persisting claims/evidence to disk (that is CIE/REA storage,
-  T-0401/T-0701 and REA storage tasks); source-priority ranking (§10)
-  and conflict handling (§11) are CIE tasks (T-0403); no network, no
-  scraping, no state-file parsing.
+- Auto-committing, auto-writing the files (callers decide); parsing
+  arbitrary Markdown beyond the documented patterns; CIE/REA content; any
+  change to the §32 vocabulary; orchestration logic.

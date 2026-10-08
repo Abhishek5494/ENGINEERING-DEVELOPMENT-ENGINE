@@ -82,9 +82,9 @@ Last verified against repository: TASK-0001 bootstrap.
 
 | ID | Requirement | Status |
 |---|---|---|
-| R8.1 | Truth hierarchy enforced; AI reasoning never overrides measured/validated evidence | SPECIFIED (process rule) |
-| R8.2 | Claims classified OBSERVED/MEASURED/MANUFACTURER-SPECIFIED/CALCULATED/SIMULATED/INFERRED/ASSUMED/UNKNOWN | SPECIFIED |
-| R8.3 | No fabricated engineering data; unavailable → UNKNOWN; derived → CALCULATED with method recorded | SPECIFIED |
+| R8.1 | Truth hierarchy enforced; AI reasoning never overrides measured/validated evidence | PARTIAL (T-0302: `src/core/evidence.py` encodes the §5 order and comparison helpers; not yet consumed by CIE/REA — no runtime decision path) |
+| R8.2 | Claims classified OBSERVED/MEASURED/MANUFACTURER-SPECIFIED/CALCULATED/SIMULATED/INFERRED/ASSUMED/UNKNOWN | IMPLEMENTED (T-0302: exactly the eight §6 labels; `parse_label` rejects others; ordering per ADR-0002) |
+| R8.3 | No fabricated engineering data; unavailable → UNKNOWN; derived → CALCULATED with method recorded | PARTIAL (T-0302: `Claim` forbids value on UNKNOWN and requires value otherwise; CALCULATED "method recorded" not yet enforced — arrives with CIE T-0401) |
 
 ## R9 — Tool domain authority (MASTER §3, §4, §37)
 

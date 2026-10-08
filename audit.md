@@ -640,3 +640,62 @@ Append-only record of significant actions, findings and discrepancies
   src/pem/report.py, src/core/manifest.py, tests/test_core_config.py
   (new), requirements.md (R3.8/R13.2),
   roadmap/project-state/next-task/chatmem/memory.
+
+## AUDIT-0015 — T-0302 evidence / claim primitives (2026-10-08)
+
+- **Scope:** `src/core/evidence.py` (new) — the shared evidence vocabulary
+  for CIE/REA/Taiga (MASTER §5, §6): the eight labels, a strength
+  ordering, comparison helpers, and a validated `Claim` record.
+  `src/core/__init__.py` re-exports. `decisions/ADR-0002` records the
+  ordering. `tests/test_core_evidence.py` (new). No I/O; stdlib only.
+- **Implementation (OBSERVED):**
+  - `EvidenceLabel(str, Enum)` — exactly the eight §6 labels:
+    MEASURED, OBSERVED, SIMULATED, MANUFACTURER-SPECIFIED, CALCULATED,
+    ASSUMED, INFERRED, UNKNOWN. `EVIDENCE_LABELS` is the canonical
+    strongest→weakest tuple of their string values.
+  - Ordering (ADR-0002): MEASURED(7) > OBSERVED(6) > SIMULATED(5) >
+    MANUFACTURER-SPECIFIED(4) > CALCULATED(3) > ASSUMED(2) > INFERRED(1)
+    > UNKNOWN(0). Anchored to §5; the two placements §5 does not state
+    (OBSERVED second; ASSUMED above INFERRED) are documented in ADR-0002.
+  - `parse_label` accepts the canonical value, the enum member, and
+    case/separator variants (`manufacturer_specified`, `manufacturer
+    specified`); any other input raises `EvidenceError` — including
+    `None`/non-strings.
+  - `Claim` (frozen dataclass): field/value/label/source/retrieved_at/
+    note; label normalised through `parse_label`; UNKNOWN must carry no
+    value, non-UNKNOWN must carry a value (no fabricated data §7); empty
+    field or non-string optional fields rejected; `to_dict`/`from_dict`
+    round-trip.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **212 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  183 + **29 evidence tests**. The two skips remain the per-platform
+  `sh -n` checks (no POSIX shell).
+- **Live evidence (OBSERVED):** printed `EVIDENCE_LABELS` and ranks
+  (MEASURED 7 … UNKNOWN 0); `strongest([...SIMULATED,
+  MANUFACTURER-SPECIFIED, UNKNOWN])` returned the SIMULATED claim —
+  ordering behaves as specified.
+- **AC (T-0302):**
+  1. Exactly the eight §6 labels as an enum; `EVIDENCE_LABELS` length 8 —
+     MET. 2. `parse_label` rejects invalid/non-string input — MET.
+  3. Ordering enforced (adjacent-pair tests + `compare` signs) — MET.
+  4. `Claim` validation + round-trip — MET. 5. `strongest` (ties →
+  earliest, empty → None, type-checked) — MET. 6. Re-exported from
+  `src.core` — MET. 7. Full suite passes — MET (212 + 2 skip).
+  8. ADR-0002 + roadmap/state/next-task/chatmem/memory updated — MET.
+- **DISCREPANCY / JUDGEMENT RECORD — ordering not explicit in MASTER:**
+  §6 lists the labels but defines no order; §5 defines a hierarchy by
+  source *type* that does not map one-to-one. Resolution recorded in
+  ADR-0002 rather than silently assumed: labels mapped to the nearest §5
+  tier, with OBSERVED placed second (direct first-hand evidence) and
+  ASSUMED above INFERRED (empirical estimate before AI reasoning). This
+  is an interpretation, flagged for review if MASTER is clarified.
+- **Limitations:** the module only classifies/structures claims; it does
+  not persist them (CIE/REA), does not enforce that CALCULATED records a
+  method (arrives with CIE T-0401), and is not yet consumed by any
+  runtime decision path (R8.1 remains PARTIAL).
+- **Security:** no network, no I/O, no secrets; pure in-memory
+  classification.
+- **Files:** src/core/evidence.py (new), src/core/__init__.py,
+  decisions/ADR-0002-evidence-ordering.md (new), tests/test_core_evidence.py
+  (new), requirements.md (R8.1–R8.3), roadmap/project-state/next-task/
+  chatmem/memory.

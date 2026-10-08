@@ -60,6 +60,10 @@ actions belong in `audit.md`.
 ## Architecture decisions
 
 - ADR-0001: bootstrap governance (see decisions/ADR-0001).
+- ADR-0002: evidence strength ordering (see decisions/ADR-0002) — the
+  eight §6 labels ranked per §5; OBSERVED second, ASSUMED above INFERRED.
+- Task states are exactly §32's seven (PLANNED, READY, IN_PROGRESS,
+  BLOCKED, COMPLETE, DEFERRED, CANCELLED) — no other tokens.
 - Python 3 as implementation language; pytest as test framework.
 - Manifest-driven installers (config/tool-manifest.json), shared logic in
   Python with thin per-platform shell wrappers (§23, §24).
@@ -76,6 +80,11 @@ actions belong in `audit.md`.
 - `config.load_config` supports JSON always and YAML only when PyYAML is
   importable (it is, on this host); a missing YAML parser raises a clear
   `ConfigError` rather than returning empty data.
+- `src/core/evidence.py` (T-0302) is the only evidence vocabulary: the
+  eight §6 labels and the strength order (ADR-0002) MEASURED > OBSERVED >
+  SIMULATED > MANUFACTURER-SPECIFIED > CALCULATED > ASSUMED > INFERRED >
+  UNKNOWN. Use `Claim` to attach a label/source/date to any fact; never
+  label an inference as observation.
 - Environment reports (`environment.json`, `environment-report.md`) are
   produced by `src/pem/report.py` from detector outputs only; regenerate
   with `python -m src.pem.report` after environment changes.

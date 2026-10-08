@@ -6,17 +6,17 @@ a task is completed, blocked, or state changes.
 ## Current phase
 PHASE 1 — Project Environment Manager (COMPLETE for code; installs gated).
 PHASE 2 — Configuration + tool registry (COMPLETE).
-PHASE 3 — Core primitives: state, evidence (in progress).
+PHASE 3 — Core primitives: state, evidence (evidence DONE; state next).
 
 ## Overall status
 Governance complete; Phase 1 PEM complete (detection, manifest, reports,
 shared ops, idempotent guarded installer, Windows/Linux/macOS wrappers);
-Phase 2 complete (shared `src/core/config.py` root/paths/loader; PEM
-report + manifest repointed at it). Entering Phase 3 core primitives.
-Not yet implemented: CIE, Scrapling, REA, Taiga-S1, engineering-tool
-integrations, orchestration, release audit. Taiga-S1 is externally
-BLOCKED (repo not supplied); live tool installation is gated on user
-approval + disk + network. Operating in autonomous build mode
+Phase 2 complete (shared `src/core/config.py`); Phase 3 in progress
+(evidence/claim primitives + ADR-0002 done; project-state persistence
+next). Not yet implemented: CIE, Scrapling, REA, Taiga-S1,
+engineering-tool integrations, orchestration, release audit. Taiga-S1 is
+externally BLOCKED (repo not supplied); live tool installation is gated
+on user approval + disk + network. Operating in autonomous build mode
 (checkpoint commits per task).
 
 ## Completed phases
@@ -89,7 +89,8 @@ approval + disk + network. Operating in autonomous build mode
 
 ## Architecture status
 - `architecture.md`: DRAFT consistent with implemented scope.
-- ADR-0001 recorded; no architectural change since bootstrap.
+- ADR-0001 (bootstrap governance) + ADR-0002 (evidence strength order)
+  recorded; no other architectural change since bootstrap.
 
 ## Environment status
 - System (OBSERVED via `detect_system()`, 2026-10-08):
@@ -113,12 +114,12 @@ approval + disk + network. Operating in autonomous build mode
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **183 passed, 2 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **212 passed, 2 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
-  config tests. Skipped: the two per-platform `sh -n` syntax checks (no
-  POSIX shell on host).
+  config + 29 core evidence tests. Skipped: the two per-platform `sh -n`
+  syntax checks (no POSIX shell on host).
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -130,7 +131,7 @@ approval + disk + network. Operating in autonomous build mode
 
 ## Validation status
 - Governance validation + live OBSERVED detector/probe/report/script/
-  install-engine runs recorded in audit.md (AUDIT-0005..0014). Windows
+  install-engine runs recorded in audit.md (AUDIT-0005..0015). Windows
   wrappers executed on host: healthcheck exit 1 (C:\ below threshold),
   install/update exit 0 plan-only, 53-file snapshot proves zero
   mutation. Install engine: live plan exit 0; `--execute` refused
@@ -138,14 +139,16 @@ approval + disk + network. Operating in autonomous build mode
   STATIC validation only (file/shebang/delegation/tool-id checks);
   never executed (no POSIX shell on this host). Core config: unit-tested;
   live REPO_ROOT + manifest load verified; YAML branch executed (PyYAML
-  present). No engineering validation applicable yet.
+  present). Core evidence (T-0302): unit-tested; live ranking/strongest
+  observed. No engineering validation applicable yet.
 
 ## Next action
-Start T-0302 (see next-task.md): evidence/claim classification
-primitives in `src/core/evidence.py` (the eight §33 labels, ordering,
-invalid-label rejection). Then T-0301 (state persistence), then CIE per
-§48 phase order; T-0601/T-0602 remain BLOCKED pending the Taiga-S1 repo.
+Start T-0301 (see next-task.md): project-state persistence library —
+parse/validate/update `project-state.md`, `next-task.md` and roadmap
+task states programmatically (§29, §30, §32). Then CIE (T-0401, now
+READY) per §48 order; T-0601/T-0602 remain BLOCKED pending the Taiga-S1
+repo.
 
 ## Last update
-2026-10-08 — T-0202 closed (183 passed, 2 skipped); Phase 2 complete;
-PEM report/manifest repointed at the shared config module. Next: T-0302.
+2026-10-08 — T-0302 closed (212 passed, 2 skipped); evidence primitives
++ ADR-0002 landed; T-0401/T-0701 unblocked. Next: T-0301.
