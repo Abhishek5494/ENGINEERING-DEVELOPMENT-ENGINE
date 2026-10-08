@@ -34,8 +34,8 @@ Last updated: TASK-0001 (bootstrap).
 | T-0601 | Taiga-S1 runtime selection + resource awareness | 6 | T-0103, T-0301 | BLOCKED (Taiga-S1 upstream repo not supplied) |
 | T-0602 | Taiga-S1 orchestration core (task routing) | 6 | T-0601, T-0301, T-0403 | BLOCKED (depends on T-0601) |
 | T-0701 | REA pipeline + investigation record templates | 7 | T-0302 | COMPLETE |
-| T-0702 | REA tooling integration (inspect/trace) | 7 | T-0701 | READY |
-| T-0801 | Python/Jupyter integration | 8 | T-0103 | PLANNED |
+| T-0702 | REA tooling integration (inspect/trace) | 7 | T-0701 | COMPLETE |
+| T-0801 | Python/Jupyter integration | 8 | T-0103 | READY |
 | T-0901 | FreeCAD integration | 9 | T-0801 | PLANNED |
 | T-1001 | KiCad integration | 10 | T-0801 | PLANNED |
 | T-1002 | ngspice integration | 10 | T-0801 | PLANNED |
@@ -149,7 +149,7 @@ Last updated: TASK-0001 (bootstrap).
 ### PHASE 7 — REA integration
 
 **T-0701 — REA pipeline + record templates** — `COMPLETE`: seven-file investigation structure (§21), evidence classification (§19), authorization/scope gate (§20).
-**T-0702 — REA tooling** — `READY`: authorized inspect/trace capabilities; findings documented as evidence, never as original source.
+**T-0702 — REA tooling** — `COMPLETE`: authorized inspect/trace capabilities; findings documented as evidence, never as original source.
 
 ### PHASE 8–12 — Engineering tool integrations
 
@@ -198,4 +198,5 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-0401 marked COMPLETE — CIE foundation: `src/cie/model.py` (`Component` §12 record with an explicit `UNKNOWN` sentinel, `to_dict` omitting UNKNOWN fields — no padding; `MotorSpec` §13; `DerivedValue` requiring a method + §6 label), `config/component.schema.json` (draft-07, only `id` required, `additionalProperties:false`), `src/cie/store.py` (`ComponentStore` SQLite upsert + JSON import/export). 21 new tests; full suite 253 passed, 2 skipped. T-0402/T-0403 now READY. Next task: **T-0402 (CIE URL ingestion + exact identification)** — Phase 4; it and T-0403 are both READY, T-0402 precedes T-0403 as the pipeline's entry point (§9 IDENTIFY first).
 - 2026-10-08: T-0402 marked COMPLETE — `src/cie/target.py` (URL validation) + `src/cie/identify.py` (exact-product identification from JSON-LD › OpenGraph › `<title>`/canonical; maps to `Component`; refuses generic search on an opaque page; acquisition injected so no network), `config/identification.schema.json`, `tests/test_cie_target.py` + `tests/test_cie_identify.py`. 19 new tests; full suite 272 passed, 2 skipped. Next task: **T-0403 (provenance + source priority + conflicts)** — the remaining READY task; T-0404 still needs T-0502 (Scrapling).
 - 2026-10-08: T-0403 marked COMPLETE — `src/cie/provenance.py` (the eight §10 source tiers + `Provenance`) + `src/cie/conflicts.py` (`Fact`/`FieldRecord`, `STATUS=CONFLICT`, `governing` selection without overwriting), `config/fact-record.schema.json`, `tests/test_cie_provenance.py` + `tests/test_cie_conflicts.py`. 22 new tests; full suite 294 passed, 2 skipped. **Phase 4 complete** (T-0404 deferred: needs Scrapling T-0502). Next task: **T-0501 (inspect installed Scrapling + pin)** — Phase 5 precedes Phase 7 in §48, but it requires installing Scrapling (gated by B-2 network/privilege approval + C:\ disk threshold), so it is recorded BLOCKED and the next executable READY task is **T-0701 (REA pipeline + investigation templates)**.
-- 2026-10-08: T-0701 marked COMPLETE — `src/rea/pipeline.py` (ordered §18 stages, no skipping), `src/rea/records.py` (mandatory authorization §20; structural §19 evidence rules), `src/rea/storage.py` (seven §21 templates + `write_investigation`), `docs/investigations/README.md`, and `tests/test_rea_{pipeline,records,storage}.py`. 23 new tests; full suite 317 passed, 2 skipped. Next task: **T-0702 (REA tooling integration)** — Phase 7 before Phase 8 in §48 order (T-0801 is Phase 8 and also eligible).
+- 2026-10-08: T-0701 marked COMPLETE — `src/rea/pipeline.py` (ordered §18 stages, no skipping), `src/rea/records.py` (mandatory authorization §20; structural §19 evidence rules), `src/rea/storage.py` (seven §21 templates + `write_investigation`), `docs/investigations/README.md`, full suite 317 passed, 2 skipped. Next task: **T-0702 (REA tooling integration)** — Phase 7 before Phase 8 in §48 order (T-0801 is Phase 8 and also eligible).
+- 2026-10-08: T-0702 marked COMPLETE — `src/rea/inspection.py` (magic-byte file-type detection, bounded string extraction, streaming sha256/md5 fingerprint, tool probing via `shutil.which`, `inspect_target` → labelled `EvidenceEntry`), `with_evidence` helper in `records.py`, `tests/test_rea_inspection.py`. 8 new tests; full suite 325 passed, 2 skipped. **Phase 7 complete** (REA framework + offline inspection; deeper tracing deferred). Next task: **T-0801 (Python/Jupyter integration)** — Phase 8; READY (dep T-0103) and the next phase in §48 order.

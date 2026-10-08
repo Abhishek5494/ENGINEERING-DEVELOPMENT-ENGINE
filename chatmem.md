@@ -36,6 +36,8 @@ this file; on conflict, trust the repository (§43).
 15b. T-0501 recorded BLOCKED (install gate); next executable = Phase 7.
 16. T-0701 REA framework (`src/rea/pipeline.py`, `records.py`,
     `storage.py`); Phase 7 started.
+17. T-0702 REA offline inspection (`src/rea/inspection.py` +
+    `with_evidence` in `records.py`); Phase 7 complete.
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
@@ -44,7 +46,8 @@ this file; on conflict, trust the repository (§43).
   `a90df34` — T-0105.
 - `646f529` — T-0106 + directive audit; `0e26ce2` — T-0202;
   `9257ddd` — T-0302; `fde672d` — T-0301; `a755b53` — T-0401.
-- (pending) — T-0402, T-0403, T-0701.
+- `a473222` — T-0402 + T-0403 + T-0701.
+- (pending) — T-0702.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -65,10 +68,10 @@ this file; on conflict, trust the repository (§43).
   commit, pick next READY task by §48 phase order, continue (§56).
 
 ## Next task
-- `next-task.md` → **T-0702 REA tooling integration (inspect/trace)**
-  (Phase 7; followed by T-0801 Python/Jupyter in Phase 8). Phase-5
-  Scrapling (T-0501/T-0502) and Phase-6 Taiga (T-0601/T-0602) stay BLOCKED
-  (install gate / repo not supplied); T-0404 waits on T-0502.
+- `next-task.md` → **T-0801 Python/Jupyter integration** (Phase 8; after
+  REA). Phase-5 Scrapling (T-0501/T-0502) and Phase-6 Taiga
+  (T-0601/T-0602) stay BLOCKED (install gate / repo not supplied); T-0404
+  waits on T-0502.
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never

@@ -171,6 +171,26 @@ def build_investigation(
     )
 
 
+def with_evidence(
+    investigation: Investigation,
+    entries: Iterable[EvidenceEntry] = (),
+    *,
+    unknowns: Iterable[str] = (),
+    behavior_notes: Iterable[str] = (),
+    limitations: Iterable[str] = (),
+) -> Investigation:
+    """Return a copy with appended evidence/notes (the original is unchanged)."""
+    from dataclasses import replace
+
+    return replace(
+        investigation,
+        evidence=investigation.evidence + tuple(entries),
+        unknowns=investigation.unknowns + tuple(unknowns),
+        behavior_notes=investigation.behavior_notes + tuple(behavior_notes),
+        limitations=investigation.limitations + tuple(limitations),
+    )
+
+
 __all__ = [
     "AuthorizationError",
     "EvidenceEntry",
@@ -178,4 +198,5 @@ __all__ = [
     "Finding",
     "Investigation",
     "build_investigation",
+    "with_evidence",
 ]

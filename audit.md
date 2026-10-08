@@ -998,3 +998,48 @@ Append-only record of significant actions, findings and discrepancies
   tests/test_rea_pipeline.py, tests/test_rea_records.py,
   tests/test_rea_storage.py, requirements.md (R7.x),
   roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0021 - T-0702 REA offline inspection (2026-10-08)
+
+- **Task:** T-0702 REA tooling integration (inspect/trace) — collect
+  evidence about a caller-supplied, authorized file without executing it.
+- **Deliverables:** `src/rea/inspection.py` — `detect_file_type` (magic
+  bytes: PE/ELF/Mach-O/ZIP/PDF else UNKNOWN), `extract_strings` (bounded
+  printable-ASCII runs), `FileFingerprint` (path/size/sha256/md5/type/
+  string_count/truncated), `fingerprint_file` (streams the whole file for
+  hashes; reads at most a 16 MiB prefix for type/strings; read-only),
+  `probe_tools` (resolves names via injectable `shutil.which`),
+  `inspect_target` (returns OBSERVED `EvidenceEntry` objects);
+  `with_evidence` helper added to `src/rea/records.py`; `src/rea/__init__.py`
+  re-exports; `tests/test_rea_inspection.py`.
+- **Acceptance criteria:** AC1 fingerprint content matches hashlib
+  digests — MET. AC2 file type detected from magic bytes — MET. AC3
+  strings bounded by min length and max count — MET. AC4 tool
+  availability reported honestly (None → "absent", never assumed) — MET.
+  AC5 result is labelled OBSERVED evidence and `with_evidence` preserves
+  the original record — MET. AC6 missing path / directory raise
+  `InspectionError` — MET. AC7 read-only, no network, no execution —
+  MET (only `Path.open("rb")`). AC8 full suite — MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` →
+  **325 passed, 2 skipped** (Python 3.13.5, pytest 9.1.1): previous
+  317 + **8 T-0702 tests**. The two skips remain the per-platform
+  `sh -n` checks.
+- **Live evidence (OBSERVED):** built a 283-byte `MZ` fixture in the temp
+  dir; `fingerprint_file` reported `file_type=PE`, `size=283`, and a
+  sha256 identical to `hashlib.sha256(data).hexdigest()` (verified True);
+  `probe_tools(["python","definitely-not-a-tool-xyz"])` resolved
+  `python.EXE` and returned `None` for the bogus name; `inspect_target`
+  produced 7 OBSERVED entries; `with_evidence` grew the investigation
+  from 0 to 7 evidence entries.
+- **Limitations:** no disassembly/decompilation, no tracing, no
+  network capture, no unpacking — only read-only identification. String
+  scan is limited to the first 16 MiB (flagged via `truncated`). External
+  tools are only probed for availability; none are invoked in this task.
+- **Security/ethics (§20):** operates only on a caller-supplied path,
+  reads only, executes nothing; no enforcement of authorization at this
+  layer (the `Investigation` record still requires authorized=True).
+- **Files:** src/rea/inspection.py, src/rea/records.py,
+  src/rea/__init__.py, tests/test_rea_inspection.py, requirements.md
+  (R7.6), roadmap/project-state/next-task/chatmem/memory.

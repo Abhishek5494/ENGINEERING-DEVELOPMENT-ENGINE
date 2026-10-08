@@ -9,16 +9,17 @@ PHASE 2 — Configuration + tool registry (COMPLETE).
 PHASE 3 — Core primitives: config, state, evidence (COMPLETE).
 PHASE 4 — Component Intelligence Engine (COMPLETE for offline scope:
 T-0401/T-0402/T-0403; T-0404 awaits Scrapling T-0502).
-PHASE 7 — REA (next executable: T-0701; Phase 5 T-0501 is BLOCKED on the
-install gate).
+PHASE 7 — REA (COMPLETE for framework + offline inspection:
+T-0701/T-0702; Phase 5 T-0501 is BLOCKED on the install gate).
 
 ## Overall status
 Governance complete; Phases 1–3 complete (PEM; `src/core/config.py`,
 `state.py`, `evidence.py`). Phase 4 CIE offline scope complete: data model
 + schema + SQLite/JSON store (T-0401), URL ingestion + exact
 identification (T-0402), provenance + source priority + conflicts
-(T-0403). Not yet implemented: CIE cross-source search (T-0404, needs
-Scrapling), Scrapling, REA, Taiga-S1, engineering-tool integrations,
+(T-0403). REA framework + offline inspection complete (T-0701/T-0702).
+Not yet implemented: CIE cross-source search (T-0404, needs
+Scrapling), Scrapling, Taiga-S1, engineering-tool integrations,
 orchestration, release audit. Taiga-S1 is externally BLOCKED (repo not
 supplied) and T-0501 is BLOCKED on the install gate; live tool
 installation is gated on user approval + disk + network. Operating in
@@ -32,7 +33,7 @@ autonomous build mode (checkpoint commits per task).
 - PHASE 3 — Core primitives (T-0301, T-0302 COMPLETE, 2026-10-08)
 - PHASE 4 — CIE offline scope (T-0401..T-0403 COMPLETE; T-0404 gated on
   T-0502)
-- PHASE 7 — REA framework (T-0701 COMPLETE; T-0702 READY)
+- PHASE 7 — REA (T-0701/T-0702 COMPLETE; framework + offline inspection)
 
 ## Completed tasks (last completed task listed last)
 - T-0001 — Repository governance bootstrap (2026-10-08) — 38 tests.
@@ -55,16 +56,19 @@ autonomous build mode (checkpoint commits per task).
   AUDIT-0019.
 - T-0701 — REA pipeline + investigation templates (2026-10-08) —
   AUDIT-0020.
+- T-0702 — REA offline inspection + evidence collection (2026-10-08) —
+  AUDIT-0021.
 
 ## Last completed task
-- T-0701 — REA pipeline + investigation templates (2026-10-08) —
-  315 passed, 2 skipped; `src/rea/` (ordered §18 pipeline, authorized
-  §19/§20 records, seven §21 storage templates). REA framework in place.
+- T-0702 — REA offline inspection (2026-10-08) — 325 passed, 2 skipped;
+  `src/rea/inspection.py` (read-only fingerprinting + tool probing →
+  OBSERVED evidence) + `with_evidence`. REA scope for the roadmap is in
+  place.
 
 ## Current task
-- ID: T-0702
-- Title: REA tooling integration (inspect/trace)
-- State: READY (defined in next-task.md; not yet started)
+- ID: T-0801
+- Title: Python/Jupyter integration
+- State: READY (defined in roadmap; next-task.md to be set)
 - (Note: Phase-5 T-0501 is BLOCKED on the install gate; T-0601/T-0602
   BLOCKED — Taiga-S1 repo not supplied. See Blockers.)
 
@@ -90,6 +94,11 @@ autonomous build mode (checkpoint commits per task).
   `src/cie/conflicts.py` (`Fact`/`FieldRecord`, `CONFLICT`, governing
   selection), `config/fact-record.schema.json`;
   `src/cie/__init__.py` re-exports.
+- REA: `src/rea/pipeline.py` (ordered §18 stages), `src/rea/records.py`
+  (authorized §19/§20 records + `with_evidence`), `src/rea/storage.py`
+  (seven §21 templates), `src/rea/inspection.py` (read-only file
+  fingerprinting: magic-byte type, sha256/md5, bounded strings, tool
+  probing), `src/rea/__init__.py` re-exports.
 
 ## Blockers
 - T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
@@ -149,13 +158,14 @@ autonomous build mode (checkpoint commits per task).
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **317 passed, 2 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **325 passed, 2 skipped** (2026-10-08,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
   config + 29 core evidence + 20 core state + 14 CIE model/schema +
   7 CIE store + 5 CIE target + 14 CIE identify + 9 CIE provenance +
-  13 CIE conflict + 8 REA pipeline + 8 REA records + 7 REA storage tests.
+  13 CIE conflict + 8 REA pipeline + 8 REA records + 7 REA storage +
+  8 REA inspection tests.
   Skipped: the two per-platform `sh -n` syntax checks (no POSIX shell on
   host).
 - Bugs caught by tests so far and fixed before completion: empty-list
@@ -189,18 +199,20 @@ autonomous build mode (checkpoint commits per task).
   observed — marketplace 10,000 vs datasheet 8,500 → `CONFLICT`, both
   retained, governing = datasheet. REA (T-0701): unit-tested; live
   authorized-investigation build + pipeline advance + seven-file write
-  observed, with unauthorized and recovered-source cases refused. No
+  observed, with unauthorized and recovered-source cases refused. REA
+  (T-0702): unit-tested; live fingerprint of a PE fixture matched an
+  independent `hashlib.sha256`, tool probing reported present/absent, and
+  `inspect_target` produced OBSERVED evidence (0→7 entries). No
   engineering validation applicable yet.
 
 ## Next action
-Start T-0702 (see next-task.md): REA offline inspection — file
-fingerprinting (size/hashes/type/strings) + external-tool probing recorded
-as labelled evidence (Phase 7; precedes Phase 8 T-0801 in §48 order).
-Then T-0801 (Python/Jupyter), further integrations, and T-0502/T-0404
+Start T-0801 (Python/Jupyter integration; Phase 8, READY via T-0103):
+notebook-based analysis under `simulations/`/`projects/`, recorded as
+labelled evidence. Then further integrations (T-0901+), and T-0502/T-0404
 once Scrapling is installable; T-0601/T-0602 remain BLOCKED.
 
 ## Last update
-2026-10-08 — T-0701 closed (315 passed, 2 skipped); the REA framework
-(ordered pipeline, authorized records, §21 storage templates) is in
-place. T-0501 remains BLOCKED under the install gate. Next: T-0702
-(REA tooling integration).
+2026-10-08 — T-0702 closed (325 passed, 2 skipped); REA offline
+inspection (file fingerprinting + tool probing → OBSERVED evidence) is in
+place. T-0501 remains BLOCKED under the install gate. Next: T-0801
+(Python/Jupyter integration).

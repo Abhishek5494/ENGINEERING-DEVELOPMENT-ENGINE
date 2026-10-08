@@ -78,6 +78,7 @@ Last verified against repository: TASK-0001 bootstrap.
 | R7.3 | Evidence classified; recovered pseudocode ≠ original source | IMPLEMENTED (T-0701: `Finding`/`EvidenceEntry` carry §6 labels; `source_recovered=True` and OBSERVED-reconstruction raise `EvidenceRuleError`) |
 | R7.4 | Investigation records under docs/investigations/<name>/ with scope, evidence, findings, behavior, unknowns, limitations, implementation-notes | IMPLEMENTED (T-0701: `src/rea/storage.py` writes exactly the seven §21 files) |
 | R7.5 | Strict separation from CIE | IMPLEMENTED (T-0701: `src/rea/` imports only `src/core`; investigations stored under `docs/investigations/`, not with CIE data) |
+| R7.6 | Offline inspection records labelled evidence; format/tool availability never assumed | IMPLEMENTED (T-0702: `src/rea/inspection.py` fingerprints files (size/sha256/md5/type/strings) and probes tools via `shutil.which`; results are `OBSERVED` evidence; the target is read, never executed) |
 
 ## R8 — Engineering truth and evidence (MASTER §5–§7)
 
