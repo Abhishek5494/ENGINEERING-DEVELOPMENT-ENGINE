@@ -92,6 +92,8 @@ this file; on conflict, trust the repository (§43).
   `ef9e727` — T-0801.
 - `030e191` — T-0901 + T-1001 + T-1002.
 - `4444c01` — T-1101 + T-1201 + T-1502 + T-1601.
+- `b56cd45` — T-1301 preparatory branch (partial unified workflow,
+  AUDIT-0030); T-1301 remains BLOCKED.
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
