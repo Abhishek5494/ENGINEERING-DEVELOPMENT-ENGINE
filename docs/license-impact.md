@@ -114,3 +114,9 @@ choice would impose on this project's own distribution:
   fetched/verified in this session; treat as UNVERIFIED.
 - This report is not legal advice. A human owner must make and record the
   decision through governance (T-0002 stays BLOCKED until then).
+
+## 9. Decision B — MIT license applied (2026-10-09)
+- LICENSE file added with standard MIT text (Copyright (c) 2026 Shiv Shanmugam).
+- Third-party assets (model weights, datasets, external tools) are NOT covered by this project's MIT license; their own licenses remain in force.
+- The upstream biome-s1/taiga-s1 is MIT-licensed (source code) per the upstream repo; model weights may have separate terms — documented separately if needed.
+- T-0002: project license decision is now resolved (MIT). Remaining third-party license verification tracked separately.

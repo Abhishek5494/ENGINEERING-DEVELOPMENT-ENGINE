@@ -16,7 +16,7 @@ Last verified against repository: TASK-0001 bootstrap.
 | R1.4 | roadmap.md is a dependency-aware task graph using task states PLANNED/READY/IN_PROGRESS/BLOCKED/COMPLETE/DEFERRED/CANCELLED | IMPLEMENTED (TASK-0001; T-0301: table + detail-block states parsed/validated/updated programmatically, invalid states rejected) |
 | R1.5 | MEMORY / CHATMEM / AUDIT remain separated | IMPLEMENTED |
 | R1.6 | On startup/resume, read repository state and reconstruct real state from evidence, not conversation | IMPLEMENTED (T-0301: `src/core/state.py` reads/validates project-state, next-task and roadmap; T-1502: `src/core/recovery.py` reconstructs state from governance files only, rejecting contradictions — MASTER §42/§43) |
-| R1.7 | License impact is assessed and the project license decision is a tracked human gate | PARTIAL (T-0002 stays BLOCKED; preparatory `docs/license-impact.md` inventories the absent project license, actual dependencies (stdlib + optional PyYAML/MIT), invoked-but-not-bundled tools, per-candidate obligations and open owner questions) |
+| R1.7 | License impact is assessed and the project license decision is recorded | IMPLEMENTED (T-0002 COMPLETE: MIT applied, LICENSE present, `docs/license-impact.md` updated; third-party assets distinguished) |
 
 ## R2 — Git governance (MASTER §40)
 

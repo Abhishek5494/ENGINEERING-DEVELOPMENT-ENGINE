@@ -13,7 +13,7 @@ Last updated: TASK-0001 (bootstrap).
 | ID | Title | Phase | Deps | State |
 |---|---|---|---|---|
 | T-0001 | Repository governance bootstrap | 0 | — | COMPLETE |
-| T-0002 | License decision | 0 | T-0001 | BLOCKED (needs human approval, MASTER §35; preparatory `docs/license-impact.md` produced 2026-10-09) |
+| T-0002 | License decision | 0 | T-0001 | COMPLETE (MIT selected; LICENSE added 2026-10-09; `docs/license-impact.md` updated) |
 | T-0101 | PEM system/hardware detection | 1 | T-0001 | COMPLETE |
 | T-0102 | PEM tool detection + capability states | 1 | T-0101, T-0201 | COMPLETE |
 | T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | COMPLETE |
@@ -62,14 +62,10 @@ Last updated: TASK-0001 (bootstrap).
 - Acceptance criteria: all §27 files exist with substantive content; §28 directory skeleton present; `roadmap.md` contains dependency-aware task graph; `next-task.md` populated with first unblocked task; governance test passes; baseline committed; `project-state.md` truthful.
 - Validation: `python -m pytest tests/ -v` green; `git status` clean after commit; `git log` shows baseline.
 
-**T-0002 — License decision** — `BLOCKED`
-- Objective: choose and record an open-source license.
-- Dependencies: T-0001. Blocker: requires human approval (MASTER §35, major licensing decision).
-- Affected components: LICENSE, README, a new ADR; `docs/license-impact.md`.
-- Constraints: do not assume a license without an ADR.
-- Acceptance criteria: a new ADR (ADR-0003 or later) records the decision; LICENSE file present if approved.
-- Validation: governance test updated to require LICENSE once decision made.
-- Preparatory analysis (2026-10-09, does not unblock): `docs/license-impact.md` inventories the (absent) project license, the actual runtime/test dependencies (stdlib + optional PyYAML MIT), the invoked-but-not-bundled external tools, per-candidate obligations and open owner questions. T-0002 stays BLOCKED pending the owner's decision.
+**T-0002 — License decision** — `COMPLETE`
+- Decision: MIT (applied 2026-10-09). `LICENSE` created with standard MIT text.
+- Copyright: (c) 2026 Shiv Shanmugam. No assumption made about other owners.
+- Third-party: model weights, datasets, external tools not covered; upstream biome-s1 is MIT; weights terms may differ.
 
 ### PHASE 1 — Project Environment Manager
 
