@@ -31,8 +31,8 @@ Last updated: TASK-0001 (bootstrap).
 | T-0404 | Authoritative source search + cross-source compare | 4 | T-0402, T-0502 | PLANNED |
 | T-0501 | Inspect installed Scrapling + pin dependency | 5 | T-0001 | BLOCKED (needs Scrapling installed; B-2 install gate) |
 | T-0502 | Scrapling acquisition→sanitization→extraction under CIE | 5 | T-0501, T-0401 | PLANNED |
-| T-0601 | Taiga-S1 runtime selection + resource awareness | 6 | T-0103, T-0301 | BLOCKED (Taiga-S1 upstream repo not supplied) |
-| T-0602 | Taiga-S1 orchestration core (task routing) | 6 | T-0601, T-0301, T-0403 | BLOCKED (depends on T-0601) |
+| T-0601 | Taiga-S1 runtime selection + resource awareness | 6 | T-0103, T-0301 |    COMPLETE    |
+| T-0602 | Taiga-S1 orchestration core (task routing) | 6 | T-0601, T-0301, T-0403 |   COMPLETE   |
 | T-0701 | REA pipeline + investigation record templates | 7 | T-0302 | COMPLETE |
 | T-0702 | REA tooling integration (inspect/trace) | 7 | T-0701 | COMPLETE |
 | T-0801 | Python/Jupyter integration | 8 | T-0103 | COMPLETE |
@@ -140,8 +140,8 @@ Last updated: TASK-0001 (bootstrap).
 
 ### PHASE 6 — Taiga-S1 orchestration
 
-**T-0601 — Runtime selection + resource awareness** — `BLOCKED`: detect local inference capability (§38), select model size by RAM/VRAM, graceful degradation.
-**T-0602 — Orchestration core** — `BLOCKED`: routes tasks to CIE/REA/PEM/tools per §2/§4; produces engineering documentation; never pretends to be a specialist tool.
+**T-0601 — Runtime selection + resource awareness** — `COMPLETE`: detect local inference capability (§38), select model size by RAM/VRAM, graceful degradation.
+**T-0602 — Orchestration core** — `COMPLETE`: routes tasks to CIE/REA/PEM/tools per §2/§4; produces engineering documentation; never pretends to be a specialist tool.
 
 ### PHASE 7 — REA integration
 

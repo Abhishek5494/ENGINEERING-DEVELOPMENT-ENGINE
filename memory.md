@@ -170,3 +170,7 @@ actions belong in `audit.md`.
   is confined to `projects/` and refuses to overwrite. ACQUIRE is BLOCKED on
   Scrapling (T-0404/T-0502) and ANALYZE on Taiga-S1 (T-0602) — do not
   substitute guesses for either.
+
+- Taiga-S1 upstream verified (2026-10-09): repo https://github.com/shhivv/biome-s1 (biome-s1 family includes Taiga-S1/Mesa-S1; Taiga-S1 operates FreeCAD commands, MIT-licensed source). HF https://huggingface.co/shhivv/taiga-s1. B-1 resolved; T-0601/T-0602 unblocked.
+
+- Taiga-S1 provider-neutral contracts added (T-0602): src/taiga/contracts.py (Action, Evidence, Result, Route, Score, Provider/Policy/Capability protocols, ProviderError/ProviderUnavailable) and src/taiga/registry.py + __init__.py. No third-party API wrapped; upstream biome-s1/taiga-s1 verified.

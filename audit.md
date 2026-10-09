@@ -1464,3 +1464,9 @@ Append-only record of significant actions, findings and discrepancies
 - B-1: upstream biome-s1 (Taiga-S1/Mesa-S1) verified; MIT source; HF taiga-s1 available.
 - T-0002: MIT license applied (LICENSE).
 - T-0601 marked COMPLETE; T-0602 READY then IN_PROGRESS. next-task updated. Tests 397 passed, 8 skipped.
+
+## AUDIT-0033 - T-0602 complete: provider-neutral Taiga contracts (2026-10-09)
+- Created src/taiga/contracts.py, src/taiga/registry.py, src/taiga/__init__.py with provider-neutral interfaces; no API invention.
+- Upstream biome-s1/taiga-s1 verified (MIT source; HF model).
+- Tests: 397 passed, 8 skipped.
+

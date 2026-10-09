@@ -139,3 +139,5 @@ this file; on conflict, trust the repository (§43).
 - B-1 resolved (biome-s1 upstream + HF taiga-s1 verified); T-0601/T-0602 unblocked; MIT license applied (LICENSE). C:\ 4.323GB.
 
 - AUDIT-0032: B-1 resolved, T-0002 done; T-0602 IN_PROGRESS.
+
+- T-0602 COMPLETE: taiga contracts + registry created; upstream verified.
