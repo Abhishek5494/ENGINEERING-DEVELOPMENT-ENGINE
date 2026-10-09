@@ -22,7 +22,10 @@ live robotics simulation UNAVAILABLE — Gazebo not installed).
 PHASE 12 — Blender integration (COMPLETE for script write/headless render
 logic; live rendering UNAVAILABLE — Blender not installed).
 PHASE 13/14 — Unified workflow (T-1301) and validation/BOM pipeline
-(T-1401) — BLOCKED (depend on BLOCKED T-0602/T-0404).
+(T-1401) — BLOCKED (depend on BLOCKED T-0602/T-0404). A PARTIAL
+preparatory `src/orchestration/` stage machine exists (AUDIT-0030); it
+runs the unblocked stages and reports ACQUIRE/ANALYZE BLOCKED — T-1301
+itself is NOT complete.
 PHASE 15 — Security review T-1501 BLOCKED (dep T-0502); recovery test
 T-1502 COMPLETE (state reconstructed from repository evidence only).
 PHASE 16 — Cross-platform hardening T-1601 COMPLETE (LF/UTF-8 text + path
@@ -46,7 +49,9 @@ Scrapling, Taiga-S1, end-to-end orchestration (T-1301), validation/BOM
 pipeline (T-1401), security review (T-1501), release audit (T-1701).
 Taiga-S1 is externally BLOCKED (repo not supplied) and Scrapling is
 BLOCKED on the install gate; live tool installation is gated on user
-approval + disk + network. Autonomous build stopped at the blocked
+approval + disk + network. A PARTIAL T-1301 preparatory branch exists
+(`src/orchestration/`, AUDIT-0030) but the workflow cannot complete while
+ACQUIRE/ANALYZE are BLOCKED. Autonomous build stopped at the blocked
 boundary (no fake completion).
 
 ## Completed phases
@@ -68,7 +73,9 @@ boundary (no fake completion).
   Gazebo presence)
 - PHASE 12 — Blender integration (T-1201 COMPLETE; execution gated on
   Blender presence)
-- PHASE 13/14 — BLOCKED (T-1301/T-1401; deps T-0602/T-0404 BLOCKED)
+- PHASE 13/14 — BLOCKED (T-1301/T-1401; deps T-0602/T-0404 BLOCKED).
+  PARTIAL preparatory `src/orchestration/` delivered (AUDIT-0030), not a
+  task completion.
 - PHASE 15 — T-1501 BLOCKED (dep T-0502), T-1502 COMPLETE
 - PHASE 16 — T-1601 COMPLETE (deps T-0104/T-0105/T-0106)
 - PHASE 17 — T-1701 BLOCKED (deps T-1401/T-1501 BLOCKED)
@@ -119,7 +126,10 @@ boundary (no fake completion).
   remains. Remaining blockers: B-1 Taiga-S1 repo not supplied
   (T-0601/T-0602/T-1301/T-1401); B-2 install approval + C:\ below
   threshold (T-0501/T-0502/T-0404/T-1501); T-0002 license awaiting human
-  approval. The release audit cannot proceed until these are resolved.)
+  approval. The release audit cannot proceed until these are resolved.
+  Out-of-boundary preparatory work on T-1301's unblocked stages was
+  delivered as `src/orchestration/` (AUDIT-0030); T-1301 remains BLOCKED
+  and the execution boundary is unchanged.)
 
 ## Active subsystem
 - PEM: `src/pem/detect.py` (system), `src/pem/tools.py` (tool probes,
@@ -174,6 +184,11 @@ boundary (no fake completion).
 - Integrations (visualization): `src/integrations/blender.py` (Blender
   visualization authority: headless `blender --background --python` gated
   on `blender_cli`, `write_script` under `models/`, `verify_outputs`).
+- Orchestration (PARTIAL T-1301, AUDIT-0030): `src/orchestration/workflow.py`
+  (`WorkflowStage`/`WORKFLOW_STAGES`, `StageStatus`, `StageResult`,
+  `WorkflowReport`, `run_workflow`, `write_project` confined to
+  `projects/`); coordinates the §50 stages over the real subsystems,
+  reporting ACQUIRE/ANALYZE `BLOCKED` and tool stages via PEM probes.
 
 ## Blockers
 - T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
@@ -233,7 +248,7 @@ boundary (no fake completion).
   regenerate with `python -m src.pem.report`.
 
 ## Test status
-- `python -m pytest tests/ -v` → **380 passed, 8 skipped** (2026-10-08,
+- `python -m pytest tests/ -v` → **397 passed, 8 skipped** (2026-10-09,
   Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
   21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
   + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
@@ -241,7 +256,8 @@ boundary (no fake completion).
   7 CIE store + 5 CIE target + 14 CIE identify + 9 CIE provenance +
   13 CIE conflict + 8 REA pipeline + 8 REA records + 7 REA storage +
   8 REA inspection + 8 Jupyter + 7 FreeCAD + 7 KiCad + 7 ngspice +
-  6 Gazebo + 6 Blender + 7 recovery + 7 cross-platform tests.
+  6 Gazebo + 6 Blender + 7 recovery + 7 cross-platform + 17 orchestration
+  tests.
   Skipped (8): the two per-platform `sh -n` syntax checks (no POSIX
   shell on host), and the live-Jupyter, live-FreeCAD, live-KiCad,
   live-ngspice, live-Gazebo and live-Blender tests (those tools are not
@@ -310,7 +326,12 @@ boundary (no fake completion).
   T-0602, T-1301, T-1401, T-1501} from repository evidence alone. Cross-platform (T-1601): unit-tested;
   live `line_ending_report` over `scripts/**/*.sh` reported LF-only; the
   POSIX wrappers remain STATIC-validated only (no POSIX shell to execute
-  them). No engineering validation applicable yet.
+  them). Orchestration (PARTIAL T-1301, AUDIT-0030): unit-tested; live
+  `run_workflow` for `demo-motor` completed IDEA/IDENTIFY/MODEL/PYTHON/
+  VALIDATE, reported ACQUIRE/ANALYZE `BLOCKED`, tool stages `UNAVAILABLE`,
+  overall `PARTIALLY-VALIDATED`, and `write_project` wrote
+  `projects/demo-motor/` — NOT a complete end-to-end run (Taiga-S1/
+  Scrapling BLOCKED). No engineering validation applicable yet.
 
 ## Next action
 No further executable task remains. All non-blocked phases are complete
@@ -326,8 +347,8 @@ When those are resolved, resume with the next executable task in §48
 order; eventually T-1701 (release audit) walks the §54 checklist.
 
 ## Last update
-2026-10-08 — T-1601 closed (380 passed, 8 skipped); cross-platform
-  text/path hardening (`src/core/xplat.py`) is in place and the POSIX
-  scripts are proven LF-only live. Phase 16 complete. Remaining tasks
-  (T-1301/T-1401/T-1501/T-1701) are all BLOCKED on B-1/B-2, so the
-  autonomous build stops and surfaces the blockers (no fake completion).
+2026-10-09 — T-1301 preparatory branch delivered (PARTIAL, AUDIT-0030):
+  `src/orchestration/` stage machine + `projects/demo-motor/` demo; 17 new
+  tests, suite 397 passed, 8 skipped. T-1301 itself stays BLOCKED (Taiga-S1
+  T-0602 / Scrapling T-0404/T-0502); the execution boundary remains T-1701
+  BLOCKED. Autonomous build stops at the blockers (no fake completion).

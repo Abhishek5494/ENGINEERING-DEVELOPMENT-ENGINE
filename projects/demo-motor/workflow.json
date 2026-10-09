@@ -1,0 +1,147 @@
+{
+  "name": "demo-motor",
+  "validation_level": "PARTIALLY-VALIDATED",
+  "completed": [
+    "IDEA",
+    "IDENTIFY",
+    "MODEL",
+    "PYTHON",
+    "VALIDATE"
+  ],
+  "ready": [],
+  "blocked": [
+    "ACQUIRE",
+    "ANALYZE"
+  ],
+  "unavailable": [
+    "CAD",
+    "ELECTRONICS",
+    "CIRCUIT",
+    "ROBOTICS",
+    "VISUALISE"
+  ],
+  "stages": [
+    {
+      "stage": "IDEA",
+      "status": "COMPLETE",
+      "detail": "engineering intent received"
+    },
+    {
+      "stage": "ACQUIRE",
+      "status": "BLOCKED",
+      "detail": "Scrapling acquisition unavailable (T-0404/T-0502 blocked, B-2)",
+      "evidence": [
+        {
+          "statement": "network acquisition not attempted (B-2)",
+          "label": "UNKNOWN"
+        }
+      ],
+      "blocker": "T-0404/T-0502: install gated (B-2)"
+    },
+    {
+      "stage": "IDENTIFY",
+      "status": "COMPLETE",
+      "detail": "component supplied directly (acquisition bypassed)",
+      "evidence": [
+        {
+          "statement": "component provided without live acquisition",
+          "label": "ASSUMED"
+        }
+      ]
+    },
+    {
+      "stage": "MODEL",
+      "status": "COMPLETE",
+      "detail": "component 'acme-m775' modelled (8 field(s))",
+      "evidence": [
+        {
+          "statement": "component model created: 'acme-m775'",
+          "label": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "stage": "ANALYZE",
+      "status": "BLOCKED",
+      "detail": "Taiga-S1 engineering analysis unavailable (T-0602 blocked, B-1)",
+      "blocker": "T-0602: upstream Taiga-S1 repository not supplied (B-1)"
+    },
+    {
+      "stage": "PYTHON",
+      "status": "COMPLETE",
+      "detail": "notebook built/validated (4 code cell(s))",
+      "evidence": [
+        {
+          "statement": "notebook structure valid: 4 code cell(s), nbformat 4.5",
+          "label": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "stage": "CAD",
+      "status": "UNAVAILABLE",
+      "detail": "FreeCAD not installed (CAD UNAVAILABLE)",
+      "evidence": [
+        {
+          "statement": "FreeCAD unavailable on this host",
+          "label": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "stage": "ELECTRONICS",
+      "status": "UNAVAILABLE",
+      "detail": "KiCad not installed (ELECTRONICS UNAVAILABLE)",
+      "evidence": [
+        {
+          "statement": "KiCad unavailable on this host",
+          "label": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "stage": "CIRCUIT",
+      "status": "UNAVAILABLE",
+      "detail": "ngspice not installed (CIRCUIT UNAVAILABLE)",
+      "evidence": [
+        {
+          "statement": "ngspice unavailable on this host",
+          "label": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "stage": "ROBOTICS",
+      "status": "UNAVAILABLE",
+      "detail": "Gazebo not installed (ROBOTICS UNAVAILABLE)",
+      "evidence": [
+        {
+          "statement": "Gazebo unavailable on this host",
+          "label": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "stage": "VISUALISE",
+      "status": "UNAVAILABLE",
+      "detail": "Blender not installed (VISUALISE UNAVAILABLE)",
+      "evidence": [
+        {
+          "statement": "Blender unavailable on this host",
+          "label": "OBSERVED"
+        }
+      ]
+    },
+    {
+      "stage": "VALIDATE",
+      "status": "COMPLETE",
+      "detail": "4 complete, 2 blocked, 5 unavailable",
+      "evidence": [
+        {
+          "statement": "workflow self-validation: 4 complete, 2 blocked, 5 unavailable",
+          "label": "OBSERVED"
+        }
+      ]
+    }
+  ]
+}

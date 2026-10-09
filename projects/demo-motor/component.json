@@ -1,0 +1,12 @@
+{
+  "id": "acme-m775",
+  "category": "motor",
+  "name": "Acme 775 Brushed DC Motor",
+  "manufacturer": "Acme",
+  "model": "M775",
+  "part_number": "MPN-775",
+  "sku": "SKU-775",
+  "source_urls": [
+    "https://shop.example.invalid/p/123"
+  ]
+}

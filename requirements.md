@@ -137,3 +137,11 @@ Last verified against repository: TASK-0001 bootstrap.
 |---|---|---|
 | R13.1 | Standard formats: JSON/YAML/CSV/SQLite/Markdown/STEP/STL/OBJ/SVG/Gerber/SPICE/Python API/CLI | SPECIFIED |
 | R13.2 | Subsystems replaceable without rewriting the platform | PARTIAL (T-0202: shared config/canonical-path layer established; no subsystem adapter rewrites yet) |
+
+## R14 - Unified engineering workflow (MASTER 50) (PARTIAL - T-1301)
+
+| ID | Requirement | Status |
+|---|---|---|
+| R14.1 | End-to-end pipeline IDEA -> ACQUIRE -> IDENTIFY -> MODEL -> ANALYZE -> Python/Jupyter -> CAD -> Electronics -> Circuit -> Robotics -> Visualise -> Validate over real subsystems | PARTIAL (T-1301 preparatory branch: `src/orchestration/workflow.py` coordinates the existing subsystems; ACQUIRE + ANALYZE are BLOCKED on T-0404/T-0502 and T-0602/Tiaga-S1, tool stages honest UNAVAILABLE/READY via probes; validation PARTIALLY-VALIDATED) |
+| R14.2 | Every stage outcome carries a 6 evidence label; blocked/unavailable stages are never reported as complete | IMPLEMENTED (T-1301: `WorkflowReport.strongest_label`/`validation_level`; blocked stages recorded BLOCKED, not COMPLETE) |
+| R14.3 | A run writes a resumable project record (workflow/component/notebook/README) under `projects/<name>/` with repo-confined, no-overwrite writes | IMPLEMENTED (T-1301: `write_project` defaults to PROJECTS_DIR, rejects escape/overwrite; `projects/demo-motor/` generated) |

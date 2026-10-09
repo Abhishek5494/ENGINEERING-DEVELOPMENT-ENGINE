@@ -1359,3 +1359,51 @@ Append-only record of significant actions, findings and discrepancies
   faking completion.
 - **Files:** src/core/xplat.py, tests/test_xplat.py, requirements.md
   (R3.9), roadmap/project-state/next-task/chatmem/memory.
+
+---
+
+## AUDIT-0030 - T-1301 preparatory branch: partial unified workflow (2026-10-09)
+
+- **Task:** T-1301 unified engineering workflow (MASTER 50). **Out-of-boundary
+  preparatory work**, explicitly requested by the user, because the task's
+  in-boundary dependencies (Taiga-S1 T-0602; Scrapling T-0404/T-0502) are
+  BLOCKED. **T-1301 remains `BLOCKED` in the roadmap** - this does not
+  discharge it.
+- **Deviation (48):** the 48 execution boundary is still `next-task.md` ->
+  T-1701 (BLOCKED). Working ahead on T-1301's unblocked portions is recorded
+  here rather than by moving the boundary, so the boundary stays honest.
+- **Deliverables:** `src/orchestration/workflow.py` - `WorkflowError`,
+  `WorkflowStage` (12 stages per MASTER 50), `WORKFLOW_STAGES`, `StageStatus`
+  (COMPLETE/READY/UNAVAILABLE/BLOCKED), `StageResult`, `WorkflowReport`
+  (`status_of`, `completed`, `blocked`, `unavailable`, `ready`, `evidence`,
+  `strongest_label`, `validation_level`, `to_dict`), `_default_probes`,
+  `run_workflow`, `write_project` (PROJECTS_DIR-confined, no overwrite);
+  `src/orchestration/__init__.py`; `tests/test_orchestration.py`; demo
+  `projects/demo-motor/` (`workflow.json`, `component.json`,
+  `notebook.ipynb`, `README.md`).
+- **Acceptance criteria:** AC1 stage machine covers all MASTER 50 stages -
+  MET. AC2 ACQUIRE->BLOCKED (T-0404/T-0502) and ANALYZE->BLOCKED (T-0602) are
+  recorded, never marked COMPLETE - MET. AC3 tool stages resolve via real PEM
+  probes; absent tool -> UNAVAILABLE - MET. AC4 every stage carries a 6
+  evidence label; a run with blocked/unavailable stages is
+  `PARTIALLY-VALIDATED` - MET. AC5 `write_project` rejects path escape and
+  refuses overwrite - MET. AC6 demo project generated - MET. AC7 full suite -
+  MET. AC8 docs/state + AUDIT-0030 - MET.
+- **Test result (MEASURED):** `python -m pytest tests/ -v` ->
+  **397 passed, 8 skipped** (Python 3.13.5, pytest 9.1.1): previous 380 + **17
+  T-1301 tests** (16 unit + 1 live demo-project check). Skips unchanged.
+- **Live evidence (OBSERVED):** running `run_workflow` for `demo-motor` ->
+  completed `[IDEA, IDENTIFY, MODEL, PYTHON, VALIDATE]`, blocked
+  `[ACQUIRE, ANALYZE]`, unavailable `[CAD, ELECTRONICS, CIRCUIT, ROBOTICS,
+  VISUALISE]`, validation `PARTIALLY-VALIDATED`; `write_project` wrote the four
+  files under `projects/demo-motor/`.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for the orchestration
+  logic and the offline stages; **PARTIALLY-VALIDATED overall** - ACQUIRE and
+  ANALYZE cannot run (BLOCKED) and external-tool stages are UNAVAILABLE on this
+  host. Not a release claim.
+- **Limitations:** no Taiga-S1 reasoning/coordination, no real web acquisition,
+  no external-tool execution; project records are a serialization of the
+  report, not a resumable transaction.
+- **Files:** src/orchestration/workflow.py, src/orchestration/__init__.py,
+  tests/test_orchestration.py, projects/demo-motor/, architecture.md (2.7/4/9),
+  requirements.md (R14), roadmap.md, project-state.md, chatmem.md, memory.md.

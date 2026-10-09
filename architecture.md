@@ -91,6 +91,20 @@ External tools: FreeCAD | KiCad | ngspice | Python/Jupyter | Gazebo | Blender | 
 - Owned by no domain subsystem; domain subsystems depend on it, it does
   not depend on them.
 
+### 2.7 Orchestration — unified engineering workflow (`src/orchestration/`)
+- **PARTIAL implementation of T-1301.** Coordinates the MASTER §50
+  pipeline over the subsystems that exist:
+  IDEA → ACQUIRE → IDENTIFY → MODEL → ANALYZE → Python/Jupyter → CAD →
+  Electronics → Circuit → Robotics → Visualise → Validate.
+- The intended coordinator is Taiga-S1 (§2.1); because Taiga-S1 (T-0602)
+  and Scrapling acquisition (T-0404/T-0502) are BLOCKED, those stages are
+  reported `BLOCKED` rather than delegated or faked. The remaining stages
+  call the real subsystems (CIE model, Jupyter notebook build/validate) or
+  report the honest availability of the external tool.
+- Evidence labels from §6 are carried on every stage outcome; a run is
+  `PARTIALLY-VALIDATED` while any stage is BLOCKED/UNAVAILABLE (MASTER
+  §46). Demo output is written under `projects/<name>/`.
+
 ## 3. Data and trust boundaries
 
 | Boundary | Rule |
@@ -112,7 +126,7 @@ project/
 ├── docs/
 │   ├── investigations/   # REA records (scope/evidence/findings/...)
 │   └── future-opportunities.md
-├── src/{taiga,pem,cie,rea,core}/
+├── src/{taiga,pem,cie,rea,core,orchestration}/
 ├── components/           # stored component records
 ├── cad/ electronics/ simulations/ models/ data/
 ├── tests/
@@ -156,7 +170,10 @@ CPU/RAM/GPU/VRAM/storage first and degrade gracefully (MASTER §38).
 
 ## 9. Known limitations (current)
 
-- No subsystem code exists yet (Phase 0 only).
+- `src/orchestration/` is a **PARTIAL** T-1301: it cannot coordinate
+  acquisition (Scrapling, T-0404/T-0502) or Taiga-S1 reasoning (T-0602)
+  because both are BLOCKED, so those stages are reported `BLOCKED`.
 - License undecided.
 - Tool integrations (FreeCAD, KiCad, ngspice, Gazebo, Blender, Scrapling,
-  Taiga-S1 model runtime) are unimplemented and unverified on this machine.
+  Taiga-S1 model runtime) are implemented but unverified at runtime on
+  this machine (all tools NOT_FOUND → live execution UNAVAILABLE).

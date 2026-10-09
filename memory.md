@@ -157,3 +157,13 @@ actions belong in `audit.md`.
 - Name clashes across integration modules are resolved by re-exporting
   aliases from `src/integrations/__init__.py` (`verify_cad_outputs`,
   `verify_blender_outputs`, `write_blender_script`).
+- Orchestration (`src/orchestration/workflow.py`, PARTIAL T-1301): the §50
+  stage machine (IDEA → ACQUIRE → IDENTIFY → MODEL → ANALYZE → PYTHON →
+  CAD → ELECTRONICS → CIRCUIT → ROBOTICS → VISUALISE → VALIDATE). Each
+  stage is `COMPLETE` / `READY` (tool present) / `UNAVAILABLE` (tool
+  absent) / `BLOCKED` (dependency not built). A stage that cannot run is
+  NEVER reported `COMPLETE`; the run's `validation_level` is
+  `PARTIALLY-VALIDATED` while anything is BLOCKED/UNAVAILABLE. `write_project`
+  is confined to `projects/` and refuses to overwrite. ACQUIRE is BLOCKED on
+  Scrapling (T-0404/T-0502) and ANALYZE on Taiga-S1 (T-0602) — do not
+  substitute guesses for either.

@@ -4,7 +4,7 @@ Session state (MASTER §41). Repository files are more authoritative than
 this file; on conflict, trust the repository (§43).
 
 ## Session
-- Date: 2026-10-08
+- Date: 2026-10-09
 - Mode: **autonomous build** — a full-programme directive was received;
   execute the roadmap task-by-task without asking the user what to do,
   stopping only at recorded blockers (Taiga-S1 repo missing; privileged
@@ -72,6 +72,14 @@ this file; on conflict, trust the repository (§43).
     `scripts/**/*.sh` are LF-only. Full suite 380 passed, 8 skipped.
     **No executable task remains** — T-1701 (release audit) is BLOCKED via
     T-1401/T-1501 → stop and surface blockers.
+27. T-1301 **preparatory branch** (user-approved, out-of-boundary): the
+    unified workflow orchestrator `src/orchestration/workflow.py` + demo
+    `projects/demo-motor/`. Runs the unblocked §50 stages against real
+    subsystems; ACQUIRE/ANALYZE reported BLOCKED (T-0404/T-0502,
+    T-0602), tool stages UNAVAILABLE via PEM probes; overall
+    `PARTIALLY-VALIDATED`. 17 new tests; full suite 397 passed, 8 skipped.
+    **T-1301 stays BLOCKED** (not a completion); AUDIT-0030 records the
+    deviation. Boundary unchanged (T-1701 BLOCKED).
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
@@ -111,6 +119,8 @@ this file; on conflict, trust the repository (§43).
   - B-1: supply the Taiga-S1 upstream repo → T-0601/T-0602/T-1301/T-1401.
   - B-2: install approval + disk threshold → T-0501/T-0502/T-0404/T-1501.
   - T-0002 license decision (human, §35).
+- The T-1301 preparatory `src/orchestration/` (AUDIT-0030) does NOT move
+  the boundary: T-1301 is still BLOCKED, so the boundary stays T-1701.
 
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never
