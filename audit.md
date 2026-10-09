@@ -1459,3 +1459,8 @@ Append-only record of significant actions, findings and discrepancies
   possible or taken.
 - **Files:** config/tool-manifest.json, docs/license-impact.md, roadmap.md,
   audit.md, requirements.md, project-state.md, memory.md, chatmem.md.
+
+## AUDIT-0032 - B-1 resolved, T-0002 complete, proceed with T-0602 (2026-10-09)
+- B-1: upstream biome-s1 (Taiga-S1/Mesa-S1) verified; MIT source; HF taiga-s1 available.
+- T-0002: MIT license applied (LICENSE).
+- T-0601 marked COMPLETE; T-0602 READY then IN_PROGRESS. next-task updated. Tests 397 passed, 8 skipped.

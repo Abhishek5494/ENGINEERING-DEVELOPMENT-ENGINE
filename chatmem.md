@@ -100,8 +100,9 @@ this file; on conflict, trust the repository (§43).
 - `4444c01` — T-1101 + T-1201 + T-1502 + T-1601.
 - `b56cd45` — T-1301 preparatory branch (partial unified workflow,
   AUDIT-0030); T-1301 remains BLOCKED.
-- follow-up 2026-10-09: governance/registry reconciliation + T-0002
-  preparatory analysis recorded in AUDIT-0031 (no code/behavior change).
+- `9b67298` — governance/registry reconciliation + T-0002 preparatory
+  analysis (AUDIT-0031); no behavior change.
+- `56cd46b` — T-0002 COMPLETE: MIT license applied (LICENSE created).
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo
@@ -135,3 +136,6 @@ this file; on conflict, trust the repository (§43).
 ## Reminders
 - Never claim untested/unrun work (§46); record discrepancies, never
   silently overwrite (§47). Report per §55; stop only at true blockers.
+- B-1 resolved (biome-s1 upstream + HF taiga-s1 verified); T-0601/T-0602 unblocked; MIT license applied (LICENSE). C:\ 4.323GB.
+
+- AUDIT-0032: B-1 resolved, T-0002 done; T-0602 IN_PROGRESS.
