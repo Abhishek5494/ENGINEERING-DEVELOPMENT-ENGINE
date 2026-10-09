@@ -42,11 +42,11 @@ subsystem, value, prerequisites, priority, status.
 - Priority: LOW.
 - Status: PLANNED.
 
-## FUTURE-0005 — Measured-data capture workflow (physical prototypes)
-- Idea: structured intake for measured physical results (CSV from instruments) feeding model calibration.
-- Reason: truth hierarchy puts measured data first (§5); pipeline stage exists in §1.
-- Subsystem: validation/BOM pipeline.
-- Value: closes the idea → prototype → measurement loop.
-- Prerequisites: T-1401.
-- Priority: MEDIUM.
+## FUTURE-0006 — License catalog + ADR policy
+- Idea: create a short ADR template for licence decisions and a "dependency licences" note (invoked-but-not-bundled) to avoid future confusion.
+- Reason: T-0002 is a human gate and third-party tools are not bundled; an explicit policy prevents accidental licence claims.
+- Subsystem: governance.
+- Value: reduces legal ambiguity and improves release auditability (MASTER §54).
+- Prerequisites: T-0002 finalised (policy can be drafted beforehand).
+- Priority: LOW.
 - Status: PLANNED.

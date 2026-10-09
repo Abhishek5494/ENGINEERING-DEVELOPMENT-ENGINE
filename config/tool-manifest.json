@@ -50,7 +50,7 @@
       "install_command": "{python} -m pip install jupyter",
       "health_check": "python -m jupyter --version",
       "capability": ["numerical optimization"],
-      "notes": "Not probed on host yet (UNKNOWN)."
+      "notes": "Probe OBSERVED NOT_FOUND on this host (2026-10-08): Python module 'jupyter' not importable. Live execution UNAVAILABLE until installed (T-0801)."
     },
     {
       "id": "taiga-s1",
@@ -67,7 +67,7 @@
       "install_command": null,
       "health_check": null,
       "capability": ["LLM inference"],
-      "notes": "In-house subsystem, not yet implemented (Phase 6, T-0601); detection/installation pending by design."
+      "notes": "In-house orchestration layer (Phase 6, T-0601/T-0602). Upstream repository UNKNOWN (blocker B-1) — no API is guessed. detection_method 'none' by design until the upstream is supplied and integrated."
     },
     {
       "id": "freecad",
@@ -84,7 +84,7 @@
       "install_command": null,
       "health_check": "FreeCADCmd --version",
       "capability": ["CAD"],
-      "notes": "Not probed on host yet (UNKNOWN)."
+      "notes": "Probe OBSERVED NOT_FOUND on this host (2026-10-08): executable 'FreeCADCmd' not on PATH. Live CAD UNAVAILABLE until installed (T-0901)."
     },
     {
       "id": "kicad",
@@ -101,7 +101,7 @@
       "install_command": null,
       "health_check": "kicad-cli version",
       "capability": ["PCB design"],
-      "notes": "Not probed on host yet (UNKNOWN)."
+      "notes": "Probe OBSERVED NOT_FOUND on this host (2026-10-08): executable 'kicad-cli' not on PATH. Live PCB execution UNAVAILABLE until installed (T-1001)."
     },
     {
       "id": "ngspice",
@@ -118,7 +118,7 @@
       "install_command": null,
       "health_check": "ngspice --version",
       "capability": ["circuit simulation"],
-      "notes": "Not probed on host yet (UNKNOWN)."
+      "notes": "Probe OBSERVED NOT_FOUND on this host (2026-10-08): executable 'ngspice' not on PATH. Live circuit simulation UNAVAILABLE until installed (T-1002)."
     },
     {
       "id": "gazebo",
@@ -135,7 +135,7 @@
       "install_command": null,
       "health_check": "gz sim --versions",
       "capability": ["robotics simulation"],
-      "notes": "Not probed on host yet (UNKNOWN); executable assumes modern Gazebo (gz), classic gazebo not covered."
+      "notes": "Probe OBSERVED NOT_FOUND on this host (2026-10-08): executable 'gz' not on PATH. Live robotics simulation UNAVAILABLE until installed (T-1101); executable assumes modern Gazebo (gz), classic gazebo not covered."
     },
     {
       "id": "blender",
@@ -152,7 +152,7 @@
       "install_command": null,
       "health_check": "blender --version",
       "capability": ["3D rendering"],
-      "notes": "Not probed on host yet (UNKNOWN)."
+      "notes": "Probe OBSERVED NOT_FOUND on this host (2026-10-08): executable 'blender' not on PATH. Live rendering UNAVAILABLE until installed (T-1201)."
     },
     {
       "id": "rea",
@@ -169,7 +169,7 @@
       "install_command": null,
       "health_check": null,
       "capability": [],
-      "notes": "In-house subsystem, not yet implemented (Phase 7, T-0701); detection/installation pending by design."
+      "notes": "In-house REA framework implemented in src/rea/ (T-0701/T-0702: ordered pipeline, investigation templates, offline inspection). This registry entry tracks an optional external investigation engine (candidate upstream morluto/rea; identity/license UNVERIFIED). No external engine installed/integrated; detection_method 'none' by design."
     },
     {
       "id": "scrapling",

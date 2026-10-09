@@ -13,7 +13,7 @@ Last updated: TASK-0001 (bootstrap).
 | ID | Title | Phase | Deps | State |
 |---|---|---|---|---|
 | T-0001 | Repository governance bootstrap | 0 | — | COMPLETE |
-| T-0002 | License decision | 0 | T-0001 | BLOCKED (needs human approval, MASTER §35) |
+| T-0002 | License decision | 0 | T-0001 | BLOCKED (needs human approval, MASTER §35; preparatory `docs/license-impact.md` produced 2026-10-09) |
 | T-0101 | PEM system/hardware detection | 1 | T-0001 | COMPLETE |
 | T-0102 | PEM tool detection + capability states | 1 | T-0101, T-0201 | COMPLETE |
 | T-0103 | Environment report generation (environment.json + md) | 1 | T-0102 | COMPLETE |
@@ -54,7 +54,7 @@ Last updated: TASK-0001 (bootstrap).
 
 ### PHASE 0 — Repository + governance
 
-**T-0001 — Repository governance bootstrap** — `IN_PROGRESS`
+**T-0001 — Repository governance bootstrap** — `COMPLETE`
 - Objective: establish all §27 governance files, §28 directory structure, Git baseline, and a governance verification test on an empty repository.
 - Dependencies: none.
 - Affected components: repo root, `docs/`, `decisions/`, `tests/`, `scripts/`, `src/`, `config/`.
@@ -65,21 +65,22 @@ Last updated: TASK-0001 (bootstrap).
 **T-0002 — License decision** — `BLOCKED`
 - Objective: choose and record an open-source license.
 - Dependencies: T-0001. Blocker: requires human approval (MASTER §35, major licensing decision).
-- Affected components: LICENSE, README, ADR.
+- Affected components: LICENSE, README, a new ADR; `docs/license-impact.md`.
 - Constraints: do not assume a license without an ADR.
-- Acceptance criteria: ADR-0002 records decision; LICENSE file present if approved.
+- Acceptance criteria: a new ADR (ADR-0003 or later) records the decision; LICENSE file present if approved.
 - Validation: governance test updated to require LICENSE once decision made.
+- Preparatory analysis (2026-10-09, does not unblock): `docs/license-impact.md` inventories the (absent) project license, the actual runtime/test dependencies (stdlib + optional PyYAML MIT), the invoked-but-not-bundled external tools, per-candidate obligations and open owner questions. T-0002 stays BLOCKED pending the owner's decision.
 
 ### PHASE 1 — Project Environment Manager
 
-**T-0101 — PEM system/hardware detection** — `READY`
+**T-0101 — PEM system/hardware detection** — `COMPLETE`
 - Objective: `src/pem/` detects OS, OS version, CPU, architecture, RAM, storage (and GPU/VRAM where detectable) using stdlib-first, cross-platform code.
 - Dependencies: T-0001. Affected: `src/pem/`, `tests/`.
 - Constraints: no external services; detection only — no installation; never claim unavailable data (UNKNOWN); resource-light (§38).
 - Acceptance criteria: returns structured record with evidence-backed values on Windows; degrades gracefully when a field is undetectable.
 - Validation: unit tests with mocked/real detection; `python -m pytest`.
 
-**T-0102 — PEM tool detection + capability states** — `PLANNED`
+**T-0102 — PEM tool detection + capability states** — `COMPLETE`
 - Objective: detect installed tools/versions/paths from `config/tool-manifest.json`; map to capability states READY/LIMITED/UNAVAILABLE/UNKNOWN (§22, §24).
 - Dependencies: T-0101, T-0201. Affected: `src/pem/`, `config/`.
 - Constraints: manifest-driven, no hard-coded dependency list; never claim installed without detection evidence.
@@ -106,7 +107,7 @@ Last updated: TASK-0001 (bootstrap).
 
 ### PHASE 2 — Configuration + tool registry
 
-**T-0201 — Tool manifest schema + manifest + loader** — `READY`
+**T-0201 — Tool manifest schema + manifest + loader** — `COMPLETE`
 - Objective: JSON schema covering §24 fields; `config/tool-manifest.json` entries for Git, Python, Jupyter, Taiga-S1, FreeCAD, KiCad, ngspice, Gazebo, Blender, REA, Scrapling; validated loader.
 - Dependencies: T-0001. Constraints: versions UNKNOWN unless known — record MIN/PREFERRED only where justifiable; detection method must be executable.
 - Acceptance criteria: manifest validates against schema; loader rejects malformed entries; all 11 tools present.
@@ -212,3 +213,4 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 - 2026-10-08: T-1601 marked COMPLETE — `src/core/xplat.py` (`normalise_newlines`, `read_text_utf8` BOM-tolerant, `write_text_lf`, `line_ending_report`, `path_within`), `tests/test_xplat.py`. 7 new tests; full suite 380 passed, 8 skipped. Live: `line_ending_report` over `scripts/**/*.sh` → all LF-only (OBSERVED); Linux/macOS runtime execution stays UNAVAILABLE (no POSIX shell/VM). **Phase 16 complete.** Remaining: Phase 13/14 (T-1301/T-1401) and Phase 15 T-1501 are BLOCKED (T-0602/T-0404/T-0502), so Phase 17 **T-1701 (release audit) is BLOCKED** — no further executable task; surface blockers and stop (MASTER §44/§48).
 
 - 2026-10-09: **T-1301 preparatory branch delivered (PARTIAL; task stays BLOCKED)** - `src/orchestration/workflow.py` + `src/orchestration/__init__.py`: the MASTER 50 stage machine (IDEA -> ACQUIRE -> IDENTIFY -> MODEL -> ANALYZE -> PYTHON -> CAD -> ELECTRONICS -> CIRCUIT -> ROBOTICS -> VISUALISE -> VALIDATE) with `WorkflowStage`/`StageStatus` (COMPLETE/READY/UNAVAILABLE/BLOCKED), `StageResult`, `WorkflowReport` (evidence label + validation level), `run_workflow` and a repo-confined `write_project`. ACQUIRE is BLOCKED (T-0404/T-0502) and ANALYZE is BLOCKED (T-0602); tool stages resolve via PEM probes (UNAVAILABLE on this host); IDEA/IDENTIFY/MODEL/PYTHON/VALIDATE execute against real code. Demo `projects/demo-motor/` generated (completed IDEA/IDENTIFY/MODEL/PYTHON/VALIDATE; blocked ACQUIRE/ANALYZE; validation PARTIALLY-VALIDATED). 17 new tests; full suite 397 passed, 8 skipped. T-1301 remains BLOCKED overall - this is a documented preparatory deliverable, not completion. Next task unchanged: T-1701 BLOCKED; blockers B-1/B-2 still govern completion. Recorded AUDIT-0030.
+- 2026-10-09: **Governance/registry reconciliation + T-0002 preparatory analysis (AUDIT-0031).** (1) `config/tool-manifest.json` notes corrected: Jupyter/FreeCAD/KiCad/ngspice/Gazebo/Blender notes now record the actual OBSERVED NOT_FOUND probe result instead of the stale "not probed yet (UNKNOWN)"; the `taiga-s1` note now states the upstream repo is UNKNOWN (B-1); the `rea` note no longer claims the in-house framework is unimplemented. (2) Stale roadmap detail-block states reconciled to the authoritative table (T-0001/T-0101/T-0102/T-0201 were `IN_PROGRESS`/`READY`/`PLANNED`/`READY` → `COMPLETE`); T-0002's detail no longer mis-cites `ADR-0002` (already the evidence-order ADR) for a future license decision. (3) `docs/license-impact.md` produced as a T-0002 analysis; T-0002 stays BLOCKED. No task state changed; no code behavior changed. Next task unchanged: T-1701 BLOCKED.

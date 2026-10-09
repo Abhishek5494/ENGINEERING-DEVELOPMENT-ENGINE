@@ -217,14 +217,22 @@ boundary (no fake completion).
 - Version extraction is best-effort first dotted-numeric token (e.g.
   "2.55.0.windows.3" reported as "2.55.0").
 - Non-pip tools carry `install_command: null` (package-manager
-  detection R3.3 pending) → installer routes them to manual notice.
-- UNKNOWN tools (taiga-s1, rea) lack detectors, so the installer can
-  neither act on nor clear them (reported as `investigate`).
+  detection R3.3 pending) → installer routes them to manual notice;
+  UNKNOWN tools (taiga-s1, rea) route to `investigate`. This is the
+  documented manual-routing behavior — verified 2026-10-09.
+- **RESOLVED (2026-10-09, AUDIT-0031):** tool-manifest notes had gone
+  stale ("not probed yet (UNKNOWN)" for tools already probed NOT_FOUND;
+  `rea` claimed unbuilt although T-0701/T-0702 are COMPLETE) and four
+  roadmap detail-block states disagreed with the authoritative table
+  (T-0001/T-0101/T-0102/T-0201). Both reconciled to match evidence; no
+  behavior change.
 
 ## Architecture status
 - `architecture.md`: DRAFT consistent with implemented scope.
 - ADR-0001 (bootstrap governance) + ADR-0002 (evidence strength order)
   recorded; no other architectural change since bootstrap.
+- `docs/license-impact.md` (2026-10-09): T-0002 preparatory analysis; the
+  project has no LICENSE and T-0002 remains a human gate (§35).
 
 ## Environment status
 - System (OBSERVED via `detect_system()`, 2026-10-08):
@@ -261,7 +269,7 @@ boundary (no fake completion).
   Skipped (8): the two per-platform `sh -n` syntax checks (no POSIX
   shell on host), and the live-Jupyter, live-FreeCAD, live-KiCad,
   live-ngspice, live-Gazebo and live-Blender tests (those tools are not
-  installed).
+  installed). No test behavior changed.
 - Bugs caught by tests so far and fixed before completion: empty-list
   evidence bug (T-0101), manifest error-ordering bug (T-0201),
   §29 heading dropped from project-state rewrite (T-0102), "installed"
@@ -347,8 +355,10 @@ When those are resolved, resume with the next executable task in §48
 order; eventually T-1701 (release audit) walks the §54 checklist.
 
 ## Last update
-2026-10-09 — T-1301 preparatory branch delivered (PARTIAL, AUDIT-0030):
-  `src/orchestration/` stage machine + `projects/demo-motor/` demo; 17 new
-  tests, suite 397 passed, 8 skipped. T-1301 itself stays BLOCKED (Taiga-S1
-  T-0602 / Scrapling T-0404/T-0502); the execution boundary remains T-1701
-  BLOCKED. Autonomous build stops at the blockers (no fake completion).
+2026-10-09 — 2026-10-09 AUDIT-0031: repository re-verified (clean,
+  `1fca98b`); C:\ free 0.579 GiB → B-2 persists; B-1 persists; T-0002
+  remains BLOCKED (preparatory `docs/license-impact.md`). Tool-manifest
+  notes reconciled to OBSERVED probe states; roadmap detail-block states
+  reconciled to the authoritative table. No task states changed; no code
+  changes to behavior. Test suite 397 passed, 8 skipped. No eligible task
+  remains.

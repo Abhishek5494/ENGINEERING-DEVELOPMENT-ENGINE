@@ -80,6 +80,12 @@ this file; on conflict, trust the repository (§43).
     `PARTIALLY-VALIDATED`. 17 new tests; full suite 397 passed, 8 skipped.
     **T-1301 stays BLOCKED** (not a completion); AUDIT-0030 records the
     deviation. Boundary unchanged (T-1701 BLOCKED).
+28. **AUDIT-0031** (continuation directive): verified repository state (clean,
+    `1fca98b`); confirmed B-1/B-2 persist (C:\ 0.579 GiB); T-0002 remains BLOCKED.
+    Reconciled `config/tool-manifest.json` notes to actual OBSERVED probe results;
+    reconciled roadmap detail-block states to the authoritative table (T-0001/
+    T-0101/T-0102/T-0201). Produced `docs/license-impact.md` for T-0002. No task
+    states changed; 397 passed, 8 skipped. No eligible task remains.
 
 ## Commit map
 - `3453e15` + `78b1270` — T-0001 governance baseline.
@@ -94,6 +100,8 @@ this file; on conflict, trust the repository (§43).
 - `4444c01` — T-1101 + T-1201 + T-1502 + T-1601.
 - `b56cd45` — T-1301 preparatory branch (partial unified workflow,
   AUDIT-0030); T-1301 remains BLOCKED.
+- follow-up 2026-10-09: governance/registry reconciliation + T-0002
+  preparatory analysis recorded in AUDIT-0031 (no code/behavior change).
 
 ## Key facts to carry forward
 - Host: Windows 11, PowerShell 5.1, Python 3.13.5, pytest 9.1.1. Repo

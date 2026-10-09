@@ -1407,3 +1407,55 @@ Append-only record of significant actions, findings and discrepancies
 - **Files:** src/orchestration/workflow.py, src/orchestration/__init__.py,
   tests/test_orchestration.py, projects/demo-motor/, architecture.md (2.7/4/9),
   requirements.md (R14), roadmap.md, project-state.md, chatmem.md, memory.md.
+
+---
+
+## AUDIT-0031 - State re-verification, registry reconciliation, T-0002 analysis (2026-10-09)
+
+- **Directive:** a continuation/upstream-integration/release directive was
+  received. Per its §1, the authoritative repository state was recovered and
+  verified before any change.
+- **Verified (OBSERVED):** branch `master`; HEAD `1fca98b`; working tree clean;
+  T-1301 preparatory work is commit `b56cd45`; the roadmap table remains
+  T-1701 `BLOCKED` as the boundary; the prior test result matched (see below).
+  No contradiction found between the reported context and the repository.
+- **Re-checked blockers (OBSERVED):** C:\ free = 593,000,448 bytes
+  (0.579 GiB) < the 1 GiB threshold -> **B-2 persists** (no installs permitted,
+  none attempted). Taiga-S1 upstream still not supplied -> **B-1 persists**.
+  T-0002 license decision still awaiting the owner -> persists. No installation
+  was performed and no OS permission/resource was assumed.
+- **Discrepancy #1 (found + fixed, §47):** `config/tool-manifest.json` notes
+  were stale - Jupyter/FreeCAD/KiCad/ngspice/Gazebo/Blender said "Not probed on
+  host yet (UNKNOWN)" although the tools had been probed and are `NOT_FOUND`;
+  the `rea` note said the in-house framework was "not yet implemented" although
+  T-0701/T-0702 are COMPLETE. Notes corrected to the observed evidence; the
+  `taiga-s1` note now records upstream-repo UNKNOWN (B-1). Only prose changed;
+  schema, loader and 80 manifest/tool/installer/report tests unaffected.
+- **Discrepancy #2 (found + fixed, §47):** roadmap detail-block states were
+  stale versus the authoritative table- parser reads the table only, so this was
+  documentation-only but misleading. Reconciled T-0001, T-0101, T-0102, T-0201
+  to `COMPLETE` (were `IN_PROGRESS`/`READY`/`PLANNED`/`READY`). Also fixed the
+  T-0002 detail, which cited `ADR-0002` (already used for the evidence-strength
+  ordering) for a future license decision; now references a new ADR.
+- **T-0002 preparatory analysis:** `docs/license-impact.md` produced. Findings:
+  no LICENSE/COPYING and no dependency manifest exist (default "all rights
+  reserved"); the only non-stdlib runtime import is optional PyYAML 6.0.3 (MIT);
+  pytest 9.1.1 (MIT) is test-only; the engineering tools are invoked as
+  external processes and are NOT bundled, so their licences impose no current
+  obligation on this source. T-0002 **remains BLOCKED** pending the owner's
+  decision.
+- **No eligible task:** every remaining roadmap task is BLOCKED (T-0002,
+  T-0501, T-0601, T-0602, T-1301, T-1401, T-1501, T-1701) or PLANNED with a
+  BLOCKED dependency (T-0404, T-0502). No task state was changed and none was
+  bypassed. The build stops at the authorized boundary.
+- **Test result (MEASURED):** `python -m pytest tests/ -q` ->
+  **397 passed, 8 skipped** (Python 3.13.5, pytest 9.1.1). Skips unchanged
+  (2 `sh -n`; 6 live-tool integration tests).
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for the reconciliation
+  (live `detect_tools()` + live JSON/schema/manifest tests); T-0002 analysis is
+  STATIC-VALIDATED documentation (no legal force).
+- **Limitations:** third-party project licences in the report are reported,
+  not independently verified this session; no installation/network action was
+  possible or taken.
+- **Files:** config/tool-manifest.json, docs/license-impact.md, roadmap.md,
+  audit.md, requirements.md, project-state.md, memory.md, chatmem.md.

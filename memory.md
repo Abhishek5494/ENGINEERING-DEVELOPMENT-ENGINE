@@ -112,6 +112,9 @@ actions belong in `audit.md`.
 - Environment reports (`environment.json`, `environment-report.md`) are
   produced by `src/pem/report.py` from detector outputs only; regenerate
   with `python -m src.pem.report` after environment changes.
+- Manifest notes reflect OBSERVED probe results (tools not found are recorded
+  as NOT_FOUND, not "not probed"; in-house components `taiga-s1` and `rea` are
+  recorded as UNKNOWN/detection-method 'none' with upstream/intent stated). (AUDIT-0031)
 
 ## Hard-won lessons
 
