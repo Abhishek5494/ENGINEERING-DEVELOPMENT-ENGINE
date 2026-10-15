@@ -4,7 +4,7 @@ Dependency-aware task graph derived from `MASTER.md` §31, §32, §48.
 States: `PLANNED | READY | IN_PROGRESS | BLOCKED | COMPLETE | DEFERRED | CANCELLED`.
 Rule: never execute a task whose dependencies are incomplete (MASTER §32).
 
-Last updated: TASK-0001 (bootstrap).
+Last updated: 2026-10-15 (T-2000/T-2001 MVP interface + documentation).
 
 ---
 
@@ -23,6 +23,7 @@ Last updated: TASK-0001 (bootstrap).
 | T-0107 | Idempotent install logic + tests | 1 | T-0103 | COMPLETE |
 | T-0201 | Tool manifest schema + config/tool-manifest.json + loader | 2 | T-0001 | COMPLETE |
 | T-0202 | Shared configuration module | 2 | T-0001 | COMPLETE |
+| T-0203 | Canonical upstream-source registry | 2 | T-0201 | COMPLETE (`config/upstream-sources.json` + schema + `src/core/upstream.py` + tests) |
 | T-0301 | Project state persistence library | 3 | T-0001, T-0202 | COMPLETE |
 | T-0302 | Evidence/claim classification primitives | 3 | T-0001, T-0202 | COMPLETE |
 | T-0401 | Component data model + schema + storage | 4 | T-0302 | COMPLETE |
@@ -31,8 +32,8 @@ Last updated: TASK-0001 (bootstrap).
 | T-0404 | Authoritative source search + cross-source compare | 4 | T-0402, T-0502 | PLANNED |
 | T-0501 | Inspect installed Scrapling + pin dependency | 5 | T-0001 | BLOCKED (needs Scrapling installed; B-2 install gate) |
 | T-0502 | Scrapling acquisition→sanitization→extraction under CIE | 5 | T-0501, T-0401 | PLANNED |
-| T-0601 | Taiga-S1 runtime selection + resource awareness | 6 | T-0103, T-0301 |    COMPLETE    |
-| T-0602 | Taiga-S1 orchestration core (task routing) | 6 | T-0601, T-0301, T-0403 |   COMPLETE   |
+| T-0601 | Taiga-S1 runtime selection + resource awareness | 6 | T-0103, T-0301 | COMPLETE (`src/taiga/runtime.py`; tests) |
+| T-0602 | Taiga-S1 provider-neutral contracts + registry | 6 | T-0601, T-0301, T-0403 | COMPLETE (`src/taiga/contracts.py`, `registry.py`; tests) |
 | T-0701 | REA pipeline + investigation record templates | 7 | T-0302 | COMPLETE |
 | T-0702 | REA tooling integration (inspect/trace) | 7 | T-0701 | COMPLETE |
 | T-0801 | Python/Jupyter integration | 8 | T-0103 | COMPLETE |
@@ -46,7 +47,15 @@ Last updated: TASK-0001 (bootstrap).
 | T-1501 | Security review + untrusted-input hardening | 15 | T-0502, T-0403 | BLOCKED (depends on BLOCKED T-0502) |
 | T-1502 | Recovery-after-interruption test | 15 | T-0301 | COMPLETE |
 | T-1601 | Cross-platform hardening | 16 | T-0104, T-0105, T-0106 | COMPLETE |
-| T-1701 | Release audit vs MASTER §54 checklist | 17 | T-1401, T-1501, T-1502, T-1601 | BLOCKED (deps T-1401/T-1501 BLOCKED) |
+| T-1700 | Baseline stabilization & state reconciliation | 17 | T-1601 | COMPLETE (green suite; T-0601/T-0602 evidence; docs reconciled) |
+| T-1701 | Release audit vs MASTER §54 checklist | 17 | T-1401, T-1501, T-1502, T-1601, T-1700 | BLOCKED (deps T-1401/T-1501 BLOCKED) |
+| T-1800 | D: development storage isolation (caches + workspace) | 18 | T-0202 | COMPLETE (`D:\EngineeringWorkspace`; pip/npm/HF redirected; `scripts/windows/dev-env.ps1`; `docs/storage.md`) |
+| T-1801 | Reusable storage preflight utility + integration | 18 | T-0202 | COMPLETE (`src/core/storage.py` + `config/storage.json`; installer preflight; tests) |
+| T-1802 | Safe cleanup of regenerable C: caches | 18 | T-1800 | COMPLETE (owner-approved `pip cache purge` + `npm cache clean --force`; no other deletion) |
+| T-1702 | Governance reconciliation after storage work | 17 | T-1802 | COMPLETE (docs resynced; owner storage directive recorded as ADR-0003) |
+| T-1900 | Dependency inventory + self-contained deployment audit | 19 | T-0202 | COMPLETE (`docs/dependencies.md`; `tests/test_dependency_independence.py`; ADR-0004) |
+| T-2000 | Unified offline CLI (`python -m src`) | 20 | T-0202, T-1301 | COMPLETE (`src/cli.py`, `src/__main__.py`, `__version__`; `tests/test_cli.py`) |
+| T-2001 | MVP definition & consolidated documentation | 20 | T-2000 | COMPLETE (`docs/mvp.md`, `docs/usage.md`, `docs/installation.md`, `docs/testing.md`, `docs/security.md`, `CHANGELOG.md`; ADR-0005) |
 
 ---
 
@@ -114,6 +123,14 @@ Last updated: TASK-0001 (bootstrap).
 - Dependencies: T-0001. Acceptance criteria: resolves repo root deterministically; loads config with defaults.
 - Validation: unit tests (19 new tests pass; full suite 183 passed, 2 skipped).
 
+**T-0203 — Canonical upstream-source registry** — `COMPLETE`
+- Objective: one canonical registry of upstream repositories (owner-supplied manifest) — `config/upstream-sources.json` with a JSON Schema and a stdlib loader/validator.
+- Dependencies: T-0201. Affected: `config/`, `src/core/`, `tests/`, `README.md`.
+- Fields per entry: id, name, purpose, repository_url, documentation_url, source_type, license_status, version_status, integration_status (+ optional version/commit/license/notes).
+- Constraints: reference-only — never installation state, never a guessed version/commit/license (`null` = UNKNOWN; values only when VERIFIED); no cloning/installing/network; ids match `config/tool-manifest.json`.
+- Acceptance criteria: 11 entries present; schema + loader agree; unique ids; https URLs; loaded/validated without side effects.
+- Validation: `tests/test_upstream_sources.py` (required fields, unique ids, URL validity, enum agreement, manifest coverage, UNKNOWN-honesty) plus the full suite green.
+
 ### PHASE 3 — Project memory
 
 **T-0301 — Project state persistence library** — `COMPLETE`
@@ -140,8 +157,8 @@ Last updated: TASK-0001 (bootstrap).
 
 ### PHASE 6 — Taiga-S1 orchestration
 
-**T-0601 — Runtime selection + resource awareness** — `COMPLETE`: detect local inference capability (§38), select model size by RAM/VRAM, graceful degradation.
-**T-0602 — Orchestration core** — `COMPLETE`: routes tasks to CIE/REA/PEM/tools per §2/§4; produces engineering documentation; never pretends to be a specialist tool.
+**T-0601 — Runtime selection + resource awareness** — `COMPLETE`: `src/taiga/runtime.py` selects a local model tier from the PEM RAM/VRAM budget (§38) and reports `available=False`/`UNKNOWN` honestly when no inference provider is registered or the budget is unknown; no model footprint is fabricated. Tests: `tests/test_taiga.py`.
+**T-0602 — Provider-neutral orchestration contracts** — `COMPLETE`: `src/taiga/contracts.py` (Action/Evidence/Result/Route/Score + `Provider`/`Policy`/`Capability` protocols) and `src/taiga/registry.py`. Provider-neutral, so no third-party Taiga API is guessed. Actual task routing / engineering-document generation still needs a supplied Taiga-S1 provider; until one is wired, T-1301's ANALYZE stage is reported `BLOCKED` (honest, not faked). Tests: `tests/test_taiga.py`.
 
 ### PHASE 7 — REA integration
 
@@ -173,8 +190,31 @@ Model calibration loop: simulated vs measured (§1); BOM generation from compone
 Linux/macOS script execution evidence (VMs/CI), path handling, line endings, encoding.
 COMPLETE for text/path hardening (`src/core/xplat.py`: LF/UTF-8 I/O + line-ending audit + containment) and a live LF audit of the POSIX scripts. Linux/macOS *runtime* execution evidence still requires a VM/CI → UNAVAILABLE on this host.
 
-### PHASE 17 — Release + final audit (T-1701)
-Walk the MASTER §54 release checklist; no claim without evidence; tag release.
+### PHASE 17 — Release + final audit (T-1700, T-1701)
+
+**T-1700 — Baseline stabilization & state reconciliation** — `COMPLETE`: restored a green governance suite (corrected the stale `T-0602` assertion in `tests/test_core_state.py`), removed an accidental UTF-8 BOM from `next-task.md`, made the T-0601/T-0602 completions evidence-backed (`src/taiga/runtime.py` + `tests/test_taiga.py`), and reconciled the governance documents (README, architecture, requirements, project-state, memory) with the real repository. No subsystem behaviour changed.
+
+**T-1701 — Release audit** — `BLOCKED`: walk the MASTER §54 release checklist; no claim without evidence; tag release. Depends on T-1401/T-1501 (BLOCKED).
+
+### PHASE 18 — C: drive protection & D: development isolation (owner directive)
+
+**T-1800 — D: development storage isolation** — `COMPLETE`: audited storage (OBSERVED: C: 2.23 GiB free, D: 90.52 GiB free), created `D:\EngineeringWorkspace\`, redirected pip cache (`global.cache-dir`), npm cache, and HuggingFace (`HF_HOME`/`HF_HUB_CACHE`) to D:, added session-scoped `TEMP`/`TMP` via `scripts/windows/dev-env.ps1`, and documented everything in `docs/storage.md`. Reference-only/no deletion. Recorded as ADR-0003.
+**T-1801 — Storage preflight utility** — `COMPLETE`: `src/core/storage.py` (destination-drive measurement, per-operation thresholds, `check_storage`/`preflight`/`require_storage`, backend-detection `drive_of`) + data-driven `config/storage.json`; integrated into `python -m src.pem.ops install --execute` (refuses exit 3 when the workspace destination lacks space); tests in `tests/test_storage.py`.
+**T-1802 — Safe cleanup of regenerable C: caches** — `COMPLETE`: owner-approved narrow cleanup (`pip cache purge`, `npm cache clean --force`); C: free rose ~2.23 → ~2.34 GiB; no other deletion (AUDIT-0044).
+
+### PHASE 17 (addendum) — Governance reconciliation after storage work (T-1702)
+
+**T-1702 — Governance reconciliation after storage work** — `COMPLETE`: full-project audit found documentation drift after T-1802 (project-state/roadmap/audit/chatmem/README/architecture still showed T-1802 BLOCKED and a 462-test undercount) plus dangling "MASTER prompt addendum" citations. Resynced all governance docs to reality (T-1802 COMPLETE; boundary T-1701 BLOCKED; 464 passed / 472 collected) and recorded the owner storage directive as `decisions/ADR-0003-development-storage-isolation.md`, repointing the citations. Documentation-only; no code behaviour change. AUDIT-0044.
+
+### PHASE 19 — Dependency independence & self-contained deployment (owner directive)
+
+**T-1900 — Dependency inventory + self-contained deployment audit** — `COMPLETE`: inventoried every dependency by category (runtime/interpreter, third-party libraries, standard library, system packages, external executables, databases/services, network APIs, AI models/runtimes, build/dev-only, optional integrations) in `docs/dependencies.md`; recorded the owner directive as `decisions/ADR-0004-dependency-independence.md`; added `tests/test_dependency_independence.py` (stdlib-only imports, guarded optional imports, import-without-optional-dependency, JSON runtime config, no BOM). Confirmed the runtime is standard-library only (the sole third-party import, PyYAML, is optional and guarded). Deferred building a bundled/portable artifact to an owner-gated task (H-14). Also stripped stray UTF-8 BOMs from `src/taiga/{__init__,contracts,registry}.py` (found by the new BOM guard; Python tolerated them, static parsers did not). Documentation/verification task; no runtime behaviour changed. AUDIT-0045.
+
+### PHASE 20 — MVP operability & documentation (owner directive)
+
+**T-2000 — Unified offline CLI** — `COMPLETE`: added `src/cli.py` (a thin `argparse` dispatcher) and `src/__main__.py` so `python -m src <command>` exposes the platform's offline capabilities and the flagship `run_workflow` from one entry point — `version`, `env`, `tools`, `storage preflight`, `upstream`, `cie identify`, `rea inspect`, `workflow run` — with documented exit codes (0/2/3). Added `src.__version__ = "0.1.0"` and `tests/test_cli.py` (12 tests). No new behaviour: each command calls an existing subsystem API and reports `BLOCKED`/`UNAVAILABLE` honestly (MASTER §46). Partially unblocks the "operate the project" MVP gap noted in the universal-protocol audit; the live pipeline stays BLOCKED (B-2/H-3). AUDIT-0046.
+
+**T-2001 — MVP definition & consolidated documentation** — `COMPLETE`: authored `docs/mvp.md` (the MVP definition, in/out-of-scope tables, acceptance criteria, verification), `docs/usage.md` (CLI + API usage), `docs/installation.md` (setup/offline/storage/troubleshooting), `docs/testing.md` (how to run tests, layout, skip reasons), `docs/security.md` (trust boundaries, guarantees, limitations) and `CHANGELOG.md` (user-facing history). Recorded the scope/delivery decision as `decisions/ADR-0005-mvp-scope-and-delivery.md`. Consolidated, non-duplicative documentation that links to governance rather than restating it. Satisfies the protocol's documentation requirement (DOC-001) without changing code. AUDIT-0046.
 
 ---
 
@@ -210,3 +250,10 @@ Walk the MASTER §54 release checklist; no claim without evidence; tag release.
 
 - 2026-10-09: **T-1301 preparatory branch delivered (PARTIAL; task stays BLOCKED)** - `src/orchestration/workflow.py` + `src/orchestration/__init__.py`: the MASTER 50 stage machine (IDEA -> ACQUIRE -> IDENTIFY -> MODEL -> ANALYZE -> PYTHON -> CAD -> ELECTRONICS -> CIRCUIT -> ROBOTICS -> VISUALISE -> VALIDATE) with `WorkflowStage`/`StageStatus` (COMPLETE/READY/UNAVAILABLE/BLOCKED), `StageResult`, `WorkflowReport` (evidence label + validation level), `run_workflow` and a repo-confined `write_project`. ACQUIRE is BLOCKED (T-0404/T-0502) and ANALYZE is BLOCKED (T-0602); tool stages resolve via PEM probes (UNAVAILABLE on this host); IDEA/IDENTIFY/MODEL/PYTHON/VALIDATE execute against real code. Demo `projects/demo-motor/` generated (completed IDEA/IDENTIFY/MODEL/PYTHON/VALIDATE; blocked ACQUIRE/ANALYZE; validation PARTIALLY-VALIDATED). 17 new tests; full suite 397 passed, 8 skipped. T-1301 remains BLOCKED overall - this is a documented preparatory deliverable, not completion. Next task unchanged: T-1701 BLOCKED; blockers B-1/B-2 still govern completion. Recorded AUDIT-0030.
 - 2026-10-09: **Governance/registry reconciliation + T-0002 preparatory analysis (AUDIT-0031).** (1) `config/tool-manifest.json` notes corrected: Jupyter/FreeCAD/KiCad/ngspice/Gazebo/Blender notes now record the actual OBSERVED NOT_FOUND probe result instead of the stale "not probed yet (UNKNOWN)"; the `taiga-s1` note now states the upstream repo is UNKNOWN (B-1); the `rea` note no longer claims the in-house framework is unimplemented. (2) Stale roadmap detail-block states reconciled to the authoritative table (T-0001/T-0101/T-0102/T-0201 were `IN_PROGRESS`/`READY`/`PLANNED`/`READY` → `COMPLETE`); T-0002's detail no longer mis-cites `ADR-0002` (already the evidence-order ADR) for a future license decision. (3) `docs/license-impact.md` produced as a T-0002 analysis; T-0002 stays BLOCKED. No task state changed; no code behavior changed. Next task unchanged: T-1701 BLOCKED.
+- 2026-10-11: **T-1700 marked COMPLETE — baseline stabilization & state reconciliation (AUDIT-0041).** Restored a green suite by correcting the stale `T-0602 == BLOCKED` assertion in `tests/test_core_state.py`; removed an accidental UTF-8 BOM from `next-task.md`; made T-0601/T-0602 evidence-backed with `src/taiga/runtime.py` (resource-aware model-tier selection, MASTER §38) and `tests/test_taiga.py` (contracts/registry/runtime); corrected T-0602's description from "task routing" to the provider-neutral contracts it actually implements; reconciled README/architecture/requirements/project-state/memory to the real repository (B-1 resolved, MIT applied, T-0601/T-0602 COMPLETE). Full suite **413 passed, 8 skipped**. T-1701 remains BLOCKED (deps T-1401/T-1501).
+- 2026-10-11: **T-0203 marked COMPLETE — canonical upstream-source registry (owner directive; AUDIT-0042).** Added `config/upstream-sources.json` (11 sources: Taiga-S1/Biome-S1, Scrapling, REA, FreeCAD, KiCad, ngspice, Python, Jupyter, Gazebo, Blender, Git) + `config/upstream-sources.schema.json` + `src/core/upstream.py` (stdlib loader/validator) + `config.py` paths + `tests/test_upstream_sources.py`. Reference-only: LICENSE/VERSION status UNKNOWN unless verified; UNKNOWN forbids a claimed value. README documents the registry; memory/chatmem cite it instead of duplicating URLs. Boundary unchanged: T-1701 BLOCKED (B-2).
+- 2026-10-11: **T-1800/T-1801 marked COMPLETE — C: drive protection & D: development isolation (owner directive; AUDIT-0043).** Audited storage OBSERVED: C: 2.23 GiB free / 199 GiB, D: 90.52 GiB free / 277 GiB. Top C: consumers are non-project (Windows 46 GB, Adobe 23 GB, AppData 54 GB, VMs 18 GB); the project's controllable C: footprint is the pip cache (1.23 GB), npm cache (2.78 GB), TEMP, and future model downloads. Created `D:\EngineeringWorkspace\`; redirected pip (`global.cache-dir`), npm (`cache`), and HuggingFace (`HF_HOME`/`HF_HUB_CACHE`) to D:; added `scripts/windows/dev-env.ps1` (session `TEMP`/`TMP`); added reusable `src/core/storage.py` + data-driven `config/storage.json` preflight (per-operation thresholds, exit 3 when blocked) integrated into `ops install --execute`; documented `docs/storage.md`. No deletion performed. T-1802 (narrow cache cleanup) recorded BLOCKED pending owner approval. Boundary otherwise T-1701 BLOCKED (B-2).
+- 2026-10-15: **T-1802 marked COMPLETE — safe cleanup of regenerable C: caches (owner-approved; AUDIT-0044).** The owner approved the narrow cleanup; `pip cache purge` (0 bytes — the pip cache already lives on `D:` after T-1800) and `npm cache clean --force` were executed. C: free rose ~2.23 → ~2.34 GiB; no other deletion was performed. Boundary unchanged: T-1701 BLOCKED (B-2).
+- 2026-10-15: **T-1702 added and marked COMPLETE — governance reconciliation after storage work (full-project audit; AUDIT-0044).** The audit found documentation drift (project-state/roadmap/audit/chatmem/README/architecture still showed T-1802 BLOCKED and a 462-test undercount) and dangling "MASTER prompt addendum" citations. Resynced all governance docs to reality (T-1802 COMPLETE; boundary T-1701 BLOCKED; 464 passed / 472 collected) and recorded the owner storage directive as `decisions/ADR-0003-development-storage-isolation.md`, repointing the citations. Documentation-only; no code behaviour change.
+- 2026-10-15: **T-1900 marked COMPLETE — dependency inventory & self-contained deployment audit (owner directive; AUDIT-0045).** Inventoried all dependency categories in `docs/dependencies.md`; recorded the directive as `decisions/ADR-0004-dependency-independence.md`; added `tests/test_dependency_independence.py` enforcing stdlib-only imports, guarded optional imports, import-without-optional-dependency, JSON runtime config, and no-BOM. Confirmed the runtime needs only Python 3.11+ (sole third-party import PyYAML is optional/guarded). Stripped stray UTF-8 BOMs from `src/taiga/{__init__,contracts,registry}.py` (found by the new guard). Bundled/portable packaging deferred to H-14. No runtime behaviour changed. Boundary unchanged: T-1701 BLOCKED (B-2).
+- 2026-10-15: **T-2000/T-2001 added and marked COMPLETE — MVP operability & documentation (owner directive "Universal Project Autonomy Protocol"; AUDIT-0046).** T-2000 delivered a unified offline CLI (`src/cli.py`, `src/__main__.py`, `src.__version__ = "0.1.0"`; `tests/test_cli.py`, 12 tests) exposing `version`/`env`/`tools`/`storage preflight`/`upstream`/`cie identify`/`rea inspect`/`workflow run` from `python -m src`. T-2001 authored `docs/mvp.md` (MVP definition + acceptance), `docs/usage.md`, `docs/installation.md`, `docs/testing.md`, `docs/security.md`, `CHANGELOG.md`, and recorded the scope decision as `decisions/ADR-0005-mvp-scope-and-delivery.md`. Suite now **483 passed, 8 skipped (491 collected)**. No runtime behaviour changed; live acquisition/analysis remain BLOCKED (B-2/H-3). Boundary unchanged: T-1701 BLOCKED.

@@ -73,7 +73,8 @@ def test_parse_roadmap_tasks_real_file() -> None:
     assert by_id["T-1601"].state == "COMPLETE"
     assert by_id["T-1701"].state == "BLOCKED"
     assert by_id["T-0501"].state == "BLOCKED"
-    assert by_id["T-0602"].state == "BLOCKED"
+    assert by_id["T-0601"].state == "COMPLETE"
+    assert by_id["T-0602"].state == "COMPLETE"
 
 
 def test_parse_roadmap_tasks_rejects_invalid_state() -> None:

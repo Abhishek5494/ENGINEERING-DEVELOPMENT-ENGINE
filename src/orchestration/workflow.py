@@ -10,7 +10,8 @@ depend on capabilities that are BLOCKED in this repository and are surfaced
 as such rather than faked (MASTER §46):
 
 * ``ACQUIRE`` — Scrapling acquisition (T-0404/T-0502), BLOCKED by B-2.
-* ``ANALYZE`` — Taiga-S1 orchestration/analysis (T-0602), BLOCKED by B-1.
+* ``ANALYZE`` — Taiga-S1 inference not wired (T-0601/T-0602 COMPLETE, but no
+  live provider is registered), so the stage is BLOCKED rather than faked.
 
 Every other stage either executes against a real subsystem (CIE component
 model, Jupyter notebook build/validate) or reports the honest status of the
@@ -284,8 +285,8 @@ def _analyze() -> StageResult:
     return StageResult(
         WorkflowStage.ANALYZE,
         StageStatus.BLOCKED.value,
-        "Taiga-S1 engineering analysis unavailable (T-0602 blocked, B-1)",
-        blocker="T-0602: upstream Taiga-S1 repository not supplied (B-1)",
+        "Taiga-S1 engineering analysis unavailable (no live inference provider wired)",
+        blocker="T-0601/T-0602: no live Taiga-S1 inference provider registered",
     )
 
 

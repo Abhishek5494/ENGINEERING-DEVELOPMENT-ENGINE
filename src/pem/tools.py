@@ -34,6 +34,31 @@ _MODULE_ABSENT_MARKERS = (
     "importerror",
 )
 
+#: Interpreters tried when the bare ``python`` name is absent. Many POSIX
+#: distributions ship only ``python3``.
+_PYTHON_ALIASES = ("python3",)
+
+
+def _python_fallback() -> Optional[str]:
+    """A usable interpreter when bare ``python`` is not on PATH, else None."""
+    if shutil.which("python"):
+        return None
+    for alias in _PYTHON_ALIASES:
+        found = shutil.which(alias)
+        if found:
+            return found
+    return None
+
+
+def _resolve_command(entry: dict[str, Any], command: str) -> str:
+    """Substitute the resolved interpreter for a bare ``python`` probe."""
+    if entry.get("executable") != "python":
+        return command
+    fallback = _python_fallback()
+    if fallback and (command == "python" or command.startswith("python ")):
+        return fallback + command[len("python"):]
+    return command
+
 
 def _first_version(text: str) -> Optional[str]:
     """Extract the first dotted-numeric version token actually present."""
@@ -77,6 +102,10 @@ def _resolve_path(entry: dict[str, Any]) -> str:
     executable = entry.get("executable")
     if not executable:
         return UNKNOWN
+    if executable == "python":
+        fallback = _python_fallback()
+        if fallback:
+            return fallback
     found = shutil.which(executable)
     return found if found else UNKNOWN
 
@@ -116,6 +145,8 @@ def _probe_tool(entry: dict[str, Any]) -> dict[str, Any]:
             evidence=UNKNOWN,
             reason="detection_method 'none' — in-house component, not implemented; no probe run",
         )
+
+    command = _resolve_command(entry, command)
 
     try:
         argv = shlex.split(command)

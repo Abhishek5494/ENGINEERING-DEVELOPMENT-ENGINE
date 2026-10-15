@@ -25,6 +25,7 @@ import sys
 from typing import Any, Optional
 
 from src.core.manifest import ManifestError, load_manifest
+from src.core.storage import StorageError, preflight
 from src.pem.detect import detect_system
 from src.pem.installer import EXIT_REFUSED, apply_installs, plan_installs
 from src.pem.report import LOW_DISK_THRESHOLD_BYTES
@@ -164,6 +165,21 @@ def run_install_plan(
     return EXIT_OK, lines
 
 
+def _storage_preflight_lines() -> list[str]:
+    """Storage preflight for dependency installs on the configured workspace.
+
+    Uses the reusable ``src.core.storage`` utility. When the destination
+    cannot be measured (e.g. the drive does not exist on this host) it is
+    reported as WARN and does not block — the existing OBSERVED-volume guard
+    in ``apply_installs`` still applies.
+    """
+    try:
+        check = preflight("dependency_install")
+    except StorageError as exc:
+        return [f"storage preflight: UNKNOWN — not measurable ({exc}) — not counted"]
+    return [f"storage preflight: {check.message}"]
+
+
 def run_install_execute(
     *,
     manifest: Optional[dict[str, Any]] = None,
@@ -181,6 +197,12 @@ def run_install_execute(
     data = manifest if manifest is not None else load_manifest()
     records = tools if tools is not None else detect_tools(data)
     platform_id = platform_name if platform_name is not None else current_platform()
+
+    pre_lines = _storage_preflight_lines()
+    for line in pre_lines:
+        if line.startswith("BLOCKED"):
+            return EXIT_REFUSED, [f"platform: {platform_id}"] + pre_lines
+
     outcome = apply_installs(
         platform_entries(data, platform_id),
         records,
@@ -188,7 +210,7 @@ def run_install_execute(
         system=system,
         probe=probe,
     )
-    return outcome.exit_code, [f"platform: {platform_id}"] + outcome.lines
+    return outcome.exit_code, [f"platform: {platform_id}"] + pre_lines + outcome.lines
 
 
 def run_update_plan(

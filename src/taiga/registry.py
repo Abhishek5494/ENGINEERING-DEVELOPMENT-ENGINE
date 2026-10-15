@@ -1,4 +1,4 @@
-﻿"Provider registry (T-0602)"
+"Provider registry (T-0602)"
 
 from __future__ import annotations
 from typing import Dict, Sequence

@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "development_root": "D:/EngineeringWorkspace",
+  "min_free_bytes_default": 1073741824,
+  "notes": "Destination-drive layout for development storage (T-1800). Absolute paths are machine data; override development_root to relocate the whole workspace. All values are bytes. required_bytes is an optional per-operation estimate of the final output size; min_free_bytes is the headroom that must remain free on the destination drive. Operations with a larger footprint carry a larger threshold (ADR-0003 section 5) - there is no single universal threshold.",
+  "locations": {
+    "project": "project",
+    "environments": "environments",
+    "pip_cache": "caches/pip",
+    "npm_cache": "caches/npm",
+    "huggingface_home": "models/huggingface",
+    "temp": "temp",
+    "builds": "builds",
+    "test_artifacts": "test-artifacts",
+    "logs": "logs",
+    "models": "models",
+    "datasets": "datasets",
+    "packages": "packages",
+    "downloads": "downloads",
+    "backups": "backups"
+  },
+  "operations": {
+    "dependency_install": {
+      "required_bytes": 0,
+      "min_free_bytes": 2147483648,
+      "description": "pip/npm dependency installation"
+    },
+    "model_download": {
+      "required_bytes": 0,
+      "min_free_bytes": 5368709120,
+      "description": "AI model download (e.g. Taiga-S1 / biome-s1)"
+    },
+    "build": {
+      "required_bytes": 0,
+      "min_free_bytes": 2147483648,
+      "description": "compilation and packaging"
+    },
+    "dataset_extraction": {
+      "required_bytes": 0,
+      "min_free_bytes": 5368709120,
+      "description": "dataset download and extraction"
+    },
+    "large_test_run": {
+      "required_bytes": 0,
+      "min_free_bytes": 1073741824,
+      "description": "large test suite and artifacts"
+    },
+    "container_image": {
+      "required_bytes": 0,
+      "min_free_bytes": 10737418240,
+      "description": "container image creation or pull"
+    },
+    "vm_create": {
+      "required_bytes": 0,
+      "min_free_bytes": 21474836480,
+      "description": "virtual machine creation or expansion"
+    }
+  }
+}

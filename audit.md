@@ -1470,3 +1470,331 @@ Append-only record of significant actions, findings and discrepancies
 - Upstream biome-s1/taiga-s1 verified (MIT source; HF model).
 - Tests: 397 passed, 8 skipped.
 
+
+## PROGRESS-UPDATE (2026-10-09)
+- T-0602 confirmed COMPLETE (contracts+registry); upstream verified. One state test expects historical state.
+- No READY task; boundary T-1701 BLOCKED (T-1401,T-1501). B-2 pending; path T-0501→T-0502→T-0404 contingent on approval.
+
+## AUDIT-0040 - Final governance reconciliation (2026-10-09)
+- Reconciled T-0602: contracts+registry COMPLETE (evidence src/taiga/*.py); live inference/orchestration runtime unverified (not claimed).
+- B-1: upstream biome-s1/taiga-s1 verified (MIT source; HF card noted). B-2: explicit approval not recorded; C:\\ free ~4.251 GB (documented constraint persists).
+- Task states: T-0501 BLOCKED(B-2), T-0502 PLANNED(needs T-0501), T-0404 PLANNED(needs T-0502), T-1301 BLOCKED(needs T-0404; T-0602 COMPLETE), T-1401 BLOCKED(needs T-1301), T-1501 BLOCKED(needs T-0502), T-1701 BLOCKED(needs T-1401,T-1501).
+- Governance test baseline: 396 passed, 8 skipped, 1 failed (test_parse_roadmap_tasks_real_file expects T-0602 BLOCKED; roadmap/impl mark COMPLETE). Repository clean; boundary T-1701 BLOCKED; no READY task.
+
+## AUDIT-0041 - Baseline stabilization & Taiga-S1 completion reconciliation (T-1700, 2026-10-11)
+
+- **Directive:** a continuation/audit protocol was received. Per its §1, the
+  authoritative repository state was recovered and verified before any change.
+- **Verified (OBSERVED):** branch `master`, HEAD `f5f9400`; working tree carried
+  an uncommitted BOM edit to `next-task.md` + an AUDIT-0040 append; untracked
+  `progress.md`. `git log` rebuilt the full development history.
+- **Defect #1 (P0, found + fixed):** `tests/test_core_state.py::test_parse_roadmap_tasks_real_file`
+  asserted `T-0602 == BLOCKED` while the roadmap and implementation mark it
+  COMPLETE → the suite was RED (396 passed, 8 skipped, **1 failed**). Assertion
+  corrected to COMPLETE (+ a T-0601 COMPLETE assertion). Suite restored green.
+- **Defect #2 (P1, found + fixed):** `next-task.md` line 1 carried a UTF-8 BOM
+  (`\ufeff`), an accidental corruption unrelated to content. File rewritten
+  without the BOM.
+- **Defect #3 (P1, found + fixed):** T-0601 (runtime selection + resource
+  awareness) was marked COMPLETE with **no implementation artefact and no
+  tests** anywhere in the repository, and T-0602's roadmap description ("task
+  routing / engineering documentation") over-stated the actual code (a
+  provider-neutral contract + registry). Resolution: added
+  `src/taiga/runtime.py` (resource-aware model-tier selection from the PEM
+  RAM/VRAM budget, INFERRED evidence, honest UNKNOWN/unavailable) and
+  `tests/test_taiga.py` (contracts + registry + runtime), making both
+  completions evidence-backed (MASTER §46); T-0602's roadmap description was
+  corrected to its real scope. No subsystem behaviour changed.
+- **Defect #4 (P2, found + fixed):** multiple governance documents disagreed
+  with the repository — README still said "Phase 0 … no engineering subsystems
+  implemented yet"; architecture.md said "License undecided" and "Taiga-S1 …
+  BLOCKED"; project-state.md and memory.md still listed B-1 as an open blocker
+  and T-0002/T-0601/T-0602 as incomplete; requirements.md was "last verified …
+  TASK-0001 bootstrap". All reconciled to reality (B-1 resolved, MIT applied,
+  T-0601/T-0602 COMPLETE, phases 0–16). Added roadmap task T-1700 (stabilization)
+  and wired T-1701 to depend on it.
+- **Defect #5 (P2, found + fixed):** `src/orchestration/` docstrings and the
+  ANALYZE blocker text still cited "T-0602 blocked / B-1" as the reason the
+  stage is blocked — both are resolved. Corrected to state the real reason
+  ("no live Taiga-S1 inference provider wired") while keeping the stage
+  honestly BLOCKED. No stage status or behaviour changed.
+- **Evidence class:** OBSERVED (pytest + git + file inspection; the taiga
+  selection and docs are unit-tested/static).
+- **Tests:** `python -m pytest tests/ -q` → **413 passed, 8 skipped**
+  (Python 3.13.5, pytest 9.1.1). Was 396 passed/1 failed before T-1700.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED for the suite and the
+  taiga unit tests; docs are STATIC-VALIDATED.
+- **Limitations:** no live Taiga-S1 inference provider exists (ANALYZE stays
+  BLOCKED); no external tool is installed; B-2 (install gate + disk) persists.
+  Releases/installs were neither performed nor claimed.
+- **Files:** tests/test_core_state.py, src/taiga/runtime.py,
+  src/taiga/__init__.py, src/orchestration/__init__.py,
+  src/orchestration/workflow.py, tests/test_taiga.py, roadmap.md,
+  next-task.md, README.md, architecture.md, requirements.md, project-state.md,
+  memory.md, audit.md.
+
+## AUDIT-0042 - Canonical upstream-source registry (T-0203, 2026-10-11)
+
+- **Directive (owner-supplied upstream manifest):** create a canonical
+  upstream-source registry for the project-owned integrations and specialist
+  tools; store repository URLs and official documentation URLs; define a
+  stable id/name/purpose/source-type/verification-status schema; never invent
+  versions/commits/licenses; update README; avoid duplicating the URL list in
+  memory/chatmem/roadmap/next-task; keep `tool-manifest.json` for detection;
+  add schema validation and tests; do not clone/install/access the network.
+- **Found (OBSERVED):** the 11 tools were already present in
+  `config/tool-manifest.json`, but there was no canonical upstream URL list —
+  Taiga-S1's URLs lived only in prose in `memory.md` (duplication risk). The
+  tool-manifest schema is `additionalProperties: false`, so adding an upstream
+  field would break compatibility; the registry therefore links to the
+  manifest by using the SAME ids (git, python, jupyter, taiga-s1, freecad,
+  kicad, ngspice, gazebo, blender, rea, scrapling) instead of changing it.
+- **Implemented:** `config/upstream-sources.json` (schema_version 1.0, 11
+  sources ordered core-integrations then specialist-tools), a draft-07
+  `config/upstream-sources.schema.json`, and a stdlib loader/validator
+  `src/core/upstream.py` (`load_upstream_sources`/`validate_registry`/
+  `source_ids`/`get_source`). `src/core/config.py` gains
+  `UPSTREAM_SOURCES_PATH`/`UPSTREAM_SOURCES_SCHEMA_PATH`; `src/core/__init__.py`
+  re-exports. No code path performs I/O beyond reading the JSON.
+- **Honesty rules enforced:** `license_status`/`version_status` ∈
+  {VERIFIED, UNVERIFIED, UNKNOWN}; `UNKNOWN` forbids a claimed
+  license/version/commit; `VERIFIED` requires a non-empty value; URLs must be
+  https with a host; ids unique; no installation-state keys. All 11 entries
+  currently record license/version as UNKNOWN (except Taiga-S1 license MIT,
+  VERIFIED per AUDIT-0032) — nothing is guessed.
+- **Tests:** `tests/test_upstream_sources.py` (27 tests: real-registry load,
+  11 present, schema↔loader required-fields/enum agreement, https URL checks,
+  unique ids, manifest coverage, UNKNOWN-honesty, full rejection matrix).
+- **Evidence class:** OBSERVED (loader + tests + file inspection).
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED (loader executed;
+  suite green).
+- **Limitations:** no upstream repository was cloned/inspected and no network
+  was used, so license/version/commit for 10 of 11 sources remain UNKNOWN and
+  `documentation_url` is null everywhere; populate only after inspection.
+- **Files:** config/upstream-sources.json, config/upstream-sources.schema.json,
+  src/core/upstream.py, src/core/config.py, src/core/__init__.py,
+  tests/test_upstream_sources.py, README.md, memory.md, chatmem.md, roadmap.md,
+  project-state.md, requirements.md, audit.md.
+
+## AUDIT-0043 - C: drive protection & D: development isolation (T-1800/T-1801, 2026-10-11)
+
+- **Directive (owner):** audit and configure the workflow so the Windows
+  system drive (`C:`) cannot fill and interrupt development; use `D:` for
+  development storage wherever supported; add storage preflights; keep
+  cleanup safe and approval-gated; document remaining C: dependencies.
+- **Storage audit (OBSERVED):** C: 2.23 GiB free / 199.15 GiB total;
+  D: 90.52 GiB free / 276.82 GiB total. Repo is 3 MB / 637 files on D:.
+  Python is the global interpreter on C: (`...\Python313`); the project has no
+  requirements/pyproject/venv (stdlib + pytest only). Largest C: consumers are
+  non-project: `C:\Windows` 46.2 GB, `AppData` 54.6 GB (Microsoft 19 GB,
+  Google 6 GB, npm-cache 2.78 GB, Brave 2.2 GB, pip 1.23 GB), ProgramData
+  33.2 GB (Adobe 23 GB), `Documents\Virtual Machines` 18.3 GB. The
+  project-controllable C: footprint is the pip/npm caches, TEMP during runs,
+  and future model downloads.
+- **Implemented (non-destructive):** created `D:\EngineeringWorkspace\`;
+  redirected pip `global.cache-dir` and npm `cache`, and set
+  `HF_HOME`/`HF_HUB_CACHE`, to D:; added session-scoped `TEMP`/`TMP` via
+  `scripts/windows/dev-env.ps1`; added `src/core/storage.py` +
+  `config/storage.json` (per-operation thresholds, no universal constant) with
+  `check_storage`/`preflight`/`require_storage` and a `preflight` CLI;
+  integrated a `dependency_install` preflight into `python -m
+  src.pem.ops install --execute` (refuses exit 3); documented
+  `docs/storage.md`.
+- **Verification (OBSERVED):** `pip cache dir` → `D:\EngineeringWorkspace\
+  caches\pip`; `npm config get cache` → `D:\EngineeringWorkspace\caches\npm`;
+  `HF_HOME` set (user); `preflight dependency_install` → ok (exit 0) with
+  `drive=D:\`, 90.52 GiB free. D: temp write probe succeeded.
+- **No deletion:** no files were removed. Cleanup of the old C: pip/npm caches
+  was the separate, approval-gated task T-1802 (BLOCKED at the time; completed
+  in AUDIT-0044).
+- **Evidence class:** OBSERVED.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED (CLI + redirection
+  measured; 24 new tests; full suite 464 passed, 8 skipped / 472 collected —
+  the earlier "22 tests / 462 passed" figure was an undercount, corrected in
+  AUDIT-0044).
+- **Limitations:** redirection stops future C: growth but does not reclaim
+  existing C: usage; most C: usage is non-project and out of scope; persistent
+  env changes affect the user account (reversible); model/venv redirection is
+  configured but unexercised (no model/venv; B-2 gate).
+- **Files:** config/storage.json, src/core/storage.py, src/core/config.py,
+  src/core/__init__.py, src/pem/ops.py, tests/test_storage.py,
+  scripts/windows/dev-env.ps1, docs/storage.md, README.md, memory.md,
+  chatmem.md, roadmap.md, next-task.md, project-state.md, requirements.md,
+  audit.md.
+
+## AUDIT-0044 - T-1802 cleanup + full-project audit & governance reconciliation (T-1702, 2026-10-15)
+
+- **Directive (owner):** (a) approve the narrow T-1802 cleanup; then (b)
+  continue with a full MASTER AUDIT -> CONTINUATION audit and continue
+  development.
+- **Found (OBSERVED) — documentation drift after T-1802:** the T-1802
+  completion was recorded only in `next-task.md` and `tests/test_core_state.py`;
+  `project-state.md`, `roadmap.md`, `audit.md`, `chatmem.md`, `README.md` and
+  `architecture.md` still showed T-1802 `BLOCKED` and a "462 passed" test count.
+- **Found (OBSERVED) — dangling citations:** `src/core/storage.py`,
+  `config/storage.json`, `docs/storage.md`, `project-state.md` and `roadmap.md`
+  cited a "MASTER prompt addendum §N". `MASTER.md` (1951 lines, ends at §59) has
+  no addendum; the cited rules come from the owner's storage directive, supplied
+  in conversation — so the citations resolved to nothing.
+- **Found (OBSERVED) — count error:** `tests/test_storage.py` has 24 tests (not
+  22); the suite is 464 passed / 8 skipped (472 collected), not 462.
+- **Also found (OBSERVED, non-blocking):** the host OS build is 10.0.26300
+  (memory/project-state recorded 10.0.26200 from bootstrap); a large body of
+  working-tree-only work is untracked (`src/taiga/runtime.py`,
+  `tests/test_taiga.py`, `tests/test_storage.py`, `src/core/storage.py`,
+  `src/core/upstream.py`, `config/storage.json`, `config/upstream-sources.*`,
+  `scripts/windows/dev-env.ps1`, `docs/storage.md`, ADR-0003), a recovery risk;
+  `progress.md` remains an untracked non-governance duplicate (H-13).
+- **T-1802 executed (owner-approved):** `pip cache purge` (0 bytes — the pip
+  cache already lives on `D:` after T-1800) and `npm cache clean --force`.
+  C: free rose ~2.23 → ~2.34 GiB. No other deletion.
+- **T-1702 implemented (documentation-only):** resynced `project-state.md`
+  (current phase, completed tasks incl. T-1802/T-1702, boundary T-1701 BLOCKED,
+  464/472 test count, OS build, blockers/known-issues, next action, last
+  update), `roadmap.md` (T-1802 row/detail COMPLETE, new T-1702 row/detail,
+  last-updated + change log), `chatmem.md`, `README.md` (Phase 18 storage +
+  `dev-env.ps1`), `architecture.md` (storage/workspace section); created
+  `decisions/ADR-0003-development-storage-isolation.md` recording the owner
+  directive with numbered sections; repointed every "MASTER prompt addendum §N"
+  citation to the matching `ADR-0003 §N`.
+- **Security review (this audit):** no hardcoded secrets/keys/tokens; no
+  `shell=True`/`os.system`/`eval`/`exec`/unsafe `pickle`/`yaml.load`;
+  subprocess calls are argv-list based with timeouts; `.gitignore` blocks
+  `*.env`/`secrets.json` (test-enforced). No HIGH-PRIORITY findings.
+- **Requirement matrix:** all R1–R16 accounted for (see `requirements.md`);
+  remaining gaps (R5.1/R5.2, R6, R14, R15.2) are the BLOCKED install-gated and
+  provider-dependent items, unchanged.
+- **Evidence class:** OBSERVED.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED. Full suite
+  **464 passed, 8 skipped (472 collected)** after the changes; no code behaviour
+  changed (only docstrings/JSON note/ADR/docs).
+- **Limitations:** documentation reachable only through Git once committed (the
+  working tree is uncommitted; no commit was requested). Non-project C: usage
+  and the B-2 install gate remain out of scope.
+- **Files:** decisions/ADR-0003-development-storage-isolation.md, project-state.md,
+  roadmap.md, chatmem.md, README.md, architecture.md, memory.md, requirements.md,
+  src/core/storage.py (docstring), config/storage.json (note string),
+  docs/storage.md, next-task.md, tests/test_core_state.py, audit.md.
+
+## AUDIT-0045 - Dependency independence & self-contained deployment (T-1900, 2026-10-15)
+
+- **Directive (owner):** new architectural requirement "DEPENDENCY
+  INDEPENDENCE & SELF-CONTAINED DEPLOYMENT" (companion to the storage
+  directive): inventory every dependency, minimise external installation,
+  document offline capability, choose a packaging strategy, validate on a
+  fresh system, keep packaging instructions and validation tests in the repo.
+- **Audit (OBSERVED):** the runtime is **standard-library only**. An AST scan
+  of every `src/**/*.py` import finds exactly one third-party import — `yaml`
+  in `src/core/config.py`, guarded by `try/except` and never required (all
+  runtime config is JSON). No external database/service, no required network
+  access, no bundled binary, and no `requirements.txt`/`pyproject.toml`/
+  `Pipfile`/`poetry.lock`. Development-only: `pytest` (OBSERVED 9.1.1). Tools
+  (FreeCAD/KiCad/ngspice/Gazebo/Blender/Jupyter/Scrapling/Taiga-S1) are
+  optional and already inventoried in `config/tool-manifest.json` +
+  `config/upstream-sources.json` — not duplicated.
+- **Found (OBSERVED) — stray BOMs:** `src/taiga/__init__.py`,
+  `src/taiga/contracts.py` and `src/taiga/registry.py` each began with a UTF-8
+  BOM (written by a prior session's tooling). Python tolerates a leading BOM
+  so the suite was green, but the BOM broke `ast.parse` on the raw text and is
+  not house style. Stripped all three; added a repo-wide no-BOM guard.
+- **T-1900 implemented (documentation + verification; no runtime change):**
+  - `docs/dependencies.md` — full inventory (all directive categories) with
+    necessity/provisioning/offline/license, an offline-first matrix, a
+    packaging strategy + setup/fresh-system validation instructions, license
+    posture, unavoidable C: dependencies, and a dependency-addition policy.
+  - `decisions/ADR-0004-dependency-independence.md` — records the owner
+    directive (§1–§7) so citations resolve.
+  - `tests/test_dependency_independence.py` (7 tests) — stdlib-only imports,
+    guarded optional imports, import-without-optional-dependency (subprocess
+    with PyYAML blocked), JSON runtime config, no forbidden packaging manifest,
+    inventory-doc coverage, and a repo-wide no-BOM guard.
+  - Governance: `requirements.md` R18 (+ H-14), `README.md`,
+    `architecture.md` (§2.9, §5, §7, §9), `roadmap.md` (Phase 19 + T-1900 +
+    change log), `next-task.md`.
+- **Acceptance criteria (directive §6):** inventory documented (R18.1);
+  unnecessary installs removed/justified — none existed (R18.2); runtime deps
+  unneeded beyond Python (R18.3/R18.4); fresh-machine operation documented and
+  UNVERIFIED honestly (§7 of the doc); licenses respected (not bundled);
+  packaging instructions + validation tests in the repo (R18.5). Bundling a
+  portable/executable artifact is deferred to an owner decision (H-14).
+- **Evidence class:** OBSERVED.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED. New tests 7; full
+  suite **471 passed, 8 skipped (479 collected)**. No runtime behaviour
+  changed (docs, one new test module, and BOM removal in three source files).
+- **Limitations:** fresh-machine (clean-host) validation is UNVERIFIED (no
+  second clean host); scheduled builds/CI not present; a bundled artifact is
+  not built. The B-2 install gate and non-project C: usage remain out of scope.
+- **Files:** docs/dependencies.md, decisions/ADR-0004-dependency-independence.md,
+  tests/test_dependency_independence.py, requirements.md, README.md,
+  architecture.md, roadmap.md, project-state.md, memory.md, chatmem.md,
+  next-task.md, src/taiga/__init__.py, src/taiga/contracts.py,
+  src/taiga/registry.py, audit.md.
+
+## AUDIT-0046 - MVP operability & documentation (T-2000/T-2001, 2026-10-15)
+
+- **Directive (owner):** "UNIVERSAL PROJECT AUTONOMY PROTOCOL" — finish the
+  existing project to a complete, validated MVP (not another audit or
+  roadmap): DISCOVER → AUDIT → RECONSTRUCT → RECONCILE → DESIGN → PRIORITIZE →
+  IMPLEMENT → TEST → DOCUMENT → HARDEN → PACKAGE → VERIFY → RELEASE-READY MVP,
+  with an evidence register, a requirements register, an MVP definition, and a
+  final status block, while preserving existing working systems.
+- **Audit (OBSERVED) — reconciliation against the directive:**
+  - The functional end-to-end pipeline is **blocked on external
+    authorisation**, not on missing code: live web acquisition (Scrapling,
+    T-0501/T-0502) needs the install gate (B-2) and the `ANALYZE` stage needs a
+    live Taiga-S1 inference provider (none wired). These are honest
+    `BLOCKED`/`UNAVAILABLE` capabilities, not defects (MASTER §46).
+  - Every non-blocked subsystem is COMPLETE (Phases 0–12, 16, 18, 19). The
+    remaining roadmap tasks (T-0404/T-1301/T-1401/T-1501/T-1701) all depend on
+    the blocked resources.
+  - **MVP gap found (OBSERVED):** there was **no unified entry point** — the
+    flagship `run_workflow` and the subsystem commands were only reachable as
+    separate `python -m src.<module>` invocations; `src/__main__.py` did not
+    exist. "Operate the project" was therefore awkward (protocol §7 "required
+    interfaces", §16 checklist).
+  - **Documentation gap found (OBSERVED):** the protocol's expected
+    owner/developer docs beyond governance (`PROJECT_SCOPE`/MVP, `TESTING`,
+    `INSTALLATION`, `SECURITY`, `USER_GUIDE`, `CHANGELOG`) did not exist as
+    consolidated files (`DECISIONS` → `decisions/`, `AUDIT_LOG` → `audit.md`,
+    `REQUIREMENTS` → `requirements.md`, `ARCHITECTURE` → `architecture.md`,
+    `DEVELOPMENT_PLAN` → `roadmap.md` already exist and were reused, not
+    duplicated).
+- **T-2000 implemented (unified offline CLI):** `src/cli.py` (thin `argparse`
+  dispatcher) + `src/__main__.py` + `src.__version__ = "0.1.0"` expose
+  `version`, `env`, `tools`, `storage preflight`, `upstream`, `cie identify`,
+  `rea inspect`, `workflow run` from `python -m src`. Each command wraps an
+  existing subsystem API; no behaviour added; blocked stages still report
+  honestly. `tests/test_cli.py` (12 tests) covers every command and exit code.
+- **T-2001 implemented (MVP definition & consolidated documentation):**
+  `docs/mvp.md` (scope, in/out-of-scope, acceptance, verification),
+  `docs/usage.md`, `docs/installation.md`, `docs/testing.md`,
+  `docs/security.md`, `CHANGELOG.md`; decision recorded as
+  `decisions/ADR-0005-mvp-scope-and-delivery.md`. Non-duplicative: each links
+  to governance instead of restating it.
+- **Acceptance criteria:** runnable (`python -m src version`, smoke-tested);
+  tested (suite green); offline (dependency guards green); documented (new
+  docs); honest (workflow `PARTIALLY-VALIDATED`, blocked stages visible);
+  governed (`assert_recoverable` passes; boundary T-1701 unchanged). Proven by
+  the full suite and live CLI smoke commands.
+- **Evidence class:** OBSERVED.
+- **Validation level:** IMPLEMENTED + RUNTIME-VALIDATED. New tests 12; full
+  suite **483 passed, 8 skipped (491 collected)**; `python -m src version`,
+  `workflow run --name smoke`, `storage preflight build`, and `upstream` all
+  executed successfully. No runtime behaviour changed for existing subsystems.
+- **Limitations:** the live pipeline stays BLOCKED (B-2/H-3); no bundled
+  artifact (H-14); fresh-machine validation UNVERIFIED (no second clean host).
+  The CLI is a convenience surface, not a claim that the blocked stages work.
+- **Files:** src/cli.py, src/__main__.py, src/__init__.py, tests/test_cli.py,
+  docs/mvp.md, docs/usage.md, docs/installation.md, docs/testing.md,
+  docs/security.md, CHANGELOG.md,
+  decisions/ADR-0005-mvp-scope-and-delivery.md, README.md, architecture.md,
+  roadmap.md, requirements.md, project-state.md, next-task.md, memory.md,
+  chatmem.md, audit.md.
+
+### Final status (AUDIT-0046)
+
+- **Project status:** MVP COMPLETE for the offline scope; long-term goals
+  preserved. The single remaining blocker to the live end-to-end product is
+  owner authorisation of the install gate (B-2) plus a live Taiga-S1 provider
+  (H-3); packaging awaits H-14.
+- **Boundary:** unchanged — T-1701 BLOCKED; no READY task exists.

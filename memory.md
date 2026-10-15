@@ -6,20 +6,23 @@ actions belong in `audit.md`.
 
 ## Platform / environment (evidence-backed)
 
-- Host OS: Windows 11 (build 10.0.26200), AMD64 64-bit, PowerShell 5.1 —
-  OBSERVED via `detect_system()`, 2026-10-08.
+- Host OS: Windows 11 (build 10.0.26300, re-observed 2026-10-15; bootstrap
+  reading was 10.0.26200), AMD64 64-bit, PowerShell 5.1 — OBSERVED via
+  `detect_system()`.
 - CPU: AMD Ryzen 5 5600H with Radeon Graphics — OBSERVED, 2026-10-08.
 - RAM as reported by OS: 6,287,331,328 bytes (~5.86 GiB) — OBSERVED,
   2026-10-08. May exclude hardware-reserved memory; treat as the usable
   budget for resource-aware decisions (§38).
 - GPU: AMD Radeon(TM) Graphics (iGPU) + NVIDIA GeForce GTX 1650 (dGPU) —
   OBSERVED, 2026-10-08. VRAM: UNKNOWN (not queried).
-- Storage: C:\ ~213.8 GB total, free space VOLATILE (OBSERVED:
-  6,135,808 bytes at 2026-10-08T13:15Z → 459,509,760 bytes later the
-  same day — Windows automatic temp cleanup runs); D:\ ~297.2 GB total
-  with ~96.8 GB free. Below the 1 GiB report/healthcheck threshold, so
-  healthcheck exits 1 on this host. Re-check immediately before any
-  install execution.
+- Storage: C:\ ~199 GB total, free space VOLATILE and below the 1 GiB
+  report/healthcheck threshold (OBSERVED 2026-10-11: 2.23 GiB free; after the
+  T-1802 purge 2026-10-15: ~2.34 GiB). D:\ ~277 GB total, ~90.5 GB free.
+  Re-check immediately before any install execution. Development caches are
+  redirected to `D:\EngineeringWorkspace\` (pip/npm/HuggingFace + session
+  TEMP/TMP; T-1800, ADR-0003); a storage preflight
+  (`python -m src.core.storage preflight <op>`) guards expensive operations
+  (T-1801). Most C: usage is non-project (OS/apps/VMs).
 - Toolchain probed at bootstrap: Git 2.55.0.windows.3, Python 3.13.5,
   Node v24.14.1, pytest 9.1.1 — OBSERVED (command output, 2026-10-08).
 - PySide6 6.11.1 (Qt 6.11.1 runtime) present on host — OBSERVED via
@@ -30,9 +33,10 @@ actions belong in `audit.md`.
   OBSERVED 2026-10-08 (`detect_tools()`: executable/module absent on
   PATH). Do not assume availability; install tasks (T-0104+) or user
   action required before any engineering-tool task (T-0801+) can run.
-- Taiga-S1 / REA: not integrated. Taiga-S1 upstream repository is NOT
-  supplied (blocker B-1 → T-0601/T-0602 BLOCKED); REA reference
-  repository is available (`morluto/rea`) but integration is pending.
+- Taiga-S1 / REA: REA framework is COMPLETE (T-0701/T-0702). Taiga-S1
+  upstream is verified (B-1 resolved) and T-0601/T-0602 are COMPLETE
+  (`src/taiga/runtime.py`, `contracts.py`, `registry.py`); a live inference
+  provider is not yet wired, so orchestration ANALYZE stays BLOCKED.
 - Installed and probe-verified: Git 2.55.0 (C:\Program Files\Git), Python
   3.13.5 (Python313 user install) — OBSERVED 2026-10-08.
 
@@ -62,6 +66,12 @@ actions belong in `audit.md`.
 - ADR-0001: bootstrap governance (see decisions/ADR-0001).
 - ADR-0002: evidence strength ordering (see decisions/ADR-0002) — the
   eight §6 labels ranked per §5; OBSERVED second, ASSUMED above INFERRED.
+- ADR-0003: development storage isolation & C:-drive protection (see
+  decisions/ADR-0003) — records the owner storage directive; references to a
+  "MASTER prompt addendum §N" mean the matching ADR-0003 section.
+- ADR-0004: dependency independence & self-contained deployment (see
+  decisions/ADR-0004) — records the owner dependency directive; the runtime is
+  standard-library only and this is now enforced by tests.
 - Task states are exactly §32's seven (PLANNED, READY, IN_PROGRESS,
   BLOCKED, COMPLETE, DEFERRED, CANCELLED) — no other tokens.
 - Python 3 as implementation language; pytest as test framework.
@@ -115,6 +125,27 @@ actions belong in `audit.md`.
 - Manifest notes reflect OBSERVED probe results (tools not found are recorded
   as NOT_FOUND, not "not probed"; in-house components `taiga-s1` and `rea` are
   recorded as UNKNOWN/detection-method 'none' with upstream/intent stated). (AUDIT-0031)
+- `config/upstream-sources.json` (T-0203) is the canonical upstream-source
+  registry: for each project-owned integration and specialist tool it records
+  id/name/purpose, repository URL, documentation URL (null = UNKNOWN),
+  source_type, and license/version/integration verification status. It is
+  reference-only — never installation state, never a guessed version/commit/
+  license (`null` = UNKNOWN; a value is only present when VERIFIED). Its ids
+  match `config/tool-manifest.json` ids. Loader: `src/core/upstream.py`
+  (`load_upstream_sources`/`source_ids`/`get_source`).
+- **Dependency independence (T-1900, ADR-0004):** the runtime is
+  standard-library only. The sole third-party import anywhere in `src/` is
+  `yaml` in `src/core/config.py`, which is optional and guarded
+  (`try/except`; JSON is the primary config format). There is **no**
+  `requirements.txt`/`pyproject.toml`/`Pipfile`/`poetry.lock`; the only
+  development tool is `pytest`. `docs/dependencies.md` is the authoritative
+  inventory (necessity/provisioning/offline/license per item);
+  `tests/test_dependency_independence.py` enforces stdlib-only imports, guarded
+  optional imports, import-without-optional-dependency, JSON runtime config,
+  and no UTF-8 BOM in source/governance files. Keep it that way: adding a
+  third-party runtime dependency requires documenting it and updating the
+  allowlist. Beware: tooling can add a UTF-8 BOM to written files — Python
+  tolerates it but static parsers do not (found in `src/taiga/*`, T-1900).
 
 ## Hard-won lessons
 
@@ -133,8 +164,10 @@ actions belong in `audit.md`.
 - Operating in **autonomous build mode**: execute the roadmap task-by-task
   without asking the user what to do next; update state/audit/docs, review
   the diff, commit, then pick the next READY task by §48 phase order.
-- **BLOCKER B-1:** Taiga-S1 upstream repository not supplied (directive
-  placeholder) → T-0601/T-0602 BLOCKED; no Taiga API is guessed.
+- **BLOCKER B-1 — RESOLVED (2026-10-09):** Taiga-S1 upstream verified
+  (biome-s1 family); T-0601/T-0602 COMPLETE. No Taiga API was guessed —
+  the contracts are provider-neutral. A live inference provider is still
+  not wired, so ANALYZE stays BLOCKED.
 - **BLOCKER B-2:** real (privileged/network) installation of engineering
   tools requires human approval (MASTER §7/§29) and C:\ is below the
   disk threshold → install tasks ship as code + SKIP-when-absent tests
@@ -171,6 +204,26 @@ actions belong in `audit.md`.
   Scrapling (T-0404/T-0502) and ANALYZE on Taiga-S1 (T-0602) — do not
   substitute guesses for either.
 
-- Taiga-S1 upstream verified (2026-10-09): repo https://github.com/shhivv/biome-s1 (biome-s1 family includes Taiga-S1/Mesa-S1; Taiga-S1 operates FreeCAD commands, MIT-licensed source). HF https://huggingface.co/shhivv/taiga-s1. B-1 resolved; T-0601/T-0602 unblocked.
+- Taiga-S1 upstream verified (2026-10-09): the biome-s1 family includes
+  Taiga-S1/Mesa-S1; Taiga-S1 operates FreeCAD commands; MIT-licensed source.
+  B-1 resolved; T-0601/T-0602 unblocked. The upstream URL is recorded only in
+  the canonical registry (`config/upstream-sources.json`, id `taiga-s1`) — do
+  not duplicate upstream URLs in this file (T-0203).
 
 - Taiga-S1 provider-neutral contracts added (T-0602): src/taiga/contracts.py (Action, Evidence, Result, Route, Score, Provider/Policy/Capability protocols, ProviderError/ProviderUnavailable) and src/taiga/registry.py + __init__.py. No third-party API wrapped; upstream biome-s1/taiga-s1 verified.
+
+- Unified CLI added (T-2000, ADR-0005): `python -m src <command>` is a thin
+  `argparse` dispatcher (`src/cli.py`, `src/__main__.py`; `src.__version__`).
+  Commands: version, env, tools, storage preflight, upstream, cie identify,
+  rea inspect, workflow run. It holds no business logic — each command calls
+  an existing subsystem API. Exit codes: 0 ok, 2 usage/input error,
+  3 storage preflight blocked. `tests/test_cli.py` covers all commands. Run
+  runtime output is ASCII-safe (avoid em-dash mojibake on the Windows console).
+- MVP definition (T-2001, ADR-0005): `docs/mvp.md` is the scope contract
+  (in-scope offline core; out-of-scope live acquisition/analysis, packaging).
+  Consolidated owner/dev docs: `docs/usage.md`, `docs/installation.md`,
+  `docs/testing.md`, `docs/security.md`, `CHANGELOG.md`. These LINK to
+  governance rather than restate it (no duplication). Protocol doc
+  responsibilities map: PROJECT_SCOPE→`docs/mvp.md`; REQUIREMENTS→`requirements.md`;
+  ARCHITECTURE→`architecture.md`; DEVELOPMENT_PLAN→`roadmap.md`;
+  DECISIONS→`decisions/`; AUDIT_LOG→`audit.md`; USER_GUIDE→`docs/usage.md`.

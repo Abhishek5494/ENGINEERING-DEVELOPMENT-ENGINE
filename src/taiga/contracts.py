@@ -1,4 +1,4 @@
-﻿"""Provider-neutral contracts (T-0602)."""
+"""Provider-neutral contracts (T-0602)."""
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Protocol, Sequence

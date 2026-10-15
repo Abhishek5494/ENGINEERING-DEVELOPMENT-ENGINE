@@ -1,9 +1,11 @@
 """core package — shared services used by all subsystems.
 
-Exposes the tool-manifest loader (T-0201), the shared configuration /
-canonical-path module (T-0202), the evidence/claim primitives (T-0302),
-and the project-state library (T-0301). The manifest loader lives in
-``src.core.manifest``.
+Exposes the tool-manifest loader (T-0201), the upstream-source registry
+loader (T-0203), the shared configuration / canonical-path module (T-0202),
+the storage preflight utility (T-1800/T-1801), the evidence/claim primitives
+(T-0302), and the project-state library (T-0301). The manifest loader lives in
+``src.core.manifest``; the upstream registry loader lives in
+``src.core.upstream``; the storage preflight lives in ``src.core.storage``.
 """
 
 from src.core.config import (
@@ -19,13 +21,45 @@ from src.core.config import (
     REPO_ROOT,
     SCRIPTS_DIR,
     SIMULATIONS_DIR,
+    STORAGE_CONFIG_PATH,
     TESTS_DIR,
+    UPSTREAM_SOURCES_PATH,
+    UPSTREAM_SOURCES_SCHEMA_PATH,
     ConfigError,
     load_config,
     load_json,
     load_yaml,
     resolve_path,
     yaml_available,
+)
+from src.core.storage import (
+    DEFAULT_MIN_FREE_BYTES,
+    DEVELOPMENT_ROOT_ENV,
+    DiskUsage,
+    InsufficientStorageError,
+    StorageCheck,
+    StorageError,
+    check_storage,
+    development_root,
+    disk_usage,
+    drive_of,
+    format_bytes,
+    free_bytes,
+    load_storage_config,
+    location,
+    preflight,
+    require_storage,
+)
+from src.core.upstream import (
+    INTEGRATION_STATUSES,
+    REQUIRED_SOURCE_FIELDS,
+    SOURCE_TYPES,
+    VERIFICATION_STATUSES,
+    UpstreamRegistryError,
+    get_source,
+    load_upstream_sources,
+    source_ids,
+    validate_registry,
 )
 from src.core.evidence import (
     EVIDENCE_LABELS,
@@ -69,6 +103,34 @@ __all__ = [
     "SCRIPTS_DIR",
     "DECISIONS_DIR",
     "TESTS_DIR",
+    "STORAGE_CONFIG_PATH",
+    "DEFAULT_MIN_FREE_BYTES",
+    "DEVELOPMENT_ROOT_ENV",
+    "StorageError",
+    "InsufficientStorageError",
+    "DiskUsage",
+    "StorageCheck",
+    "disk_usage",
+    "free_bytes",
+    "drive_of",
+    "format_bytes",
+    "load_storage_config",
+    "development_root",
+    "location",
+    "check_storage",
+    "preflight",
+    "require_storage",
+    "UPSTREAM_SOURCES_PATH",
+    "UPSTREAM_SOURCES_SCHEMA_PATH",
+    "UpstreamRegistryError",
+    "load_upstream_sources",
+    "validate_registry",
+    "source_ids",
+    "get_source",
+    "SOURCE_TYPES",
+    "VERIFICATION_STATUSES",
+    "INTEGRATION_STATUSES",
+    "REQUIRED_SOURCE_FIELDS",
     "ConfigError",
     "load_config",
     "load_json",

@@ -4,13 +4,17 @@ Actual repository state. Never fictional (MASTER §29). Rewritten every time
 a task is completed, blocked, or state changes.
 
 ## Current phase
-PHASE 1 — Project Environment Manager (COMPLETE for code; installs gated).
-PHASE 2 — Configuration + tool registry (COMPLETE).
+PHASE 0 — Repository + governance (COMPLETE).
+PHASE 1 — Project Environment Manager (COMPLETE for code; live installs gated).
+PHASE 2 — Configuration + tool registry (COMPLETE; incl. T-0203 canonical
+upstream-source registry).
 PHASE 3 — Core primitives: config, state, evidence (COMPLETE).
 PHASE 4 — Component Intelligence Engine (COMPLETE for offline scope:
 T-0401/T-0402/T-0403; T-0404 awaits Scrapling T-0502).
-PHASE 7 — REA (COMPLETE for framework + offline inspection:
-T-0701/T-0702; Phase 5 T-0501 is BLOCKED on the install gate).
+PHASE 5 — Scrapling integration (BLOCKED: T-0501 install gate B-2).
+PHASE 6 — Taiga-S1 (COMPLETE for contracts/registry + runtime selection:
+T-0601/T-0602; no live inference provider wired).
+PHASE 7 — REA (COMPLETE for framework + offline inspection: T-0701/T-0702).
 PHASE 8 — Python/Jupyter integration (COMPLETE for offline build/validate;
 live execution UNAVAILABLE — Jupyter not installed).
 PHASE 9 — FreeCAD integration (COMPLETE for macro generation/write;
@@ -22,63 +26,86 @@ live robotics simulation UNAVAILABLE — Gazebo not installed).
 PHASE 12 — Blender integration (COMPLETE for script write/headless render
 logic; live rendering UNAVAILABLE — Blender not installed).
 PHASE 13/14 — Unified workflow (T-1301) and validation/BOM pipeline
-(T-1401) — BLOCKED (depend on BLOCKED T-0602/T-0404). A PARTIAL
-preparatory `src/orchestration/` stage machine exists (AUDIT-0030); it
-runs the unblocked stages and reports ACQUIRE/ANALYZE BLOCKED — T-1301
-itself is NOT complete.
+(T-1401) — BLOCKED (T-1301 depends on T-0404; T-1401 on T-1301). A PARTIAL
+preparatory `src/orchestration/` stage machine exists (AUDIT-0030); it runs
+the unblocked stages and reports ACQUIRE/ANALYZE `BLOCKED`.
 PHASE 15 — Security review T-1501 BLOCKED (dep T-0502); recovery test
 T-1502 COMPLETE (state reconstructed from repository evidence only).
 PHASE 16 — Cross-platform hardening T-1601 COMPLETE (LF/UTF-8 text + path
 containment; POSIX runtime evidence still UNAVAILABLE without a VM/CI).
-PHASE 17 — Release audit T-1701 BLOCKED (deps T-1401/T-1501 BLOCKED). No
-further executable task remains; the build stops and surfaces blockers.
+PHASE 17 — Baseline stabilization T-1700 COMPLETE; governance reconciliation
+T-1702 COMPLETE (docs resynced after T-1802; storage directive recorded as
+ADR-0003). Release audit T-1701 BLOCKED (deps T-1401/T-1501 BLOCKED).
+PHASE 18 — C: drive protection & D: development isolation (owner directive;
+ADR-0003). T-1800 (D: storage isolation), T-1801 (storage preflight) and
+T-1802 (narrow regenerable-cache cleanup, owner-approved) COMPLETE.
+PHASE 19 — Dependency independence & self-contained deployment (owner
+directive; ADR-0004). T-1900 (dependency inventory + offline-first audit +
+enforced stdlib-only guards) COMPLETE. Bundled packaging deferred (H-14).
+PHASE 20 — MVP operability & documentation (owner directive "Universal Project
+Autonomy Protocol"; ADR-0005). T-2000 (unified offline CLI `python -m src`)
+and T-2001 (MVP definition + consolidated docs) COMPLETE. The offline MVP is
+complete and operable.
+No further executable task remains; the build stops and surfaces blockers.
 
 ## Overall status
-Governance complete; Phases 1–3 complete (PEM; `src/core/config.py`,
+Governance complete. Phases 1–3 complete (PEM; `src/core/config.py`,
 `state.py`, `evidence.py`, `xplat.py`, `recovery.py`). Phase 4 CIE offline
-scope complete: data model + schema + SQLite/JSON store (T-0401), URL
-ingestion + exact identification (T-0402), provenance + source priority +
-conflicts (T-0403). REA framework + offline inspection complete
-(T-0701/T-0702). Engineering-tool integrations complete for offline
-command/evidence logic: Jupyter (T-0801), FreeCAD (T-0901), KiCad
-(T-1001), ngspice (T-1002), Gazebo (T-1101), Blender (T-1201); live
-execution is UNAVAILABLE (tools not installed). Recovery-after-
-interruption (T-1502) and cross-platform hardening (T-1601) complete.
+scope complete (T-0401 data model + schema + SQLite/JSON store; T-0402 URL
+ingestion + exact identification; T-0403 provenance + source priority +
+conflicts). Phase 6 Taiga-S1 complete for the offline scope: T-0602
+provider-neutral contracts + registry (`src/taiga/contracts.py`,
+`registry.py`) and T-0601 resource-aware runtime selection
+(`src/taiga/runtime.py`); no live inference provider is wired. Phase 7 REA
+framework + offline inspection complete (T-0701/T-0702). Engineering-tool
+integrations complete for offline command/evidence logic: Jupyter (T-0801),
+FreeCAD (T-0901), KiCad (T-1001), ngspice (T-1002), Gazebo (T-1101),
+Blender (T-1201); live execution is UNAVAILABLE (tools not installed).
+Recovery-after-interruption (T-1502), cross-platform hardening (T-1601),
+baseline stabilization (T-1700) and governance reconciliation (T-1702)
+complete. A canonical upstream-source registry (T-0203,
+`config/upstream-sources.json` + schema + `src/core/upstream.py`) records the
+upstream URL and verification status of every integration/specialist tool.
+C: drive protection (T-1800/T-1801/T-1802; ADR-0003):
+`D:\EngineeringWorkspace\` holds development caches (pip/npm/HuggingFace
+redirected), a reusable storage preflight (`src/core/storage.py` +
+`config/storage.json`) guards expensive operations, and the old C: pip/npm
+caches were purged under explicit owner approval. T-0002 license COMPLETE
+(MIT). Dependency independence (T-1900; ADR-0004) is documented in
+`docs/dependencies.md` and enforced by `tests/test_dependency_independence.py`:
+the runtime is standard-library only (the sole third-party import, PyYAML, is
+optional/guarded), config is JSON, and every module imports offline. MVP
+operability (T-2000/T-2001; ADR-0005): a unified offline CLI (`python -m src`,
+`src/cli.py` + `src/__main__.py`) exposes `version`/`env`/`tools`/`storage
+preflight`/`upstream`/`cie identify`/`rea inspect`/`workflow run`, and the MVP
+scope is defined in `docs/mvp.md` with consolidated `docs/usage.md`,
+`docs/installation.md`, `docs/testing.md`, `docs/security.md` and
+`CHANGELOG.md`.
 Not implemented: CIE cross-source search (T-0404, needs Scrapling),
-Scrapling, Taiga-S1, end-to-end orchestration (T-1301), validation/BOM
-pipeline (T-1401), security review (T-1501), release audit (T-1701).
-Taiga-S1 is externally BLOCKED (repo not supplied) and Scrapling is
-BLOCKED on the install gate; live tool installation is gated on user
-approval + disk + network. A PARTIAL T-1301 preparatory branch exists
-(`src/orchestration/`, AUDIT-0030) but the workflow cannot complete while
-ACQUIRE/ANALYZE are BLOCKED. Autonomous build stopped at the blocked
-boundary (no fake completion).
+Scrapling (T-0501/T-0502), end-to-end orchestration (T-1301),
+validation/BOM pipeline (T-1401), security review (T-1501), release audit
+(T-1701). Scrapling remains BLOCKED on the install gate (B-2); live tool
+installation is gated on user approval + disk. A PARTIAL T-1301 preparatory
+branch exists (`src/orchestration/`, AUDIT-0030). Autonomous build stopped
+at the blocked boundary (no fake completion).
 
 ## Completed phases
-- PHASE 0 — Repository + governance (T-0001 COMPLETE, 2026-10-08)
-- PHASE 1 — PEM (T-0101..T-0107, T-0201 COMPLETE for code; live installs
-  gated)
-- PHASE 2 — Configuration + tool registry (T-0202 COMPLETE, 2026-10-08)
-- PHASE 3 — Core primitives (T-0301, T-0302 COMPLETE, 2026-10-08)
-- PHASE 4 — CIE offline scope (T-0401..T-0403 COMPLETE; T-0404 gated on
-  T-0502)
-- PHASE 7 — REA (T-0701/T-0702 COMPLETE; framework + offline inspection)
-- PHASE 8 — Python/Jupyter integration (T-0801 COMPLETE; execution gated
-  on Jupyter presence)
-- PHASE 9 — FreeCAD integration (T-0901 COMPLETE; execution gated on
-  FreeCAD presence)
-- PHASE 10 — KiCad + ngspice integrations (T-1001/T-1002 COMPLETE;
-  execution gated on tool presence)
-- PHASE 11 — Gazebo integration (T-1101 COMPLETE; execution gated on
-  Gazebo presence)
-- PHASE 12 — Blender integration (T-1201 COMPLETE; execution gated on
-  Blender presence)
-- PHASE 13/14 — BLOCKED (T-1301/T-1401; deps T-0602/T-0404 BLOCKED).
-  PARTIAL preparatory `src/orchestration/` delivered (AUDIT-0030), not a
-  task completion.
+- PHASE 0 — Repository + governance (T-0001, T-0002 MIT COMPLETE)
+- PHASE 1 — PEM (T-0101..T-0107, T-0201 COMPLETE for code; live installs gated)
+- PHASE 2 — Configuration + tool registry (T-0202, T-0203 COMPLETE)
+- PHASE 3 — Core primitives (T-0301, T-0302 COMPLETE)
+- PHASE 4 — CIE offline scope (T-0401..T-0403 COMPLETE; T-0404 gated on T-0502)
+- PHASE 6 — Taiga-S1 contracts/registry + runtime selection (T-0601/T-0602 COMPLETE)
+- PHASE 7 — REA (T-0701/T-0702 COMPLETE)
+- PHASE 8–12 — engineering-tool integrations (T-0801, T-0901, T-1001, T-1002,
+  T-1101, T-1201 COMPLETE; live execution gated on tool presence)
 - PHASE 15 — T-1501 BLOCKED (dep T-0502), T-1502 COMPLETE
-- PHASE 16 — T-1601 COMPLETE (deps T-0104/T-0105/T-0106)
-- PHASE 17 — T-1701 BLOCKED (deps T-1401/T-1501 BLOCKED)
+- PHASE 16 — T-1601 COMPLETE
+- PHASE 17 — T-1700, T-1702 COMPLETE; T-1701 BLOCKED (deps T-1401/T-1501)
+- PHASE 18 — T-1800, T-1801, T-1802 COMPLETE
+- PHASE 19 — T-1900 COMPLETE (dependency independence; ADR-0004)
+- PHASE 20 — T-2000, T-2001 COMPLETE (unified offline CLI; MVP definition &
+  consolidated docs; ADR-0005)
 
 ## Completed tasks (last completed task listed last)
 - T-0001 — Repository governance bootstrap (2026-10-08) — 38 tests.
@@ -93,16 +120,11 @@ boundary (no fake completion).
 - T-0202 — Shared configuration module (2026-10-08) — AUDIT-0014.
 - T-0302 — Evidence/claim classification primitives (2026-10-08) — AUDIT-0015.
 - T-0301 — Project-state persistence library (2026-10-08) — AUDIT-0016.
-- T-0401 — CIE component data model + schema + storage (2026-10-08) —
-  AUDIT-0017.
-- T-0402 — CIE URL ingestion + exact identification (2026-10-08) —
-  AUDIT-0018.
-- T-0403 — CIE provenance + source priority + conflicts (2026-10-08) —
-  AUDIT-0019.
-- T-0701 — REA pipeline + investigation templates (2026-10-08) —
-  AUDIT-0020.
-- T-0702 — REA offline inspection + evidence collection (2026-10-08) —
-  AUDIT-0021.
+- T-0401 — CIE component data model + schema + storage (2026-10-08) — AUDIT-0017.
+- T-0402 — CIE URL ingestion + exact identification (2026-10-08) — AUDIT-0018.
+- T-0403 — CIE provenance + source priority + conflicts (2026-10-08) — AUDIT-0019.
+- T-0701 — REA pipeline + investigation templates (2026-10-08) — AUDIT-0020.
+- T-0702 — REA offline inspection + evidence collection (2026-10-08) — AUDIT-0021.
 - T-0801 — Python/Jupyter integration (2026-10-08) — AUDIT-0022.
 - T-0901 — FreeCAD integration (2026-10-08) — AUDIT-0023.
 - T-1001 — KiCad integration (2026-10-08) — AUDIT-0024.
@@ -111,254 +133,223 @@ boundary (no fake completion).
 - T-1201 — Blender integration (2026-10-08) — AUDIT-0027.
 - T-1502 — Recovery-after-interruption test (2026-10-08) — AUDIT-0028.
 - T-1601 — Cross-platform hardening (2026-10-08) — AUDIT-0029.
+- T-0002 — License decision: MIT applied (2026-10-09) — AUDIT-0032.
+- T-0601 — Taiga-S1 runtime selection + resource awareness (2026-10-09) —
+  AUDIT-0032/0041 (`src/taiga/runtime.py`).
+- T-0602 — Taiga-S1 provider-neutral contracts + registry (2026-10-09) —
+  AUDIT-0033/0041 (`src/taiga/contracts.py`, `registry.py`).
+- T-1700 — Baseline stabilization & state reconciliation (2026-10-11) —
+  AUDIT-0041.
+- T-0203 — Canonical upstream-source registry (2026-10-11) — AUDIT-0042
+  (`config/upstream-sources.json` + schema + `src/core/upstream.py` +
+  `tests/test_upstream_sources.py`).
+- T-1800 — D: development storage isolation (2026-10-11) — AUDIT-0043
+  (`D:\EngineeringWorkspace\`, pip/npm/HF redirected, `dev-env.ps1`,
+  `docs/storage.md`).
+- T-1801 — Reusable storage preflight utility + integration (2026-10-11) —
+  AUDIT-0043 (`src/core/storage.py`, `config/storage.json`, ops integration,
+  `tests/test_storage.py`).
+- T-1802 — Safe cleanup of regenerable C: caches (2026-10-15) — AUDIT-0044
+  (owner-approved `pip cache purge` + `npm cache clean --force`).
+- T-1702 — Governance reconciliation after storage work (2026-10-15) —
+  AUDIT-0044 (stale docs resynced; storage directive recorded as ADR-0003).
+- T-1900 — Dependency inventory + self-contained deployment audit (2026-10-15)
+  — AUDIT-0045 (`docs/dependencies.md`, `tests/test_dependency_independence.py`,
+  ADR-0004; BOMs stripped from `src/taiga/*`).
+- T-2000 — Unified offline CLI (2026-10-15) — AUDIT-0046 (`src/cli.py`,
+  `src/__main__.py`, `src.__version__`; `tests/test_cli.py`).
+- T-2001 — MVP definition & consolidated documentation (2026-10-15) —
+  AUDIT-0046 (`docs/mvp.md`, `docs/usage.md`, `docs/installation.md`,
+  `docs/testing.md`, `docs/security.md`, `CHANGELOG.md`, ADR-0005).
 
 ## Last completed task
-- T-1601 — Cross-platform hardening (2026-10-08) — 380 passed, 8 skipped;
-  `src/core/xplat.py` (LF/UTF-8 text I/O, line-ending audit, path
-  containment); live LF audit of `scripts/**/*.sh`. POSIX runtime evidence
-  UNAVAILABLE (no POSIX shell/VM) — recorded honestly.
+- T-2001 — MVP definition & consolidated documentation (2026-10-15) —
+  authored `docs/mvp.md` (MVP scope, acceptance criteria, verification) plus
+  `docs/usage.md`, `docs/installation.md`, `docs/testing.md`,
+  `docs/security.md` and `CHANGELOG.md`, and recorded the scope/delivery
+  decision as `decisions/ADR-0005-mvp-scope-and-delivery.md`. Paired with
+  T-2000 (unified offline CLI). Documentation + interface only; no existing
+  runtime behaviour changed. Test count fixed to **483 passed, 8 skipped
+  (491 collected)**.
 
 ## Current task
 - ID: T-1701
 - Title: Release audit vs MASTER §54 checklist
-- State: BLOCKED (depends on BLOCKED T-1401/T-1501)
-- (Note: all non-blocked phases are complete. No further executable task
-  remains. Remaining blockers: B-1 Taiga-S1 repo not supplied
-  (T-0601/T-0602/T-1301/T-1401); B-2 install approval + C:\ below
-  threshold (T-0501/T-0502/T-0404/T-1501); T-0002 license awaiting human
-  approval. The release audit cannot proceed until these are resolved.
-  Out-of-boundary preparatory work on T-1301's unblocked stages was
-  delivered as `src/orchestration/` (AUDIT-0030); T-1301 remains BLOCKED
-  and the execution boundary is unchanged.)
+- State: BLOCKED (deps T-1401/T-1501 BLOCKED)
+- (Other blockers: B-2 install approval + `C:\` below threshold →
+  T-0501/T-0502/T-0404/T-1501; T-1401 needs T-1301. B-1 (Taiga-S1 upstream)
+  is RESOLVED; a live Taiga-S1 inference provider is still not wired, so
+  T-1301 ANALYZE stays BLOCKED. No READY task remains.)
 
 ## Active subsystem
+- MVP interface & documentation (current): `src/cli.py`, `src/__main__.py`
+  (`python -m src`), `tests/test_cli.py`, `docs/mvp.md`, `docs/usage.md`,
+  `docs/installation.md`, `docs/testing.md`, `docs/security.md`,
+  `CHANGELOG.md`, `decisions/ADR-0005-mvp-scope-and-delivery.md`.
+- Dependency/self-contained deployment: `docs/dependencies.md`,
+  `decisions/ADR-0004-dependency-independence.md`,
+  `tests/test_dependency_independence.py`.
+- Governance/storage: `src/core/storage.py` (preflight),
+  `config/storage.json`, `scripts/windows/dev-env.ps1`, `docs/storage.md`,
+  `decisions/ADR-0003-development-storage-isolation.md`.
+- Taiga: `src/taiga/runtime.py` (T-0601: `SystemBudget`,
+  `budget_from_system`, `ModelTier`, `RuntimeSelection`, `select_runtime`,
+  `runtime_evidence` — resource-aware model-tier selection from the PEM
+  budget, INFERRED evidence, honest UNKNOWN/unavailable), `src/taiga/
+  contracts.py` (T-0602 provider-neutral `Action`/`Evidence`/`Result`/
+  `Route`/`Score` + `Provider`/`Policy`/`Capability` protocols),
+  `src/taiga/registry.py` (`ProviderRegistry` + module singleton).
 - PEM: `src/pem/detect.py` (system), `src/pem/tools.py` (tool probes,
   capability states), `src/pem/report.py` (§25 report generation),
   `src/pem/installer.py` (idempotent, guarded install engine),
   `src/pem/ops.py` (healthcheck/install/update commands, `--execute`).
-- Core: `src/core/manifest.py` (manifest loader; requires
-  `install_command`).
-- Scripts: `scripts/windows/{install,update,healthcheck}.ps1` (thin
-  wrappers, executed and verified on this host);
-  `scripts/linux/{install,update,healthcheck}.sh` and
-  `scripts/macos/{install,update,healthcheck}.sh` (thin POSIX wrappers,
-  static-verified only).
-
-- Recovery: `src/core/recovery.py` (T-1502: `recover`/
-  `recover_consistent`/`assert_recoverable` reconstruct state from
-  `MASTER.md`/`project-state.md`/`next-task.md`/`roadmap.md` only and
-  reject contradictions — MASTER §42/§43).
-- Cross-platform: `src/core/xplat.py` (T-1601: `normalise_newlines`,
-  `read_text_utf8`, `write_text_lf`, `line_ending_report`, `path_within`).
-- CIE: `src/cie/model.py` (§12 `Component` + `UNKNOWN` sentinel +
-  `MotorSpec` §13 + `DerivedValue`), `config/component.schema.json`
-  (draft-07), `src/cie/store.py` (`ComponentStore` SQLite + JSON I/O);
-  `src/cie/target.py` (URL validation) + `src/cie/identify.py` (exact
-  product identification → `Component`, no network), `config/identification.schema.json`;
-  `src/cie/provenance.py` (eight §10 source tiers + `Provenance`) +
-  `src/cie/conflicts.py` (`Fact`/`FieldRecord`, `CONFLICT`, governing
-  selection), `config/fact-record.schema.json`;
-  `src/cie/__init__.py` re-exports.
-- REA: `src/rea/pipeline.py` (ordered §18 stages), `src/rea/records.py`
-  (authorized §19/§20 records + `with_evidence`), `src/rea/storage.py`
-  (seven §21 templates), `src/rea/inspection.py` (read-only file
-  fingerprinting: magic-byte type, sha256/md5, bounded strings, tool
-  probing), `src/rea/__init__.py` re-exports.
-- Integrations: `src/integrations/jupyter.py` (Python/Jupyter: nbformat v4
-  build/validate, `simulations/`-confined notebook write,
-  `jupyter nbconvert` execution gated on `jupyter_available`,
-  `notebook_evidence`), `src/integrations/__init__.py` re-exports.
-- Integrations (CAD): `src/integrations/freecad.py` (FreeCAD mechanical
-  authority: parametric macro generation, `cad/`-confined macro write,
-  headless `freecadcmd` run gated on `freecad_available`,
-  `verify_outputs`, `cad_evidence`).
-- Integrations (PCB): `src/integrations/kicad.py` (KiCad PCB authority:
-  `kicad-cli` DRC/ERC/Gerber export gated on `kicad_cli`,
-  `verify_artifacts`, `kicad_evidence`).
-- Integrations (circuits): `src/integrations/ngspice.py` (ngspice circuit
-  authority: batch `ngspice -b -o` gated on `ngspice_cli`, `write_netlist`,
-  `parse_op_point`, `verify_outputs`).
-- Integrations (robotics): `src/integrations/gazebo.py` (Gazebo
-  robotics/physics authority: headless `gz sim -s` gated on `gazebo_cli`,
-  `write_world` under `models/`, `verify_outputs`).
-- Integrations (visualization): `src/integrations/blender.py` (Blender
-  visualization authority: headless `blender --background --python` gated
-  on `blender_cli`, `write_script` under `models/`, `verify_outputs`).
-- Orchestration (PARTIAL T-1301, AUDIT-0030): `src/orchestration/workflow.py`
-  (`WorkflowStage`/`WORKFLOW_STAGES`, `StageStatus`, `StageResult`,
-  `WorkflowReport`, `run_workflow`, `write_project` confined to
-  `projects/`); coordinates the §50 stages over the real subsystems,
-  reporting ACQUIRE/ANALYZE `BLOCKED` and tool stages via PEM probes.
+- Core: `src/core/config.py` (single source for repo root/paths/config),
+  `src/core/manifest.py`, `src/core/upstream.py` (T-0203 registry loader),
+  `src/core/storage.py` (T-1801 storage preflight), `src/core/state.py`,
+  `src/core/evidence.py`, `src/core/xplat.py`, `src/core/recovery.py`.
+- Scripts: `scripts/{windows,linux,macos}/{install,update,healthcheck}`
+  (thin wrappers; Windows executed, POSIX static-verified only).
+- CIE: `src/cie/model.py`, `config/component.schema.json`, `src/cie/store.py`,
+  `src/cie/target.py`, `src/cie/identify.py`, `src/cie/provenance.py`,
+  `src/cie/conflicts.py`, `config/fact-record.schema.json`.
+- REA: `src/rea/pipeline.py`, `records.py`, `storage.py`, `inspection.py`.
+- Integrations: `src/integrations/{jupyter,freecad,kicad,ngspice,gazebo,
+  blender}.py`.
+- Orchestration (PARTIAL T-1301, AUDIT-0030): `src/orchestration/workflow.py`.
 
 ## Blockers
-- T-0002 (License decision): BLOCKED — requires human approval (MASTER §35).
-- **B-1 Taiga-S1 upstream repository not supplied** (directive §13/§39):
-  T-0601/T-0602 BLOCKED. No Taiga API is guessed; independent work
-  continues.
 - **B-2 Privileged/network installation approval** (MASTER §7/§29): real
   installation of engineering tools (incl. Scrapling for T-0501/T-0502)
   needs network + possibly admin and C:\ is below the disk threshold;
   install tasks proceed as code + tests that SKIP when a tool is absent,
   awaiting user approval for live runs. T-0501 is BLOCKED under this gate;
-  Phase-4 T-0404 depends on T-0502.
+  T-0404 depends on T-0502; T-1501 depends on T-0502.
+- **B-1 Taiga-S1 upstream repository — RESOLVED (2026-10-09):** upstream
+  biome-s1/taiga-s1 verified (MIT source); T-0601/T-0602 are COMPLETE. A live
+  inference provider is not wired, so T-1301's ANALYZE stage stays BLOCKED.
+- **T-1802 cleanup — CLOSED (2026-10-15):** the narrow regenerable-cache
+  cleanup (`pip cache purge`, `npm cache clean --force`) was approved and
+  executed; no other deletion was performed. No open cleanup blocker.
 
 ## Known issues
-- **No engineering toolchain installed on this host (OBSERVED,
-  2026-10-08):** FreeCAD, KiCad, ngspice, Gazebo, Blender, Jupyter,
-  Scrapling all NOT_FOUND. Engineering-tool tasks (T-0801+) cannot run
-  until install tasks provide them or the user installs them.
-- **Disk pressure on C:\ is volatile (OBSERVED):** 6,135,808 bytes at
-  T-0103 → 459,509,760 at T-0104 close → 451,891,200 at T-0107 close.
-  Still below the 1 GiB threshold, so live `install --execute` refuses
-  (exit 3) on this host; re-check before any install execution.
-- Linux/macOS probe/code paths unexecuted (Windows host; no POSIX shell)
-  — T-1601. Linux + macOS wrappers now exist but are static-verified
-  only (T-0105/T-0106).
-- Version extraction is best-effort first dotted-numeric token (e.g.
-  "2.55.0.windows.3" reported as "2.55.0").
-- Non-pip tools carry `install_command: null` (package-manager
-  detection R3.3 pending) → installer routes them to manual notice;
-  UNKNOWN tools (taiga-s1, rea) route to `investigate`. This is the
-  documented manual-routing behavior — verified 2026-10-09.
-- **RESOLVED (2026-10-09, AUDIT-0031):** tool-manifest notes had gone
-  stale ("not probed yet (UNKNOWN)" for tools already probed NOT_FOUND;
-  `rea` claimed unbuilt although T-0701/T-0702 are COMPLETE) and four
-  roadmap detail-block states disagreed with the authoritative table
-  (T-0001/T-0101/T-0102/T-0201). Both reconciled to match evidence; no
-  behavior change.
+- **No engineering toolchain installed on this host:** FreeCAD, KiCad,
+  ngspice, Gazebo, Blender, Jupyter, Scrapling all NOT_FOUND (OBSERVED).
+  Engineering-tool tasks (T-0801+) cannot run live until install tasks
+  provide them or the user installs them.
+- **Taiga-S1 routing/analysis is contracts-only:** T-0602 provides the
+  provider-neutral contract and registry; no live provider is wired, so
+  `src/orchestration/` reports ANALYZE `BLOCKED`. The runtime stage cannot
+  be claimed COMPLETE (MASTER §46).
+- **Disk pressure on C:\ is volatile** (below the 1 GiB threshold), so live
+  `install --execute` refuses (exit 3) on this host; re-check before any
+  install execution. Project-controlled caches (pip/npm/HF) are redirected
+  to `D:\EngineeringWorkspace\` (T-1800) and the old C: pip/npm caches were
+  purged (T-1802), so C: no longer grows from them. Most C: usage remains
+  non-project (OS/apps/VMs).
+- **Uncommitted/untracked work:** much of T-0203/T-0601/T-1700/T-1800/T-1801/
+  T-1802/T-1900 exists only in the working tree (`src/taiga/runtime.py`,
+  `tests/test_taiga.py`, `tests/test_storage.py`, `src/core/storage.py`,
+  `src/core/upstream.py`, `config/storage.json`, `config/upstream-sources.*`,
+  `scripts/windows/dev-env.ps1`, `docs/storage.md`, `docs/dependencies.md`,
+  `decisions/ADR-0004-dependency-independence.md`,
+  `tests/test_dependency_independence.py`, ADR-0003). Not committed (no commit
+  was requested); a working-copy loss would drop them from Git.
+- Linux/macOS probe/code paths unexecuted (Windows host; no POSIX shell).
+- Version extraction is best-effort first dotted-numeric token.
+- Non-pip tools carry `install_command: null` → installer routes them to a
+  manual notice; UNKNOWN tools (taiga-s1, rea) route to `investigate`.
+- Untracked `progress.md` duplicates project-state and is not a MASTER §27
+  governance file; treat `project-state.md` as authoritative (open item H-13).
 
 ## Architecture status
-- `architecture.md`: DRAFT consistent with implemented scope.
-- ADR-0001 (bootstrap governance) + ADR-0002 (evidence strength order)
-  recorded; no other architectural change since bootstrap.
-- `docs/license-impact.md` (2026-10-09): T-0002 preparatory analysis; the
-  project has no LICENSE and T-0002 remains a human gate (§35).
+- `architecture.md`: DRAFT consistent with implemented scope (updated for
+  Phase 18 storage isolation and Phase 19 dependency independence).
+- ADR-0001 (bootstrap governance), ADR-0002 (evidence strength order),
+  ADR-0003 (development storage isolation & C: protection) and ADR-0004
+  (dependency independence & self-contained deployment) recorded.
+- License: MIT (`LICENSE`, T-0002); third-party tool/model terms separate
+  (`docs/license-impact.md`).
 
 ## Environment status
-- System (OBSERVED via `detect_system()`, 2026-10-08):
-  - OS: Windows 11 (build 10.0.26200), AMD64 64-bit
-  - CPU: AMD Ryzen 5 5600H with Radeon Graphics
-  - RAM: 6,287,331,328 bytes (~5.86 GiB as reported by the OS)
-  - GPU: AMD Radeon(TM) Graphics; NVIDIA GeForce GTX 1650 (VRAM UNKNOWN)
-  - Storage: C:\ 213.8 GB total / 451,891,200 bytes free (fluctuating);
-    D:\ 297.2 GB total / 96,802,582,528 bytes free
-- Tools (OBSERVED via `detect_tools()`, 2026-10-08):
-  - DETECTED: git 2.55.0, python 3.13.5
-  - NOT_FOUND: jupyter, scrapling, freecad, kicad, ngspice, gazebo, blender
-  - UNKNOWN (not implemented): taiga-s1, rea
-- Toolchain side probes (OBSERVED): Node v24.14.1, pytest 9.1.1,
-  PySide6 6.11.1.
+- System (OBSERVED via `detect_system()`): Windows 11 (build 10.0.26300,
+  re-observed 2026-10-15; bootstrap reading was 10.0.26200), AMD64 64-bit;
+  CPU AMD Ryzen 5 5600H; RAM 6,287,331,328 bytes; GPU AMD Radeon(TM)
+  Graphics + NVIDIA GeForce GTX 1650 (VRAM UNKNOWN); C:\ free space
+  volatile/low; D:\ ~90.5 GB free.
+- Tools (OBSERVED via `detect_tools()`): DETECTED git 2.55.0, python 3.13.5;
+  NOT_FOUND jupyter, scrapling, freecad, kicad, ngspice, gazebo, blender;
+  UNKNOWN taiga-s1, rea.
 - Capabilities: numerical optimization = READY; LLM inference = UNKNOWN;
   CAD / PCB design / circuit simulation / robotics simulation / 3D
   rendering / web acquisition = UNAVAILABLE.
-- `environment.json` / `environment-report.md`: GENERATED 2026-10-08
-  (OBSERVED warnings/limits in AUDIT-0008). Machine-specific, gitignored,
-  regenerate with `python -m src.pem.report`.
+- `environment.json` / `environment-report.md`: generated, machine-specific,
+  gitignored.
 
 ## Test status
-- `python -m pytest tests/ -v` → **397 passed, 8 skipped** (2026-10-09,
-  Python 3.13.5, pytest 9.1.1): 38 governance + 9 PEM detection +
-  21 manifest + 22 PEM tools + 20 PEM report + 23 PEM ops + 17 installer
-  + 14 Unix-script static tests (parametrised Linux + macOS) + 19 core
-  config + 29 core evidence + 20 core state + 14 CIE model/schema +
-  7 CIE store + 5 CIE target + 14 CIE identify + 9 CIE provenance +
-  13 CIE conflict + 8 REA pipeline + 8 REA records + 7 REA storage +
-  8 REA inspection + 8 Jupyter + 7 FreeCAD + 7 KiCad + 7 ngspice +
-  6 Gazebo + 6 Blender + 7 recovery + 7 cross-platform + 17 orchestration
-  tests.
-  Skipped (8): the two per-platform `sh -n` syntax checks (no POSIX
-  shell on host), and the live-Jupyter, live-FreeCAD, live-KiCad,
-  live-ngspice, live-Gazebo and live-Blender tests (those tools are not
-  installed). No test behavior changed.
-- Bugs caught by tests so far and fixed before completion: empty-list
-  evidence bug (T-0101), manifest error-ordering bug (T-0201),
-  §29 heading dropped from project-state rewrite (T-0102), "installed"
-  wording + missing UNAVAILABLE limitations (T-0103). T-0104 reported
-  test error diagnosed as environment disk-cleanup interference (not a
-  code defect; AUDIT-0009). T-0107: stale `PLAN_ONLY_NOTICE` text
-  corrected and a latent word-boundary bug in the roadmap dependency
-  regex fixed (AUDIT-0010).
+- `python -m pytest tests/ -q` → **483 passed, 8 skipped** (2026-10-15,
+  Python 3.13.5, pytest 9.1.1); 491 collected. Previously 471/479; the +12 are
+  `tests/test_cli.py` (T-2000). Other suites: `tests/test_storage.py` (24),
+  `tests/test_taiga.py` (16), `tests/test_upstream_sources.py` (27),
+  `tests/test_dependency_independence.py` (7).
+- Skipped (8): the two per-platform `sh -n` syntax checks (no POSIX shell on
+  host) and the six live-tool integration tests (tools not installed).
 
 ## Validation status
-- Governance validation + live OBSERVED detector/probe/report/script/
-  install-engine runs recorded in audit.md (AUDIT-0005..0017). Windows
-  wrappers executed on host: healthcheck exit 1 (C:\ below threshold),
-  install/update exit 0 plan-only, 53-file snapshot proves zero
-  mutation. Install engine: live plan exit 0; `--execute` refused
-  exit 3 (disk); no live mutation attempted. Linux + macOS wrappers:
-  STATIC validation only (file/shebang/delegation/tool-id checks);
-  never executed (no POSIX shell on this host). Core config: unit-tested;
-  live REPO_ROOT + manifest load verified; YAML branch executed (PyYAML
-  present). Core evidence (T-0302): unit-tested; live ranking/strongest
-  observed. Core state (T-0301): unit-tested; live parse of the real
-  roadmap/next-task/project-state observed; byte-identical no-op
-  round-trips proven. CIE (T-0401): unit-tested; live build→SQLite
-  save→fetch round-trip observed and schema acceptance/rejection
-  verified against a fabricated record. CIE (T-0402): unit-tested; live
-  identification over a JSON-LD fixture observed (identity + component
-  mapping) and an opaque page refused with `IdentificationError`; no
-  network performed. CIE (T-0403): unit-tested; live §11 conflict
-  observed — marketplace 10,000 vs datasheet 8,500 → `CONFLICT`, both
-  retained, governing = datasheet. REA (T-0701): unit-tested; live
-  authorized-investigation build + pipeline advance + seven-file write
-  observed, with unauthorized and recovered-source cases refused. REA
-  (T-0702): unit-tested; live fingerprint of a PE fixture matched an
-  independent `hashlib.sha256`, tool probing reported present/absent, and
-  `inspect_target` produced OBSERVED evidence (0→7 entries). Integrations
-  (T-0801): unit-tested; live build→validate→write of a notebook to
-  `simulations/` observed (527 bytes), `jupyter_available()` returned
-  `None`, and `execute_notebook` raised `JupyterUnavailable` — notebook
-  execution is **UNAVAILABLE** on this host, never claimed as run. FreeCAD
-  (T-0901): unit-tested; live generation of a
-  parametric macro written to `cad/` observed (381 bytes),
-  `freecad_available()` returned `None` (FreeCAD NOT installed), and
-  `run_macro` raised `FreeCADUnavailable` — CAD execution is
-  **UNAVAILABLE** on this host. KiCad (T-1001): unit-tested; live
-  `kicad_cli()` returned `None` (KiCad NOT installed), `verify_artifacts`
-  reported a fixture's size, and `run_drc` raised `KiCadUnavailable` —
-  PCB execution is **UNAVAILABLE** on this host. ngspice (T-1002):
-  unit-tested; live `ngspice_cli()` returned `None` (ngspice NOT
-  installed), `parse_op_point` extracted `{'in': 5.0, 'out': 3.3}` from a
-  captured block, and `run_simulation` raised `NgspiceUnavailable` —
-  circuit simulation is **UNAVAILABLE** on this host. Gazebo (T-1101):
-  unit-tested; live `write_world` wrote an SDF under `models/` (67 bytes),
-  `gazebo_cli()` returned `None` (Gazebo NOT installed), and
-  `run_headless` raised `GazeboUnavailable` — robotics simulation is
-  **UNAVAILABLE** on this host. Blender (T-1201): unit-tested; live
-  `write_script` wrote a Python script under `models/` (54 bytes),
-  `verify_outputs` reported its size, `blender_cli()` returned `None`
-  (Blender NOT installed), and `run_background` raised
-  `BlenderUnavailable` — rendering is **UNAVAILABLE** on this host.
-  Recovery (T-1502): unit-tested; live `assert_recoverable(REPO_ROOT)`
-  reconstructed boundary T-1502 with blocked set {T-0002, T-0501, T-0601,
-  T-0602, T-1301, T-1401, T-1501} from repository evidence alone. Cross-platform (T-1601): unit-tested;
-  live `line_ending_report` over `scripts/**/*.sh` reported LF-only; the
-  POSIX wrappers remain STATIC-validated only (no POSIX shell to execute
-  them). Orchestration (PARTIAL T-1301, AUDIT-0030): unit-tested; live
-  `run_workflow` for `demo-motor` completed IDEA/IDENTIFY/MODEL/PYTHON/
-  VALIDATE, reported ACQUIRE/ANALYZE `BLOCKED`, tool stages `UNAVAILABLE`,
-  overall `PARTIALLY-VALIDATED`, and `write_project` wrote
-  `projects/demo-motor/` — NOT a complete end-to-end run (Taiga-S1/
-  Scrapling BLOCKED). No engineering validation applicable yet.
+- T-0601 (runtime): unit-tested; `select_runtime` maps a 12 GiB budget to
+  `MEDIUM`, unknown RAM to `UNKNOWN`, and reports `available=False` without a
+  registered provider. T-0602 (contracts/registry): unit-tested (frozen
+  contracts, registry register/get/list, module singleton). Live
+  `select_runtime()` (no provider) returns an UNKNOWN/INFERRED selection
+  without crashing. T-1700: full suite green; no subsystem behaviour changed.
+  T-0203 (registry): loader executes and validates all 11 sources; rejection
+  matrix (missing field, non-https URL, duplicate id, unknown field, bad
+  enum, UNKNOWN-with-claim, VERIFIED-without-value) covered by 27 tests.
+  T-1801 (storage): `disk_usage`/`drive_of` measured live (D: 90.52 GiB free);
+  `preflight` CLI returns 0 for `dependency_install` on `D:\EngineeringWorkspace`;
+  redirect verification: `pip cache dir` → `D:\EngineeringWorkspace\caches\pip`,
+  npm cache → `D:\EngineeringWorkspace\caches\npm`, `HF_HOME` set. Redirection
+  and preflight covered by 24 tests (thresholds, blocking, CLI exit codes).
+  T-1802 (cleanup): `pip cache purge` (0 bytes; cache already on D:) and
+  `npm cache clean --force` executed; C: free rose ~2.23 → ~2.34 GiB; no
+  other deletion. T-1702: documentation-only change; suite still 464/8.
+  T-1900 (dependency independence): AST scan of all `src/**/*.py` finds the
+  only third-party import is `yaml` in `src/core/config.py` (guarded,
+  optional); importing every `src` module succeeds with PyYAML blocked;
+  runtime config is JSON; 7 new guard tests green; full suite 471/8. Stray
+  UTF-8 BOMs removed from `src/taiga/{__init__,contracts,registry}.py`.
+  T-2000 (CLI): every `python -m src` command exercised live — `version`
+  prints `0.1.0`; `workflow run --name smoke` prints all 12 stages with
+  `ACQUIRE`/`ANALYZE` `BLOCKED` and `validation_level=PARTIALLY-VALIDATED`;
+  `storage preflight build` returns `ok:true` (JSON); `upstream` lists 11
+  sources — covered by 12 tests. T-2001: documentation-only; suite 483/8.
+- All earlier validation levels (PEM/CIE/REA/integrations/orchestration) are
+  unchanged from AUDIT-0005..0030; external-tool live execution remains
+  UNAVAILABLE on this host.
 
 ## Next action
-No further executable task remains. All non-blocked phases are complete
-(1–12, T-1502 recovery, T-1601 hardening). To continue, a human must
-clear the blockers:
-- **B-1:** supply the Taiga-S1 upstream repository → unblocks
-  T-0601/T-0602 → T-1301 → T-1401.
-- **B-2:** approve network/privileged installs (Scrapling) and raise
-  C:\ above the 1 GiB threshold → unblocks T-0501/T-0502 → T-0404 →
-  T-1501.
-- **T-0002:** license decision (§35).
-When those are resolved, resume with the next executable task in §48
-order; eventually T-1701 (release audit) walks the §54 checklist.
+The **offline MVP is complete** (T-2000/T-2001; `docs/mvp.md`, ADR-0005) and
+operable via `python -m src`. One approval unblocks the live product:
+- **B-2:** approve network/privileged installs (Scrapling) and raise C:\ above
+  the 1 GiB threshold → unblocks T-0501/T-0502 → T-0404 → T-1301 →
+  T-1401/T-1501 → T-1701.
+Non-destructive C: protection (T-1800/T-1801) and the approved cleanup
+(T-1802) are complete. B-1 is resolved; wiring a live Taiga-S1 inference
+provider would additionally unblock T-1301's ANALYZE stage. Dependency
+independence (T-1900) is complete; building a bundled/portable artifact awaits
+the owner's format choice (H-14). When B-2 clears, resume with the next
+executable task in §48 order; eventually T-1701 (release audit) walks the §54
+checklist. No READY task exists meanwhile.
 
 ## Last update
-2026-10-09 — 2026-10-09 AUDIT-0031: repository re-verified (clean,
-  `1fca98b`); C:\ free 0.579 GiB → B-2 persists; B-1 persists; T-0002
-  remains BLOCKED (preparatory `docs/license-impact.md`). Tool-manifest
-  notes reconciled to OBSERVED probe states; roadmap detail-block states
-  reconciled to the authoritative table. No task states changed; no code
-  changes to behavior. Test suite 397 passed, 8 skipped. No eligible task
-  remains.
+2026-10-15 — MVP operability & documentation (T-2000/T-2001, AUDIT-0046; owner
+  directive "Universal Project Autonomy Protocol"). Added a unified offline
+  CLI (`python -m src`; `src/cli.py`, `src/__main__.py`, `src.__version__`)
+  exposing version/env/tools/storage/upstream/cie/rea/workflow, and defined
+  the MVP in `docs/mvp.md` with consolidated `docs/usage.md`,
+  `docs/installation.md`, `docs/testing.md`, `docs/security.md`, `CHANGELOG.md`
+  (decision: `decisions/ADR-0005-mvp-scope-and-delivery.md`). Suite **483
+  passed, 8 skipped (491 collected)**. No existing runtime behaviour changed;
+  the live pipeline stays BLOCKED (B-2/H-3). Prior: T-1900 dependency
+  independence (AUDIT-0045), T-1702 governance reconciliation (AUDIT-0044),
+  T-1802 cache cleanup (AUDIT-0044), T-1800/T-1801 storage isolation
+  (AUDIT-0043), T-0203 upstream registry (AUDIT-0042).

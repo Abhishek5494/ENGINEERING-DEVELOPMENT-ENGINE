@@ -182,6 +182,36 @@ def test_real_host_finds_git_and_python() -> None:
     assert records["python"]["version"] != "UNKNOWN"
 
 
+def test_python_probe_falls_back_to_python3(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        tools_mod.shutil, "which", lambda name: {"python3": "/usr/bin/python3"}.get(name)
+    )
+    _patch_run(monkeypatch, lambda *a, **k: _completed(0, stdout="Python 3.13.5"))
+    record = tools_mod._probe_tool(
+        _entry("python", executable="python", health_check="python --version")
+    )
+    assert record["state"] == "DETECTED"
+    assert record["version"] == "3.13.5"
+    assert record["probe"] == "/usr/bin/python3 --version"
+    assert record["executable_path"] == "/usr/bin/python3"
+
+
+def test_python_probe_uses_bare_python_when_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        tools_mod.shutil,
+        "which",
+        lambda name: "/usr/bin/python" if name == "python" else None,
+    )
+    _patch_run(monkeypatch, lambda *a, **k: _completed(0, stdout="Python 3.13.5"))
+    record = tools_mod._probe_tool(
+        _entry("python", executable="python", health_check="python --version")
+    )
+    assert record["probe"] == "python --version"
+    assert record["executable_path"] == "/usr/bin/python"
+
+
 # ---- capability aggregation ---------------------------------------------
 
 

@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "engineering-development-engine/upstream-sources.schema.json",
+  "title": "Engineering Development Engine upstream-source registry",
+  "description": "Canonical, reference-only registry of the upstream repositories for every project-owned integration and specialist tool. It records WHERE an upstream lives and HOW FAR it has been verified; it must never assert installation state, a guessed version/commit, or a license that has not been verified. null = UNKNOWN (populate only after inspecting the repository). Tool detection/installation metadata stays in config/tool-manifest.json; entry ids here match the corresponding tool-manifest ids.",
+  "type": "object",
+  "required": ["schema_version", "sources"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Registry format version.",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/source" }
+    }
+  },
+  "definitions": {
+    "source": {
+      "type": "object",
+      "description": "One upstream source. Field names are stable; do not assert unverified facts.",
+      "required": [
+        "id",
+        "name",
+        "purpose",
+        "repository_url",
+        "documentation_url",
+        "source_type",
+        "license_status",
+        "version_status",
+        "integration_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable machine identifier, lowercase kebab-case; matches the tool-manifest id where one exists.",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "name": { "type": "string", "minLength": 1 },
+        "purpose": { "type": "string", "minLength": 1 },
+        "repository_url": {
+          "type": "string",
+          "description": "Canonical upstream source repository URL (https only).",
+          "pattern": "^https://"
+        },
+        "documentation_url": {
+          "description": "Official documentation URL, or null when UNKNOWN (never guessed).",
+          "anyOf": [
+            { "type": "string", "pattern": "^https://" },
+            { "type": "null" }
+          ]
+        },
+        "source_type": {
+          "type": "string",
+          "enum": ["core-integration", "specialist-tool", "version-control"],
+          "description": "Category of the upstream source."
+        },
+        "license_status": {
+          "type": "string",
+          "enum": ["VERIFIED", "UNVERIFIED", "UNKNOWN"],
+          "description": "Whether the upstream license has been verified. UNKNOWN forbids a 'license' value."
+        },
+        "version_status": {
+          "type": "string",
+          "enum": ["VERIFIED", "UNVERIFIED", "UNKNOWN"],
+          "description": "Whether a specific upstream version/commit has been verified. UNKNOWN forbids 'version'/'commit' values."
+        },
+        "integration_status": {
+          "type": "string",
+          "enum": ["COMPLETE", "PARTIAL", "PLANNED", "BLOCKED", "NOT_INTEGRATED", "UNKNOWN"],
+          "description": "Maturity of this project's integration with the upstream source."
+        },
+        "version": {
+          "description": "Pinned upstream version when verified, otherwise null.",
+          "anyOf": [{ "type": "string" }, { "type": "null" }]
+        },
+        "commit": {
+          "description": "Pinned upstream commit when verified, otherwise null.",
+          "anyOf": [{ "type": "string" }, { "type": "null" }]
+        },
+        "license": {
+          "description": "Verified upstream license identifier, otherwise null.",
+          "anyOf": [{ "type": "string" }, { "type": "null" }]
+        },
+        "notes": {
+          "description": "Provenance/justification for the recorded statuses, or other caveats.",
+          "anyOf": [{ "type": "string" }, { "type": "null" }]
+        }
+      }
+    }
+  }
+}

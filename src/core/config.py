@@ -46,6 +46,9 @@ TESTS_DIR: Path = REPO_ROOT / "tests"
 
 MANIFEST_PATH: Path = CONFIG_DIR / "tool-manifest.json"
 MANIFEST_SCHEMA_PATH: Path = CONFIG_DIR / "tool-manifest.schema.json"
+UPSTREAM_SOURCES_PATH: Path = CONFIG_DIR / "upstream-sources.json"
+UPSTREAM_SOURCES_SCHEMA_PATH: Path = CONFIG_DIR / "upstream-sources.schema.json"
+STORAGE_CONFIG_PATH: Path = CONFIG_DIR / "storage.json"
 ENVIRONMENT_REPORT_SCHEMA_PATH: Path = CONFIG_DIR / "environment-report.schema.json"
 
 DIRECTORIES: Mapping[str, Path] = {
